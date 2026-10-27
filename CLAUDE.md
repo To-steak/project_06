@@ -10,9 +10,9 @@ Unity 6 (6000.3.11f1), URP 프로젝트다. Unity 프로젝트 루트는 `Projec
 - 설계에 값이 없는 작은 수치나 동작은 정해서 진행하되, 응답에 무엇을 정했는지 알린다.
 
 ## 설계 문서
-- 작업 전에 `Docs/Design/<브랜치 이름>.md`를 읽는다 (예: `feat/player/controller` → `Docs/Design/feat/player/controller.md`). 브랜치 이름은 요청에 적힌 것, 없으면 현재 브랜치에서 정한다.
+- `feat` 브랜치 작업 전에 `Docs/Design/<브랜치 이름>.md`를 읽는다 (예: `feat/player/controller` → `Docs/Design/feat/player/controller.md`). 브랜치 이름은 요청에 적힌 것, 없으면 현재 브랜치에서 정한다. 다른 type의 브랜치는 설계 문서를 두지 않는다.
 - 영역에 속하지 않는 작업(World, Runner, 틱 순서 등)은 `Docs/Design/core.md`를 읽는다.
-- 브랜치 이름을 알 수 없거나 해당 문서가 없으면 묻는다.
+- `feat` 작업인데 브랜치 이름을 알 수 없거나 해당 문서가 없으면 묻는다.
 
 ## 작업 범위
 Claude는 코드만 쓴다. Unity 프로젝트 안에서 만들고 수정하는 파일은 다음뿐이다.

@@ -40,7 +40,7 @@ argument-hint: "[브랜치 이름] [메모]"
 
 `<type>/<영역>/<기능>`, 영문 소문자·숫자·하이픈. 예: `feat/player/controller`, `feat/enemy/animation`, `fix/player/attack-range`.
 
-- 브랜치 이름은 설계 문서 경로와 맞춘다 (`Docs/Design/<브랜치 이름>.md`). 브랜치 하나가 기능 하나, PR 하나다.
+- `feat` 브랜치 이름은 설계 문서 경로와 맞춘다 (`Docs/Design/<브랜치 이름>.md`). 브랜치 하나가 기능 하나, PR 하나다.
 
 ### 커밋 메시지
 
