@@ -11,7 +11,7 @@ Unity 6 (6000.3.11f1), URP 프로젝트다. Unity 프로젝트 루트는 `Projec
 
 ## 작업 범위
 Claude는 코드만 쓴다. Unity 프로젝트 안에서 만들고 수정하는 파일은 다음뿐이다.
-- `Project/Assets/Scripts/` 아래의 `.cs`와 `.asmdef`
+- `Project/Assets/Scripts/` 아래의 `.cs`, `.asmdef`, `.asmref`
 
 나머지(씬, 프리팹, 에셋, 설정, `.meta`)는 사용자가 에디터에서 다룬다.
 - Claude는 에디터를 실행할 수 없다. 에디터에서 할 일이 생기면 응답에 구체적으로 적는다.
