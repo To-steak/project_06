@@ -19,14 +19,14 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 - 한 판의 모든 상태는 **World**에 둔다. 판마다 `new World()`로 새로 만든다.
 - 로직은 `~System` 이름의 **static 클래스**로 만든다. 시그니처는 `public static void Tick(World world)`. **static 필드에 상태를 두지 않는다.**
 - **엔티티 생성은 SpawnSystem(틱 마지막)에서만 한다.** 다른 System은 World의 생성 요청 큐(`Queue<~Request>`)에 넣기만 한다. 소멸은 즉시 하고, 이후 System은 `IsAlive`로 건너뛴다.
-- 엔티티는 객체 참조 대신 `EntityID { index, generation }`로 가리킨다. World는 종류별 배열과 빈 슬롯 목록으로 보관하고, 슬롯을 재사용할 때 generation을 올린다.
+- 엔티티는 객체 참조 대신 `EntityIdentifier { index, generation }`로 가리킨다. World는 종류별 배열과 빈 슬롯 목록으로 보관하고, 슬롯을 재사용할 때 generation을 올린다.
 - System 간 호출은 직접 호출한다. 틱 순서는 Runner가 관리한다.
 - 수치는 하드코딩하지 않고 `~Definition`(ScriptableObject)에 둔다. 테이블은 생성 시점에만 조회하고 필요한 값은 엔티티에 복사한다.
 - 서비스 클래스, ServiceLocator를 만들지 않는다.
 
 ## App / Runner
 - 프로그램 전체 수명의 기능은 **static `App`**에 둔다. App은 Foundation 어셈블리에 있다.
-- **System은 App을 쓰지 않는다. World만 본다.** App은 View, UI, Core만 쓴다.
+- **System은 App을 쓰지 않는다. World만 본다.** App은 View, UserInterface, Core만 쓴다.
 - DDOL에는 `Runner` 하나만 올린다. `RuntimeInitializeOnLoadMethod(BeforeSceneLoad)`에서 생성한다.
 - **베이킹:** `~Definition`과 씬의 `~Authoring`은 Core에서 Component의 struct로 변환한다. System은 Authoring을 참조하지 않는다.
 
@@ -36,7 +36,7 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 
 ## View
 - View는 Runner가 LateUpdate에서 정해진 순서로 호출하는 `~ViewSystem.Present(world, viewContext)`가 처리한다.
-- View 쪽 실행 상태(EntityID → View 매핑, 풀, 카메라 참조)는 **ViewContext 인스턴스**에 둔다. ViewSystem도 static 필드에 상태를 두지 않는다.
+- View 쪽 실행 상태(EntityIdentifier → View 매핑, 풀, 카메라 참조)는 **ViewContext 인스턴스**에 둔다. ViewSystem도 static 필드에 상태를 두지 않는다.
 - 지속 상태는 매 프레임 World를 읽고, 그 순간의 일은 프레임 기록을 읽는다. 프레임 기록은 struct이며 객체 참조를 담지 않는다. 기록 목록은 Runner가 LateUpdate 마지막에 비운다.
 - View 오브젝트는 World의 살아 있는 엔티티와 비교해 생성·반납한다. 게임 루프에서 `Instantiate` / `Destroy`를 반복하지 않고 풀을 쓴다.
 - UI는 View-Presenter 구조다. Presenter가 World를 읽어 View를 갱신하고, 버튼 입력은 Presenter를 거쳐 `world.Input`에 들어간다.
@@ -61,6 +61,6 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 | `Authoring/` | `~Definition`, `~Authoring` | Component |
 | `Foundation/` | static App과 그 기능 | Component |
 | `View/` | `~ViewSystem`, `~View` | Component, Foundation |
-| `UI/` | UI View, Presenter | Component, Foundation |
+| `UserInterface/` | UI View, Presenter | Component, Foundation |
 | `Core/` | Runner, 부트스트랩, 베이킹 | 전부 |
 | `Editor/` | 에디터 도구 | Authoring |

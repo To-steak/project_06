@@ -11,7 +11,7 @@ paths:
 
 ## 이름
 - 단어를 줄여 쓰지 않는다 (`cnt`, `idx`, `pos` 금지). 반복 변수도 `i`, `j` 대신 `index`, `enemyIndex`. 외부 API 이름은 예외.
-- 머리글자 약어는 위치와 관계없이 모두 대문자로 쓴다 (`currentHP`, `entityID`, `HUDView`, `_UIRoot`).
+- 머리글자 약어도 쓰지 않는다 (`HP` 대신 `Health`, `ID` 대신 `Identifier`, `UI` 대신 `UserInterface`).
 
 | 대상 | 규칙 | 예시 |
 |---|---|---|
@@ -19,7 +19,7 @@ paths:
 | public 필드 | camelCase | `currentPosition` |
 | private 필드 | `_camelCase` | `_runner` |
 | 지역 변수, 매개변수 | camelCase | `targetEnemy` |
-| 상수 | UPPER_SNAKE_CASE | `MAX_HP` |
+| 상수 | UPPER_SNAKE_CASE | `MAX_HEALTH` |
 | bool | `is`, `has`, `can` 접두사 | `isAlive` |
 
 접미사: `~System`, `~ViewSystem`, `~Record`, `~Request`, `~Definition`, `~Authoring`, `~View`, `~Presenter`, 시간 값은 `~Ticks`.
