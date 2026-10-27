@@ -1,6 +1,7 @@
 ---
 paths:
   - "Project/Assets/Scripts/**/*.cs"
+  - "Project/Assets/Scripts/**/*.asmdef"
 ---
 
 # 아키텍처 규칙
