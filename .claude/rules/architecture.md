@@ -42,6 +42,7 @@ MoveSystem.Tick(_world.enemies, _world.enemyMovedRecords);
 - 수치는 하드코딩하지 않고 `~Definition`(ScriptableObject)에 둔다.
 - **데이터는 struct로 품는다.** Logic이 쓰는 값은 `Components/`의 `[Serializable]` struct(`~Component`)로 정의하고, `~Definition`과 `~Authoring`은 그 struct를 필드로 가진다. 같은 필드를 두 곳에 정의하지 않는다. 프리팹 등 View용 참조는 struct 밖에 둔다.
 - **로딩:** Core가 `~Definition`의 struct를 World에 대입한다. `~Authoring`은 판 시작 시 Core가 struct에 Transform 위치 등 씬 값을 채워 World에 넣는다. System은 Definition과 Authoring을 참조하지 않는다.
+- Definition은 `Assets/Resources/DefinitionCatalog.asset` 하나에 모은다. Runner가 시작할 때 `Resources.Load`로 이 Catalog만 읽는다. 다른 곳에서 `Resources.Load`를 쓰지 않는다.
 - 테이블은 생성 시점에만 조회하고 필요한 값은 엔티티에 복사한다. 매 틱 로직은 엔티티 자신의 값만 쓴다.
 
 ## 이벤트 금지
