@@ -84,6 +84,7 @@ namespace Project06.Core
         {
             Vector2 moveInput = _playerActions.General.Move.ReadValue<Vector2>();
             _world.commandBuffer.moveCommand.direction = new Vector3(moveInput.x, 0f, moveInput.y);
+            _world.commandBuffer.moveCommand.run = _playerActions.General.Run.IsPressed();
         }
 
         private void LateUpdate()

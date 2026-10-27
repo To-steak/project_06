@@ -13,6 +13,10 @@ namespace Project06.Entities
         public Vector3 currentPosition;
         // XZ 평면의 이동 방향. 길이는 0~1이다.
         public Vector3 moveDirection;
+        // 달리기 입력을 누르고 있는지 여부
+        public bool isRunning;
+        // XZ 평면의 현재 속도(m/s)
+        public Vector3 velocity;
         // 이동 수치
         public PlayerMovementComponent movement;
     }
