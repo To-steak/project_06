@@ -111,6 +111,15 @@ namespace Project06.Core
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Look"",
+                    ""type"": ""Value"",
+                    ""id"": ""cc046f01-42c6-4415-b304-db2453407b9b"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -179,6 +188,17 @@ namespace Project06.Core
                     ""action"": ""Run"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c5f24aeb-6fbb-4c7f-8958-4ae2a61ef743"",
+                    ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Look"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -206,6 +226,7 @@ namespace Project06.Core
             m_General = asset.FindActionMap("General", throwIfNotFound: true);
             m_General_Move = m_General.FindAction("Move", throwIfNotFound: true);
             m_General_Run = m_General.FindAction("Run", throwIfNotFound: true);
+            m_General_Look = m_General.FindAction("Look", throwIfNotFound: true);
         }
 
         ~@PlayerActions()
@@ -288,6 +309,7 @@ namespace Project06.Core
         private List<IGeneralActions> m_GeneralActionsCallbackInterfaces = new List<IGeneralActions>();
         private readonly InputAction m_General_Move;
         private readonly InputAction m_General_Run;
+        private readonly InputAction m_General_Look;
         /// <summary>
         /// Provides access to input actions defined in input action map "General".
         /// </summary>
@@ -307,6 +329,10 @@ namespace Project06.Core
             /// Provides access to the underlying input action "General/Run".
             /// </summary>
             public InputAction @Run => m_Wrapper.m_General_Run;
+            /// <summary>
+            /// Provides access to the underlying input action "General/Look".
+            /// </summary>
+            public InputAction @Look => m_Wrapper.m_General_Look;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -339,6 +365,9 @@ namespace Project06.Core
                 @Run.started += instance.OnRun;
                 @Run.performed += instance.OnRun;
                 @Run.canceled += instance.OnRun;
+                @Look.started += instance.OnLook;
+                @Look.performed += instance.OnLook;
+                @Look.canceled += instance.OnLook;
             }
 
             /// <summary>
@@ -356,6 +385,9 @@ namespace Project06.Core
                 @Run.started -= instance.OnRun;
                 @Run.performed -= instance.OnRun;
                 @Run.canceled -= instance.OnRun;
+                @Look.started -= instance.OnLook;
+                @Look.performed -= instance.OnLook;
+                @Look.canceled -= instance.OnLook;
             }
 
             /// <summary>
@@ -423,6 +455,13 @@ namespace Project06.Core
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnRun(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Look" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnLook(InputAction.CallbackContext context);
         }
     }
 }

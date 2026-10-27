@@ -15,4 +15,4 @@ MonoBehaviour:
   movement:
     moveSpeed: 1
     runSpeed: 2
-    acceleration: 20
+    acceleration: 10
