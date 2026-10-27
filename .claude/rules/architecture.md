@@ -45,7 +45,7 @@ MoveSystem.Tick(_world.enemies, _world.enemyMovedRecords);
 
 ## 이벤트 금지
 - C# `event`, delegate 구독, 이벤트 버스, 이벤트 큐를 만들지 않는다.
-- **예외: UI.** `Button.onClick` 등 UnityEvent는 허용한다. 단 핸들러는 명령 버퍼에 명령을 넣는 것까지만 한다.
+- **예외: UI.** `Button.onClick` 등 UnityEvent와, `UserInterface/` 안에서 UI View가 발행해 Presenter가 구독하는 이벤트는 허용한다. 단 핸들러는 게임 상태를 직접 바꾸지 않고 명령 버퍼에 명령을 넣는 것까지만 한다.
 
 ## View
 - Logic/View 분리는 코드 차원의 약속이며 어셈블리 참조로 지킨다. View 코드는 모두 `Presentation/` 어셈블리에 둔다.
@@ -65,13 +65,13 @@ Presentation/
 └── Camera/             카메라
 ```
 
-- `~View`는 인스펙터에서 연결한 참조를 public 필드로 가진다. 메서드를 두지 않는다.
+- `Presentation/`의 `~View`는 인스펙터에서 연결한 참조를 public 필드로 가진다. 메서드를 두지 않는다.
 - 연출의 판단과 동작은 모두 `~ViewSystem`(static)이 한다. Animator 파라미터 이름 등은 `~ViewSystem`의 상수로 둔다.
 - View는 Runner가 LateUpdate에서 정해진 순서로 호출하는 `~ViewSystem.Present`가 처리한다. 인자는 System처럼 필요한 데이터와 ViewContext만 받는다.
 - View 쪽 실행 상태(EntityIdentifier → View 매핑, 풀, 카메라 참조)는 **ViewContext 인스턴스**에 둔다. ViewSystem도 static 필드에 상태를 두지 않는다.
 - 지속 상태는 매 프레임 엔티티 저장소를 읽고, 그 순간의 일은 프레임 기록을 읽는다. 프레임 기록은 struct이며 객체 참조를 담지 않는다. 기록 목록은 Runner가 LateUpdate 마지막에 비운다.
 - View 오브젝트는 살아 있는 엔티티와 비교해 생성·반납한다. 게임 루프에서 `Instantiate` / `Destroy`를 반복하지 않고 풀을 쓴다.
-- UI는 View-Presenter 구조다. Presenter는 필요한 데이터만 받아 UI View를 갱신하고, 버튼 입력은 Presenter를 거쳐 명령 버퍼에 들어간다.
+- UI는 MVP 구조다. UI View는 버튼 입력을 이벤트로 발행하고 표시 메서드(`SetHealth` 등)를 가진다. Presenter는 View의 이벤트를 구독해 명령 버퍼에 넣고, Runner에게 필요한 데이터만 받아 View의 표시 메서드를 부른다. Model 변경 알림은 없고 Runner가 매 프레임 데이터를 넘긴다.
 
 ## 입력
 - 프레임 단위 입력(`wasPressedThisFrame` 등)은 Update에서만 읽는다.
