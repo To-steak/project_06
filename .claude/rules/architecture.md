@@ -48,7 +48,23 @@ MoveSystem.Tick(_world.enemies, _world.enemyMovedRecords);
 - **예외: UI.** `Button.onClick` 등 UnityEvent는 허용한다. 단 핸들러는 명령 버퍼에 명령을 넣는 것까지만 한다.
 
 ## View
-- Logic/View 분리는 코드 차원의 약속이며 어셈블리 참조로 지킨다. View 쪽은 Logic처럼 데이터와 함수를 폴더로 나누지 않고, `Presentation/` 한 곳에서 Unity 방식으로 작성한다.
+- Logic/View 분리는 코드 차원의 약속이며 어셈블리 참조로 지킨다. View 코드는 모두 `Presentation/` 어셈블리에 둔다.
+- `Presentation/`은 영역별 하위 폴더로 나누고, 영역 폴더 안은 `ViewSystems/`(`~ViewSystem`)와 `Views/`(`~View` MonoBehaviour)로 나눈다. 여러 영역이 함께 쓰는 도구는 역할 이름의 하위 폴더에 둔다.
+
+```
+Presentation/
+├── ViewContext.cs
+├── Player/
+│   ├── ViewSystems/    PlayerViewSystem
+│   └── Views/          PlayerView
+├── Enemy/
+│   ├── ViewSystems/
+│   └── Views/
+├── Audio/              오디오 재생
+├── Pooling/            오브젝트 풀
+└── Camera/             카메라
+```
+
 - View는 Runner가 LateUpdate에서 정해진 순서로 호출하는 `~ViewSystem.Present`가 처리한다. 인자는 System처럼 필요한 데이터와 ViewContext만 받는다.
 - View 쪽 실행 상태(EntityIdentifier → View 매핑, 풀, 카메라 참조)는 **ViewContext 인스턴스**에 둔다. ViewSystem도 static 필드에 상태를 두지 않는다.
 - 지속 상태는 매 프레임 엔티티 저장소를 읽고, 그 순간의 일은 프레임 기록을 읽는다. 프레임 기록은 struct이며 객체 참조를 담지 않는다. 기록 목록은 Runner가 LateUpdate 마지막에 비운다.
