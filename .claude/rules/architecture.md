@@ -25,11 +25,10 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 - 수치는 하드코딩하지 않고 `~Definition`(ScriptableObject)에 둔다. 테이블은 생성 시점에만 조회하고 필요한 값은 엔티티에 복사한다.
 - 서비스 클래스, ServiceLocator를 만들지 않는다.
 
-## App / Runner
-- 프로그램 전체 수명의 기능은 **static `App`**에 둔다. App은 Foundation 어셈블리에 있다.
-- **System은 App을 쓰지 않는다. World만 본다.** App은 View, UserInterface, Core만 쓴다.
+## Runner / 베이킹
+- **System은 World만 본다.**
 - DDOL에는 `Runner` 하나만 올린다. `RuntimeInitializeOnLoadMethod(BeforeSceneLoad)`에서 생성한다.
-- **베이킹:** `~Definition`과 씬의 `~Authoring`은 Core에서 Component의 struct로 변환한다. System은 Authoring을 참조하지 않는다.
+- **베이킹:** `~Definition`과 씬의 `~Authoring`은 Core에서 Component의 struct로 변환해 World에 넣는다. System은 Definition과 Authoring을 참조하지 않는다.
 
 ## 이벤트 금지
 - C# `event`, delegate 구독, 이벤트 버스, 이벤트 큐를 만들지 않는다.
@@ -59,9 +58,10 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 |---|---|---|
 | `Component/` | World, 엔티티·기록·요청 struct | 없음 |
 | `System/` | static 로직 | Component |
-| `Authoring/` | `~Definition`, `~Authoring` | Component |
-| `Foundation/` | static App과 그 기능 | Component |
-| `View/` | `~ViewSystem`, `~View` | Component, Foundation |
-| `UserInterface/` | UI View, Presenter | Component, Foundation |
-| `Core/` | Runner, 부트스트랩, 베이킹 | 전부 |
-| `Editor/` | 에디터 도구 | Authoring |
+| `Definition/` | `~Definition` (ScriptableObject 데이터) | Component |
+| `Authoring/` | `~Authoring` (씬 배치 MonoBehaviour) | Component |
+| `Save/` | 설정·기록 저장과 불러오기 | Component |
+| `View/` | `~ViewSystem`, `~View`, 오디오, 오브젝트 풀 | Component |
+| `UserInterface/` | UI View, Presenter | Component, Save |
+| `Core/` | Runner, 부트스트랩, 베이킹, 씬 전환 | 전부 |
+| `Editor/` | 에디터 도구 | Definition, Authoring |
