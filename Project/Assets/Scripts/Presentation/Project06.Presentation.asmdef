@@ -1,0 +1,14 @@
+{
+    "name": "Project06.Presentation",
+    "rootNamespace": "Project06.Presentation",
+    "references": ["Project06.Entity"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
