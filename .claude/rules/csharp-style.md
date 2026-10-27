@@ -10,8 +10,8 @@ paths:
 - `Project06.System` 때문에 본문의 `System.~`은 .NET이 아니라 `Project06.System`으로 해석된다. .NET 타입은 파일 맨 위 `using`으로 가져오고, 본문에서 정규화된 이름이 필요하면 `global::System.~`로 쓴다.
 
 ## 이름
-- 줄임말 금지. 반복 변수도 `i`, `j` 대신 `index`, `enemyIndex`. 외부 API 이름은 예외.
-- 허용 약어는 UI, HP, XP, ID, HUD뿐이며 위치와 관계없이 모두 대문자 (`currentHP`, `entityID`, `HUDView`).
+- 단어를 줄여 쓰지 않는다 (`cnt`, `idx`, `pos` 금지). 반복 변수도 `i`, `j` 대신 `index`, `enemyIndex`. 외부 API 이름은 예외.
+- 머리글자 약어는 위치와 관계없이 모두 대문자로 쓴다 (`currentHP`, `entityID`, `HUDView`, `_UIRoot`).
 
 | 대상 | 규칙 | 예시 |
 |---|---|---|
