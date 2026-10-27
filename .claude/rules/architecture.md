@@ -65,6 +65,8 @@ Presentation/
 └── Camera/             카메라
 ```
 
+- `~View`는 인스펙터에서 연결한 참조를 public 필드로 가진다. 메서드를 두지 않는다.
+- 연출의 판단과 동작은 모두 `~ViewSystem`(static)이 한다. Animator 파라미터 이름 등은 `~ViewSystem`의 상수로 둔다.
 - View는 Runner가 LateUpdate에서 정해진 순서로 호출하는 `~ViewSystem.Present`가 처리한다. 인자는 System처럼 필요한 데이터와 ViewContext만 받는다.
 - View 쪽 실행 상태(EntityIdentifier → View 매핑, 풀, 카메라 참조)는 **ViewContext 인스턴스**에 둔다. ViewSystem도 static 필드에 상태를 두지 않는다.
 - 지속 상태는 매 프레임 엔티티 저장소를 읽고, 그 순간의 일은 프레임 기록을 읽는다. 프레임 기록은 struct이며 객체 참조를 담지 않는다. 기록 목록은 Runner가 LateUpdate 마지막에 비운다.
