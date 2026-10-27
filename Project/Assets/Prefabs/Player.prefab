@@ -690,7 +690,7 @@ Animator:
   m_GameObject: {fileID: 1176837638139743638}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: dd6ec75974b69a3409711f8110698bbb, type: 3}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 824d34993de62ed42b4e444e2ee794b3, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 1
@@ -3602,6 +3602,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbc84c2301ea9dd42b525f136d4010c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.Player.Views.PlayerView
+  animator: {fileID: 426068294755144269}
 --- !u!1 &5698355358564756463
 GameObject:
   m_ObjectHideFlags: 0

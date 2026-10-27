@@ -15,7 +15,7 @@ namespace Project06.Presentation.Player.ViewSystems
         private const string MOVE_Z_PARAMETER = "MoveZ";
 
         /// <summary>
-        /// 플레이어 위치를 직전 틱과 현재 틱 사이로 보간해 View에 반영하고, 바라보는 방향 기준 이동량을 Animator에 넘긴다.
+        /// 플레이어 위치를 직전 틱과 현재 틱 사이로 보간하고 바라보는 방향으로 회전해 View에 반영한 뒤, 바라보는 방향 기준 이동량을 Animator에 넘긴다.
         /// </summary>
         /// <param name="player">표시할 플레이어.</param>
         /// <param name="interpolation">직전 틱에서 현재 틱까지 진행한 비율(0~1).</param>
@@ -29,6 +29,10 @@ namespace Project06.Presentation.Player.ViewSystems
             }
 
             playerView.transform.position = Vector3.Lerp(player.previousPosition, player.currentPosition, interpolation);
+            if (player.facingDirection.sqrMagnitude > 0f)
+            {
+                playerView.transform.rotation = Quaternion.LookRotation(player.facingDirection, Vector3.up);
+            }
 
             if (playerView.animator != null)
             {
