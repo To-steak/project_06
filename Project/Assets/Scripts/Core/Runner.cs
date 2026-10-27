@@ -1,4 +1,5 @@
 using Project06.Authoring;
+using Project06.Definitions;
 using Project06.Entities;
 using Project06.Presentation;
 using Project06.Presentation.Player.Views;
@@ -13,6 +14,9 @@ namespace Project06.Core
         private World _world;
         private ViewContext _viewContext;
         private PlayerActions _playerActions;
+        private DefinitionCatalog _definitionCatalog;
+
+        private const string DEFINITION_CATALOG_PATH = "Definition Catalog";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Create()
@@ -25,6 +29,12 @@ namespace Project06.Core
         private void Awake()
         {
             _playerActions = new PlayerActions();
+
+            _definitionCatalog = Resources.Load<DefinitionCatalog>(DEFINITION_CATALOG_PATH);
+            if (_definitionCatalog == null)
+            {
+                Debug.LogError($"Resources/{DEFINITION_CATALOG_PATH} 에셋을 찾지 못했다.");
+            }
         }
 
         private void OnEnable()
@@ -49,7 +59,7 @@ namespace Project06.Core
             _viewContext = new ViewContext();
 
             PlayerAuthoring playerAuthoring = FindFirstObjectByType<PlayerAuthoring>();
-            if (playerAuthoring != null)
+            if (playerAuthoring != null && _definitionCatalog != null)
             {
                 Vector3 startPosition = playerAuthoring.transform.position;
                 _world.player = new PlayerEntity
@@ -57,7 +67,7 @@ namespace Project06.Core
                     isAlive = true,
                     previousPosition = startPosition,
                     currentPosition = startPosition,
-                    movement = playerAuthoring.movement,
+                    movement = _definitionCatalog.player.movement,
                 };
             }
 

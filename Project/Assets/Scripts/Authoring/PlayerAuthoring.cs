@@ -1,11 +1,9 @@
-using Project06.Components;
 using UnityEngine;
 
 namespace Project06.Authoring
 {
+    // 플레이어 시작 위치를 씬에 표시한다. 이동 수치는 PlayerDefinition이 가진다.
     public class PlayerAuthoring : MonoBehaviour
     {
-        // 게임 시작 시 플레이어 엔티티에 복사할 이동 수치
-        public PlayerMovementComponent movement = new PlayerMovementComponent { moveSpeed = 5f };
     }
 }
