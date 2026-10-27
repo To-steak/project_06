@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: Player Definition
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.PlayerDefinition
   movement:
-    moveSpeed: 5
+    moveSpeed: 1
+    runSpeed: 2
+    acceleration: 20

@@ -6,7 +6,7 @@ namespace Project06.Systems
     public static class PlayerMoveSystem
     {
         /// <summary>
-        /// 플레이어를 이동 방향과 속도에 따라 한 틱만큼 옮긴다.
+        /// 플레이어 속도를 목표 속도로 가속한 뒤 한 틱만큼 옮긴다.
         /// </summary>
         /// <param name="player">옮길 플레이어.</param>
         public static void Tick(ref PlayerEntity player)
@@ -16,9 +16,13 @@ namespace Project06.Systems
                 return;
             }
 
+            float targetSpeed = player.isRunning ? player.movement.runSpeed : player.movement.moveSpeed;
+            Vector3 targetVelocity = player.moveDirection * targetSpeed;
+            float maxDelta = player.movement.acceleration * Time.fixedDeltaTime;
+            player.velocity = Vector3.MoveTowards(player.velocity, targetVelocity, maxDelta);
+
             player.previousPosition = player.currentPosition;
-            float distance = player.movement.moveSpeed * Time.fixedDeltaTime;
-            player.currentPosition += player.moveDirection * distance;
+            player.currentPosition += player.velocity * Time.fixedDeltaTime;
         }
     }
 }
