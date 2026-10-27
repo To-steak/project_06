@@ -31,6 +31,11 @@ paths:
 - 멤버 순서: public 필드 → `[SerializeField] private` 필드 → private 필드 → const → public 메서드 → private 메서드.
 - 엔티티 데이터는 struct + public 필드. 배열 원소 struct는 **반드시 `ref`로 접근**한다 (`ref Enemy enemy = ref world.enemies[index];`). 매개변수는 수정하면 `ref`, 읽기만 하면 `in`.
 
+## Unity
+- MonoBehaviour와 ScriptableObject는 파일 이름과 클래스 이름이 같아야 한다.
+- 직렬화 필드 이름을 바꿀 때는 `[FormerlySerializedAs("이전이름")]`을 붙인다. 붙이지 않으면 에디터에서 입력한 값이 사라진다.
+- 입력은 새 Input System만 쓴다. 구 `UnityEngine.Input` API를 쓰지 않는다.
+
 ## 주석
 - public 메서드: 한국어 XML 문서 주석. `<summary>` 필수, 매개변수가 있으면 `<param>`, 반환값이 있으면 `<returns>`.
 - public 필드: 선언 바로 윗줄에 한국어 한 줄 주석.
