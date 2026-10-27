@@ -28,7 +28,7 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 ## Runner / 로딩
 - **System은 World만 본다.**
 - DDOL에는 `Runner` 하나만 올린다. `RuntimeInitializeOnLoadMethod(BeforeSceneLoad)`에서 생성한다.
-- **데이터는 struct로 품는다.** Logic이 쓰는 값은 Component의 `[Serializable]` struct(`~Data`)로 정의하고, `~Definition`과 `~Authoring`은 그 struct를 필드로 가진다. 같은 필드를 두 곳에 정의하지 않는다. 프리팹 등 View용 참조는 struct 밖에 둔다.
+- **데이터는 struct로 품는다.** Logic이 쓰는 값은 Component의 `[Serializable]` struct(`~Component`)로 정의하고, `~Definition`과 `~Authoring`은 그 struct를 필드로 가진다. 같은 필드를 두 곳에 정의하지 않는다. 프리팹 등 View용 참조는 struct 밖에 둔다.
 - **로딩:** Core가 `~Definition`의 struct를 World에 대입한다. `~Authoring`은 판 시작 시 Core가 struct에 Transform 위치 등 씬 값을 채워 World에 넣는다. System은 Definition과 Authoring을 참조하지 않는다.
 
 ## 이벤트 금지

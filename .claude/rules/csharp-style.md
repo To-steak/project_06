@@ -22,7 +22,7 @@ paths:
 | 상수 | UPPER_SNAKE_CASE | `MAX_HEALTH` |
 | bool | `is`, `has`, `can` 접두사 | `isAlive` |
 
-접미사: `~System`, `~ViewSystem`, `~Record`, `~Request`, `~Data`, `~Definition`, `~Authoring`, `~View`, `~Presenter`, 시간 값은 `~Ticks`.
+접미사: `~System`, `~ViewSystem`, `~Record`, `~Request`, `~Component`, `~Definition`, `~Authoring`, `~View`, `~Presenter`, 시간 값은 `~Ticks`.
 
 ## 스타일
 - `var` 금지. 타입을 명시한다.
