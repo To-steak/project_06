@@ -6,8 +6,7 @@ paths:
 # C# 코드 규칙
 
 ## 네임스페이스
-- `Project06.*`, 폴더 경로와 일치시킨다. 예: `Component/Entity/` → `Project06.Component.Entity`.
-- `Project06.System` 때문에 본문의 `System.~`은 .NET이 아니라 `Project06.System`으로 해석된다. .NET 타입은 파일 맨 위 `using`으로 가져오고, 본문에서 정규화된 이름이 필요하면 `global::System.~`로 쓴다.
+- `Project06.*`, 폴더 경로와 일치시킨다. 예: `Components/Entity/` → `Project06.Components.Entity`.
 
 ## 이름
 - 단어를 줄여 쓰지 않는다 (`cnt`, `idx`, `pos` 금지). 반복 변수도 `i`, `j` 대신 `index`, `enemyIndex`. 외부 API 이름은 예외.

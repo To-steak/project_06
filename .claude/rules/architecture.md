@@ -28,7 +28,7 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 ## Runner / 로딩
 - **System은 World만 본다.**
 - DDOL에는 `Runner` 하나만 올린다. `RuntimeInitializeOnLoadMethod(BeforeSceneLoad)`에서 생성한다.
-- **데이터는 struct로 품는다.** Logic이 쓰는 값은 Component의 `[Serializable]` struct(`~Component`)로 정의하고, `~Definition`과 `~Authoring`은 그 struct를 필드로 가진다. 같은 필드를 두 곳에 정의하지 않는다. 프리팹 등 View용 참조는 struct 밖에 둔다.
+- **데이터는 struct로 품는다.** Logic이 쓰는 값은 `Components/`의 `[Serializable]` struct(`~Component`)로 정의하고, `~Definition`과 `~Authoring`은 그 struct를 필드로 가진다. 같은 필드를 두 곳에 정의하지 않는다. 프리팹 등 View용 참조는 struct 밖에 둔다.
 - **로딩:** Core가 `~Definition`의 struct를 World에 대입한다. `~Authoring`은 판 시작 시 Core가 struct에 Transform 위치 등 씬 값을 채워 World에 넣는다. System은 Definition과 Authoring을 참조하지 않는다.
 
 ## 이벤트 금지
@@ -49,20 +49,20 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 ## 단위
 - 시뮬레이션은 50Hz 고정(1틱 = 20ms). 시간 값은 **정수 틱**으로 다루고 필드명은 `~Ticks`로 끝낸다.
 - 거리는 월드 유닛(1 = 1m), XZ 평면 기준. 거리 비교는 `sqrMagnitude`로 한다.
-- 랜덤은 World가 가진 시드 고정 `global::System.Random`을 쓴다. System에서 `UnityEngine.Random`을 쓰지 않는다.
+- 랜덤은 World가 가진 시드 고정 `System.Random`을 쓴다. System에서 `UnityEngine.Random`을 쓰지 않는다.
 - 매 틱 할당(LINQ, 클로저, 박싱, 문자열 결합)을 피한다.
 
 ## 폴더와 어셈블리
-`Project/Assets/Scripts/` 아래 폴더마다 Assembly Definition을 두어 참조 방향을 강제한다.
+`Project/Assets/Scripts/` 아래 폴더마다 Assembly Definition을 두어 참조 방향을 강제한다. 같은 종류의 타입을 모은 폴더는 복수형, 역할을 나타내는 폴더는 단수형으로 짓는다.
 
 | 폴더 | 내용 | 참조 가능 |
 |---|---|---|
-| `Component/` | World, 엔티티·기록·요청 struct | 없음 |
-| `System/` | static 로직 | Component |
-| `Definition/` | `~Definition` (ScriptableObject 데이터) | Component |
-| `Authoring/` | `~Authoring` (씬 배치 MonoBehaviour) | Component |
-| `Save/` | 설정·기록 저장과 불러오기 | Component |
-| `View/` | `~ViewSystem`, `~View`, 오디오, 오브젝트 풀 | Component |
-| `UserInterface/` | UI View, Presenter | Component, Save |
+| `Components/` | World, 엔티티·기록·요청 struct | 없음 |
+| `Systems/` | static 로직 | Components |
+| `Definitions/` | `~Definition` (ScriptableObject 데이터) | Components |
+| `Authoring/` | `~Authoring` (씬 배치 MonoBehaviour) | Components |
+| `Persistence/` | 설정·기록 저장과 불러오기 | Components |
+| `Views/` | `~ViewSystem`, `~View`, 오디오, 오브젝트 풀 | Components |
+| `UserInterface/` | UI View, Presenter | Components, Persistence |
 | `Core/` | Runner, 부트스트랩, 로딩, 씬 전환 | 전부 |
-| `Editor/` | 에디터 도구 | Definition, Authoring |
+| `Editor/` | 에디터 도구 | Definitions, Authoring |
