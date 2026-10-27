@@ -81,7 +81,7 @@ Presentation/
 - Runner가 Update에서 명령 버퍼에 쌓고, CommandSystem이 Tick에서 소비한다.
 
 ## 단위
-- 시뮬레이션은 50Hz 고정(1틱 = 20ms). 시간 값은 **정수 틱**으로 다루고 필드명은 `~Ticks`로 끝낸다.
+- 틱 길이는 Project Settings > Time > Fixed Timestep(0.02초, 50Hz)이 정한다. 코드에 틱 길이 상수를 두지 않고, 필요하면 `Time.fixedDeltaTime`을 읽는다. 시간 값은 **정수 틱**으로 다루고 필드명은 `~Ticks`로 끝낸다.
 - 거리는 월드 유닛(1 = 1m), XZ 평면 기준. 거리 비교는 `sqrMagnitude`로 한다.
 - 랜덤은 World가 가진 시드 고정 `System.Random`을 인자로 받아 쓴다. System에서 `UnityEngine.Random`을 쓰지 않는다.
 - 매 틱 할당(LINQ, 클로저, 박싱, 문자열 결합)을 피한다.
@@ -104,3 +104,5 @@ Presentation/
 | `UserInterface/` | UI View, Presenter | `Project06.UserInterface` | Entity, Persistence |
 | `Core/` | World, Runner, 부트스트랩, 로딩, 씬 전환 | `Project06.Core` | 전부 |
 | `Editor/` | 에디터 도구 | `Project06.Editor` (플랫폼: Editor 전용) | Definitions, Authoring |
+
+- 표에 없는 종류의 타입을 만들어야 하면, 어디에 둘지 먼저 묻는다.
