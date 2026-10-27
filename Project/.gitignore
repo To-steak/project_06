@@ -110,3 +110,5 @@ InitTestScene*.unity*
 
 # Local
 /.vscode/
+/[Aa]ssets/[Ll]ocal [Aa]ssets/
+/[Aa]ssets/[Ll]ocal [Aa]ssets.meta
