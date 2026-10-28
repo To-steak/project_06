@@ -116,7 +116,8 @@ namespace Project06.Systems
                 enemy.deathRemainingTicks = 0;
                 enemy.hitStunRemainingTicks = 0;
                 enemy.attackRemainingTicks = 0;
-                enemy.hasAttackHit = false;
+                enemy.attackPhase = EnemyAttackPhase.Windup;
+                enemy.hasAttackDamaged = false;
                 // 슬롯의 쿨다운 배열이 이 적의 공격 수보다 작을 때만 새로 만들고, 아니면 재사용한다.
                 int attackCount = request.enemy.attacks != null ? request.enemy.attacks.Length : 0;
                 if (enemy.attackCooldownRemainingTicks.Length < attackCount)
