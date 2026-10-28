@@ -12,6 +12,8 @@ namespace Project06.Core
         public PlayerEntity player;
         // 투사체 엔티티 저장소
         public ProjectileStorage projectiles = new ProjectileStorage(MAX_PROJECTILE_COUNT);
+        // 적 엔티티. 판 시작 시 씬의 EnemyAuthoring 수만큼 만든다.
+        public EnemyEntity[] enemies = new EnemyEntity[0];
         // 틱 마지막에 SpawnSystem이 처리할 투사체 생성 요청
         public Queue<ProjectileSpawnRequest> projectileSpawnRequests = new Queue<ProjectileSpawnRequest>();
         // 플레이어가 발사한 기록. LateUpdate 마지막에 비운다.
