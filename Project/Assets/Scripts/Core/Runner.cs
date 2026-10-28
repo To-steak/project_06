@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Project06.Authoring;
 using Project06.Commands;
-using Project06.Components;
 using Project06.Definitions;
 using Project06.Entities;
 using Project06.Presentation;
@@ -15,13 +14,10 @@ using Project06.Presentation.Weapon.ViewSystems;
 using Project06.Requests;
 using Project06.Systems;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Project06.Core
 {
-    public class Runner : MonoBehaviour
+    public partial class Runner : MonoBehaviour
     {
         private World _world;
         private ViewContext _viewContext;
@@ -29,17 +25,6 @@ namespace Project06.Core
         private DefinitionCatalog _definitionCatalog;
 
         private const string DEFINITION_CATALOG_PATH = "Definition Catalog";
-        // 디버그 표시 영역의 화면 가장자리 여백과 크기(픽셀)
-        private const float DEBUG_GUI_MARGIN = 10f;
-        private const float DEBUG_GUI_WIDTH = 320f;
-        private const float DEBUG_GUI_HEIGHT = 140f;
-#if UNITY_EDITOR
-        // 적 디버그 기즈모 색
-        private static readonly Color ENEMY_DETECTION_RADIUS_COLOR = new Color(1f, 0.9f, 0.2f, 1f);
-        private static readonly Color ENEMY_LOSE_RADIUS_COLOR = new Color(0.7f, 0.4f, 1f, 1f);
-        private static readonly Color ENEMY_STOP_DISTANCE_COLOR = new Color(0.3f, 1f, 0.4f, 1f);
-        private static readonly Color ENEMY_PATH_COLOR = new Color(0.2f, 0.8f, 1f, 1f);
-#endif
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Create()
@@ -145,87 +130,6 @@ namespace Project06.Core
 
             _world.playerFiredRecords.Clear();
         }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        // 디버그용으로 플레이어의 무기·탄약·재장전·행동 상태를 화면 왼쪽 위에 표시한다. 에디터와 개발 빌드에서만 컴파일된다.
-        private void OnGUI()
-        {
-            int playerIndex = _world != null ? FindAlivePlayerIndex() : -1;
-            if (playerIndex < 0)
-            {
-                return;
-            }
-
-            ref PlayerEntity player = ref _world.players.entities[playerIndex];
-            WeaponDefinition[] weapons = _definitionCatalog != null ? _definitionCatalog.weapons : null;
-            CaliberDefinition[] calibers = _definitionCatalog != null ? _definitionCatalog.calibers : null;
-
-            string weaponName = weapons != null && player.weaponIndex >= 0 && player.weaponIndex < weapons.Length && weapons[player.weaponIndex] != null
-                ? weapons[player.weaponIndex].name
-                : "없음";
-            string caliberName = calibers != null && player.caliberIndex >= 0 && player.caliberIndex < calibers.Length && calibers[player.caliberIndex] != null
-                ? calibers[player.caliberIndex].name
-                : "없음";
-            int reserveAmmo = player.reserveAmmo != null && player.caliberIndex >= 0 && player.caliberIndex < player.reserveAmmo.Length
-                ? player.reserveAmmo[player.caliberIndex]
-                : 0;
-            string reloadText = player.isReloading
-                ? $"재장전 중 {player.weapon.reloadTicks - player.reloadRemainingTicks} / {player.weapon.reloadTicks} 틱"
-                : "재장전 안 함";
-
-            GUILayout.BeginArea(new Rect(DEBUG_GUI_MARGIN, DEBUG_GUI_MARGIN, DEBUG_GUI_WIDTH, DEBUG_GUI_HEIGHT), GUI.skin.box);
-            GUILayout.Label($"무기: {weaponName} ({caliberName})");
-            GUILayout.Label($"탄창: {player.magazineAmmo} / {player.weapon.magazineCapacity}");
-            GUILayout.Label($"예비 탄약: {reserveAmmo}");
-            GUILayout.Label(reloadText);
-            GUILayout.Label($"조준 {player.isAiming} · 발사 {player.isFiring} · 달리기 {player.isRunning}");
-            GUILayout.EndArea();
-        }
-#endif
-
-#if UNITY_EDITOR
-        // 디버그용으로 살아 있는 적마다 자기 위치를 중심으로 감지 반지름, 추격 해제 반지름, 정지 거리를 XZ 평면 원으로 그린다. 추격 중이면 남은 NavMesh 경로도 그린다.
-        // Idle이면 감지 원을, 추격 중이면 해제 원과 정지 원을 그린다. 에디터에서만 컴파일된다.
-        private void OnDrawGizmos()
-        {
-            if (_world == null)
-            {
-                return;
-            }
-
-            EnemyEntity[] enemies = _world.enemies.entities;
-            for (int index = 0; index < enemies.Length; index++)
-            {
-                ref EnemyEntity enemy = ref enemies[index];
-                if (!enemy.isAlive)
-                {
-                    continue;
-                }
-
-                Vector3 position = enemy.currentPosition;
-                if (enemy.state == EnemyState.Idle)
-                {
-                    Handles.color = ENEMY_DETECTION_RADIUS_COLOR;
-                    Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.detectionRadius);
-                    continue;
-                }
-
-                Handles.color = ENEMY_LOSE_RADIUS_COLOR;
-                Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.loseRadius);
-                Handles.color = ENEMY_STOP_DISTANCE_COLOR;
-                Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.stopDistance);
-
-                Handles.color = ENEMY_PATH_COLOR;
-                Vector3 lineStart = position;
-                for (int cornerIndex = enemy.pathCornerIndex; cornerIndex < enemy.pathCornerCount; cornerIndex++)
-                {
-                    Vector3 corner = enemy.pathCorners[cornerIndex];
-                    Handles.DrawLine(lineStart, corner);
-                    lineStart = corner;
-                }
-            }
-        }
-#endif
 
         // 씬의 PlayerAuthoring 위치에 PlayerDefinition 수치로 플레이어 생성을 요청한다. PlayerAuthoring이나 Catalog가 없으면 요청하지 않는다.
         private void EnqueuePlayerSpawn()
