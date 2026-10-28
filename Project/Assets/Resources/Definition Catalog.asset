@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: Definition Catalog
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.DefinitionCatalog
   player: {fileID: 11400000, guid: fd89d1d51c8e3b948986e7ba59d60883, type: 2}
+  weapons:
+  - {fileID: 11400000, guid: 3340221d9fe28c24c80727dac7bd13a4, type: 2}

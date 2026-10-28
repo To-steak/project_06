@@ -120,6 +120,24 @@ namespace Project06.Core
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Fire"",
+                    ""type"": ""Button"",
+                    ""id"": ""5e13b868-471c-4cc5-9b66-32a120a20beb"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Aim"",
+                    ""type"": ""Button"",
+                    ""id"": ""c0d10e58-6d02-4d17-ba3b-074c0941a639"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -199,6 +217,28 @@ namespace Project06.Core
                     ""action"": ""Look"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f8de8f0e-0f1f-48a9-9aa6-a02040b16476"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Fire"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""047c1d8f-a176-4a82-9f0a-3241349ebfee"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Aim"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -227,6 +267,8 @@ namespace Project06.Core
             m_General_Move = m_General.FindAction("Move", throwIfNotFound: true);
             m_General_Run = m_General.FindAction("Run", throwIfNotFound: true);
             m_General_Look = m_General.FindAction("Look", throwIfNotFound: true);
+            m_General_Fire = m_General.FindAction("Fire", throwIfNotFound: true);
+            m_General_Aim = m_General.FindAction("Aim", throwIfNotFound: true);
         }
 
         ~@PlayerActions()
@@ -310,6 +352,8 @@ namespace Project06.Core
         private readonly InputAction m_General_Move;
         private readonly InputAction m_General_Run;
         private readonly InputAction m_General_Look;
+        private readonly InputAction m_General_Fire;
+        private readonly InputAction m_General_Aim;
         /// <summary>
         /// Provides access to input actions defined in input action map "General".
         /// </summary>
@@ -333,6 +377,14 @@ namespace Project06.Core
             /// Provides access to the underlying input action "General/Look".
             /// </summary>
             public InputAction @Look => m_Wrapper.m_General_Look;
+            /// <summary>
+            /// Provides access to the underlying input action "General/Fire".
+            /// </summary>
+            public InputAction @Fire => m_Wrapper.m_General_Fire;
+            /// <summary>
+            /// Provides access to the underlying input action "General/Aim".
+            /// </summary>
+            public InputAction @Aim => m_Wrapper.m_General_Aim;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -368,6 +420,12 @@ namespace Project06.Core
                 @Look.started += instance.OnLook;
                 @Look.performed += instance.OnLook;
                 @Look.canceled += instance.OnLook;
+                @Fire.started += instance.OnFire;
+                @Fire.performed += instance.OnFire;
+                @Fire.canceled += instance.OnFire;
+                @Aim.started += instance.OnAim;
+                @Aim.performed += instance.OnAim;
+                @Aim.canceled += instance.OnAim;
             }
 
             /// <summary>
@@ -388,6 +446,12 @@ namespace Project06.Core
                 @Look.started -= instance.OnLook;
                 @Look.performed -= instance.OnLook;
                 @Look.canceled -= instance.OnLook;
+                @Fire.started -= instance.OnFire;
+                @Fire.performed -= instance.OnFire;
+                @Fire.canceled -= instance.OnFire;
+                @Aim.started -= instance.OnAim;
+                @Aim.performed -= instance.OnAim;
+                @Aim.canceled -= instance.OnAim;
             }
 
             /// <summary>
@@ -462,6 +526,20 @@ namespace Project06.Core
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnLook(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Fire" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnFire(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Aim" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnAim(InputAction.CallbackContext context);
         }
     }
 }

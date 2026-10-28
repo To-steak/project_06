@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using Project06.Entities;
 using Project06.Presentation.Player.Views;
+using Project06.Presentation.Weapon.Views;
+using Project06.Records;
 using UnityEngine;
 
 namespace Project06.Presentation.Player.ViewSystems
@@ -8,19 +11,27 @@ namespace Project06.Presentation.Player.ViewSystems
     {
         private static readonly int MOVE_X_PARAMETER_HASH = Animator.StringToHash(MOVE_X_PARAMETER);
         private static readonly int MOVE_Z_PARAMETER_HASH = Animator.StringToHash(MOVE_Z_PARAMETER);
+        private static readonly int IS_AIMING_PARAMETER_HASH = Animator.StringToHash(IS_AIMING_PARAMETER);
+        private static readonly int FIRE_PARAMETER_HASH = Animator.StringToHash(FIRE_PARAMETER);
 
         // 플레이어가 바라보는 방향 기준 이동량. X는 오른쪽, Z는 앞쪽이 양수다.
         // 길이는 걷기 속도에서 1, 달리기 속도에서 2가 되도록 정규화한다.
         private const string MOVE_X_PARAMETER = "MoveX";
         private const string MOVE_Z_PARAMETER = "MoveZ";
+        // 조준 중인지 여부(Bool)
+        private const string IS_AIMING_PARAMETER = "IsAiming";
+        // 발사한 프레임에 켜는 Trigger
+        private const string FIRE_PARAMETER = "Fire";
 
         /// <summary>
-        /// 플레이어 위치를 직전 틱과 현재 틱 사이로 보간하고 바라보는 방향으로 회전해 View에 반영한 뒤, 바라보는 방향 기준 이동량을 Animator에 넘긴다.
+        /// 플레이어 위치를 직전 틱과 현재 틱 사이로 보간하고 바라보는 방향으로 회전해 View에 반영한 뒤, 바라보는 방향 기준 이동량과 조준 여부를 Animator에 넘긴다.
+        /// 이번 프레임에 발사 기록이 있으면 발사 애니메이션, 총구 섬광, 발사음을 한 번 재생한다.
         /// </summary>
         /// <param name="player">표시할 플레이어.</param>
+        /// <param name="playerFiredRecords">이번 프레임에 쌓인 플레이어 발사 기록.</param>
         /// <param name="interpolation">직전 틱에서 현재 틱까지 진행한 비율(0~1).</param>
         /// <param name="context">View 실행 상태.</param>
-        public static void Present(in PlayerEntity player, float interpolation, ViewContext context)
+        public static void Present(in PlayerEntity player, List<PlayerFiredRecord> playerFiredRecords, float interpolation, ViewContext context)
         {
             PlayerView playerView = context.playerView;
             if (playerView == null || !player.isAlive)
@@ -34,12 +45,33 @@ namespace Project06.Presentation.Player.ViewSystems
                 playerView.transform.rotation = Quaternion.LookRotation(player.facingDirection, Vector3.up);
             }
 
+            bool hasFired = playerFiredRecords.Count > 0;
+
             if (playerView.animator != null)
             {
                 Vector3 blendPosition = GetBlendPosition(in player);
                 Vector3 localBlendPosition = playerView.transform.InverseTransformDirection(blendPosition);
                 playerView.animator.SetFloat(MOVE_X_PARAMETER_HASH, localBlendPosition.x);
                 playerView.animator.SetFloat(MOVE_Z_PARAMETER_HASH, localBlendPosition.z);
+                playerView.animator.SetBool(IS_AIMING_PARAMETER_HASH, player.isAiming);
+                if (hasFired)
+                {
+                    playerView.animator.SetTrigger(FIRE_PARAMETER_HASH);
+                }
+            }
+
+            WeaponView weaponView = playerView.weaponView;
+            if (hasFired && weaponView != null)
+            {
+                if (weaponView.muzzleFlash != null)
+                {
+                    weaponView.muzzleFlash.Play();
+                }
+
+                if (weaponView.fireAudioSource != null)
+                {
+                    weaponView.fireAudioSource.Play();
+                }
             }
         }
 
