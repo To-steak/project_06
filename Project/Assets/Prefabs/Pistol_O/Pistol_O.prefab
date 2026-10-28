@@ -57,12 +57,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1252478079675274668}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.000000021855694, y: 0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0.049999997, z: 0.0325}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.012500004, z: 0.0275}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3118194913795537262}
+  m_Father: {fileID: 938863194051717203}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5789326289066000709
 MeshFilter:
@@ -242,7 +242,8 @@ Transform:
   m_LocalPosition: {x: -0, y: 0.037499994, z: 0.005}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5533829955025892086}
   m_Father: {fileID: 3118194913795537262}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7743751754778292339
@@ -522,6 +523,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 689298534181311293}
+  - component: {fileID: 411002527735963575}
   - component: {fileID: 6759057787153155682}
   - component: {fileID: 1951760969452922917}
   m_Layer: 0
@@ -547,6 +549,28 @@ Transform:
   - {fileID: 3118194913795537262}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &411002527735963575
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7479669588817133862}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 360e01ec30261ba41b945950adefe95b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!82 &6759057787153155682
 AudioSource:
   m_ObjectHideFlags: 0
@@ -657,6 +681,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.Weapon.Views.WeaponView
   grip: {fileID: 5585059295698091673}
+  animator: {fileID: 411002527735963575}
   muzzle: {fileID: 2543288511545279144}
   muzzleFlash: {fileID: 0}
   fireAudioSource: {fileID: 6759057787153155682}
@@ -797,7 +822,6 @@ Transform:
   - {fileID: 1796360887296867779}
   - {fileID: 8457006073213209335}
   - {fileID: 3793426940905668409}
-  - {fileID: 5533829955025892086}
   - {fileID: 650603255971636214}
   m_Father: {fileID: 689298534181311293}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

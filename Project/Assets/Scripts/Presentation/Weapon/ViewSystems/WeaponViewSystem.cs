@@ -9,6 +9,14 @@ namespace Project06.Presentation.Weapon.ViewSystems
 {
     public static class WeaponViewSystem
     {
+        private static readonly int FIRE_PARAMETER_HASH = Animator.StringToHash(FIRE_PARAMETER);
+        private static readonly int IS_SLIDE_LOCKED_PARAMETER_HASH = Animator.StringToHash(IS_SLIDE_LOCKED_PARAMETER);
+
+        // 총 Animator에서 발사한 프레임에 켜는 Trigger. 마지막 탄을 쏴서 슬라이드가 멈출 때는 켜지 않는다.
+        private const string FIRE_PARAMETER = "Fire";
+        // 총 Animator에서 슬라이드가 뒤로 젖혀진 채 멈춰 있는지 여부(Bool). 탄창이 비어 있는 동안 true이며, 재장전이 끝나 탄창이 채워지면 false가 된다.
+        private const string IS_SLIDE_LOCKED_PARAMETER = "IsSlideLocked";
+
         /// <summary>
         /// 무기별 총 프리팹과 총 View 목록을 준비한다. 판 시작 시 한 번 호출한다.
         /// </summary>
@@ -23,7 +31,8 @@ namespace Project06.Presentation.Weapon.ViewSystems
         }
 
         /// <summary>
-        /// 플레이어가 장착한 무기가 바뀌었으면 손의 총을 바꾸고, 장전 중이면 장전 진행 틱에 맞춰 장전음을 재생하며, 이번 프레임에 발사 기록이 있으면 총구 섬광과 발사음을 한 번 재생한다.
+        /// 플레이어가 장착한 무기가 바뀌었으면 손의 총을 바꾸고, 총 Animator에 슬라이드 멈춤 여부를 넘기며, 장전 중이면 장전 진행 틱에 맞춰 장전음을 재생한다.
+        /// 이번 프레임에 발사 기록이 있으면 총 Animator의 발사 애니메이션, 총구 섬광, 발사음을 한 번 재생한다.
         /// 총 View는 무기마다 처음 장착할 때 한 번만 생성하고, 이후에는 켜고 끄기만 한다.
         /// </summary>
         /// <param name="player">총을 든 플레이어.</param>
@@ -57,9 +66,20 @@ namespace Project06.Presentation.Weapon.ViewSystems
                 return;
             }
 
+            bool isSlideLocked = player.magazineAmmo <= 0;
+            bool hasFired = playerFiredRecords.Count > 0;
+            if (weaponView.animator != null)
+            {
+                weaponView.animator.SetBool(IS_SLIDE_LOCKED_PARAMETER_HASH, isSlideLocked);
+                if (hasFired && !isSlideLocked)
+                {
+                    weaponView.animator.SetTrigger(FIRE_PARAMETER_HASH);
+                }
+            }
+
             PlayReloadSounds(in player, weaponView, context);
 
-            if (playerFiredRecords.Count == 0)
+            if (!hasFired)
             {
                 return;
             }
