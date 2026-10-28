@@ -17,6 +17,8 @@ namespace Project06.Entities
         public Vector3 previousPosition;
         // 현재 틱의 위치
         public Vector3 currentPosition;
+        // 생성된 위치. 배회 목적지를 고르는 중심이다.
+        public Vector3 spawnPosition;
         // XZ 평면에서 바라보는 방향. 길이는 1이다.
         public Vector3 facingDirection;
         // 현재 속도(m/s). 크기만 이동 거리에 쓰고, 실제 이동은 경로를 따른다.
@@ -27,6 +29,8 @@ namespace Project06.Entities
         public float health;
         // AI 상태
         public EnemyState state;
+        // Idle에서 배회를 다시 시작할 때까지 남은 틱
+        public int idleRemainingTicks;
         // 따라갈 NavMesh 경로의 코너. 슬롯마다 EnemyStorage가 미리 만들어 두고 재사용한다.
         public Vector3[] pathCorners;
         // pathCorners 중 유효한 코너 수

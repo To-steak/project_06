@@ -100,11 +100,13 @@ namespace Project06.Systems
                 enemy.spawner = request.spawner;
                 enemy.previousPosition = request.position;
                 enemy.currentPosition = request.position;
+                enemy.spawnPosition = request.position;
                 enemy.facingDirection = request.facingDirection;
                 enemy.velocity = Vector3.zero;
                 enemy.enemy = request.enemy;
                 enemy.health = request.enemy.maxHealth;
                 enemy.state = EnemyState.Idle;
+                enemy.idleRemainingTicks = 0;
                 enemy.pathCornerCount = 0;
                 enemy.pathCornerIndex = 0;
                 enemy.pathUpdateRemainingTicks = 0;
