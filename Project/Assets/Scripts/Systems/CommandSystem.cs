@@ -8,7 +8,7 @@ namespace Project06.Systems
     {
         /// <summary>
         /// 이동 명령을 플레이어의 이동 방향과 달리기 여부에, 바라보기 명령을 바라보는 방향에, 조준·발사 명령을 조준·발사 상태에 반영한다.
-        /// 바라보는 방향은 총구의 앞쪽 직선이 조준점을 지나도록 정한다.
+        /// 바라보는 방향은 총구의 앞쪽 직선이 조준점을 지나도록 정하고, 조준점은 플레이어에 기록한다.
         /// 조준 입력을 누르고 있어야 발사하고, 발사 중에는 달리지 못하며, 달리면 조준이 풀린다.
         /// 재장전 중에는 달리기·조준·발사를 모두 막는다.
         /// </summary>
@@ -44,6 +44,7 @@ namespace Project06.Systems
 
             if (lookCommand.hasTarget)
             {
+                player.aimPosition = lookCommand.targetPosition;
                 FaceMuzzleLineToTarget(in lookCommand, ref player);
             }
 

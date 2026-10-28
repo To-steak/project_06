@@ -5,6 +5,7 @@ using Project06.Commands;
 using Project06.Definitions;
 using Project06.Entities;
 using Project06.Presentation;
+using Project06.Presentation.Camera.ViewSystems;
 using Project06.Presentation.Enemy.ViewSystems;
 using Project06.Presentation.EnemyProjectile.ViewSystems;
 using Project06.Presentation.Player.Views;
@@ -72,6 +73,7 @@ namespace Project06.Core
             List<EnemyDefinition> enemyDefinitions = EnqueueEnemySpawnerSpawns();
 
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
+            InitializeCamera();
             CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
             WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
             ProjectileViewSystem.Initialize(projectilePrefabs, _world.projectiles.entities.Length, _viewContext);
@@ -131,6 +133,7 @@ namespace Project06.Core
                 ref PlayerEntity player = ref _world.players.entities[playerIndex];
                 PlayerViewSystem.Present(in player, _world.playerFiredRecords, interpolation, _viewContext);
                 WeaponViewSystem.Present(in player, _world.playerFiredRecords, _viewContext);
+                CameraViewSystem.Present(in player, _viewContext);
             }
 
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
@@ -272,6 +275,19 @@ namespace Project06.Core
             {
                 Debug.LogError($"{definition.name}의 공격 수({attackCount})와 attackTriggerNames 수({triggerCount})가 다르다.", definition);
             }
+        }
+
+        // PlayerDefinition의 조준 카메라 수치로 카메라 View를 준비한다. Catalog가 없으면 카메라를 옮기지 않는다.
+        private void InitializeCamera()
+        {
+            if (_definitionCatalog == null)
+            {
+                CameraViewSystem.Initialize(0f, 0f, 0f, _viewContext);
+                return;
+            }
+
+            PlayerDefinition playerDefinition = _definitionCatalog.player;
+            CameraViewSystem.Initialize(playerDefinition.aimCameraWeight, playerDefinition.aimCameraMaxDistance, playerDefinition.aimCameraSmoothTime, _viewContext);
         }
 
         // 살아 있는 첫 플레이어의 슬롯 인덱스를 구한다. 없으면 -1을 돌려준다.

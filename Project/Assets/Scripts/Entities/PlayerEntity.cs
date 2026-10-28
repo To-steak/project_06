@@ -29,6 +29,8 @@ namespace Project06.Entities
         public PlayerMovementComponent movement;
         // 조준하고 있는지 여부. 조준 입력을 누르고 있어도 달리거나 재장전 중이면 false다.
         public bool isAiming;
+        // 마지막으로 구한 조준점의 월드 위치. 마우스가 가리키는 지점을 총구 높이의 수평면에 투영한 위치다.
+        public Vector3 aimPosition;
         // 조준 입력과 발사 입력을 함께 누르고 있는지 여부. 재장전 중이면 false다.
         public bool isFiring;
         // 재장전 중인지 여부
