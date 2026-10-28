@@ -11,6 +11,8 @@ namespace Project06.Entities
         public int generation;
         // 적 종류 인덱스. 판 시작 시 Runner가 모은 적 Definition 목록의 인덱스이며, View가 프리팹을 고를 때 쓴다.
         public int enemyTypeIndex;
+        // 이 적을 낸 스포너
+        public EntityIdentifier spawner;
         // 월드 위치
         public Vector3 position;
         // XZ 평면에서 바라보는 방향. 길이는 1이다.

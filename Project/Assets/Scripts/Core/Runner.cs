@@ -72,7 +72,7 @@ namespace Project06.Core
 
             // 씬에 배치한 엔티티는 생성 요청만 넣고, 첫 틱의 SpawnSystem이 만든다.
             EnqueuePlayerSpawn();
-            List<EnemyDefinition> enemyDefinitions = EnqueueEnemySpawns();
+            List<EnemyDefinition> enemyDefinitions = EnqueueEnemySpawnerSpawns();
 
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
             CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
@@ -91,8 +91,10 @@ namespace Project06.Core
             ProjectileHitSystem.Tick(_world.projectiles, _world.enemies);
             ProjectileMoveSystem.Tick(_world.projectiles);
             PlayerFireSystem.Tick(_world.players, _world.projectileSpawnRequests, _world.playerFiredRecords);
+            EnemySpawnerSystem.Tick(_world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
             SpawnSystem.Tick(
                 _world.playerSpawnRequests, _world.players,
+                _world.enemySpawnerSpawnRequests, _world.enemySpawners,
                 _world.enemySpawnRequests, _world.enemies,
                 _world.projectileSpawnRequests, _world.projectiles);
         }
@@ -235,19 +237,19 @@ namespace Project06.Core
             return reserveAmmo;
         }
 
-        // 씬의 EnemyAuthoring마다 그 Authoring이 가리키는 EnemyDefinition 수치로 적 생성을 요청한다. definition이 비어 있는 EnemyAuthoring은 건너뛴다.
+        // 씬의 EnemySpawnerAuthoring마다 그 Authoring이 가리키는 EnemyDefinition의 적을 내는 스포너 생성을 요청한다. definition이 비어 있는 스포너는 건너뛴다.
         // 가리킨 EnemyDefinition을 중복 없이 모아 돌려준다. 적 종류 인덱스는 이 목록의 인덱스다.
-        private List<EnemyDefinition> EnqueueEnemySpawns()
+        private List<EnemyDefinition> EnqueueEnemySpawnerSpawns()
         {
             List<EnemyDefinition> enemyDefinitions = new List<EnemyDefinition>();
-            EnemyAuthoring[] enemyAuthorings = FindObjectsByType<EnemyAuthoring>(FindObjectsSortMode.None);
-            for (int authoringIndex = 0; authoringIndex < enemyAuthorings.Length; authoringIndex++)
+            EnemySpawnerAuthoring[] spawnerAuthorings = FindObjectsByType<EnemySpawnerAuthoring>(FindObjectsSortMode.None);
+            for (int authoringIndex = 0; authoringIndex < spawnerAuthorings.Length; authoringIndex++)
             {
-                EnemyAuthoring enemyAuthoring = enemyAuthorings[authoringIndex];
-                EnemyDefinition definition = enemyAuthoring.definition;
+                EnemySpawnerAuthoring spawnerAuthoring = spawnerAuthorings[authoringIndex];
+                EnemyDefinition definition = spawnerAuthoring.definition;
                 if (definition == null)
                 {
-                    Debug.LogError($"EnemyAuthoring '{enemyAuthoring.name}'의 definition이 비어 있다.", enemyAuthoring);
+                    Debug.LogError($"EnemySpawnerAuthoring '{spawnerAuthoring.name}'의 definition이 비어 있다.", spawnerAuthoring);
                     continue;
                 }
 
@@ -258,14 +260,15 @@ namespace Project06.Core
                     enemyDefinitions.Add(definition);
                 }
 
-                Transform enemyTransform = enemyAuthoring.transform;
-                Vector3 facingDirection = enemyTransform.forward;
+                Transform spawnerTransform = spawnerAuthoring.transform;
+                Vector3 facingDirection = spawnerTransform.forward;
                 facingDirection.y = 0f;
-                _world.enemySpawnRequests.Enqueue(new EnemySpawnRequest
+                _world.enemySpawnerSpawnRequests.Enqueue(new EnemySpawnerSpawnRequest
                 {
-                    enemyTypeIndex = enemyTypeIndex,
-                    position = enemyTransform.position,
+                    position = spawnerTransform.position,
                     facingDirection = facingDirection.sqrMagnitude > 0f ? facingDirection.normalized : Vector3.forward,
+                    spawner = spawnerAuthoring.spawner,
+                    enemyTypeIndex = enemyTypeIndex,
                     enemy = definition.enemy,
                 });
             }

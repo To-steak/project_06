@@ -11,16 +11,20 @@ namespace Project06.Systems
         /// </summary>
         /// <param name="playerSpawnRequests">플레이어 생성 요청 큐.</param>
         /// <param name="players">플레이어를 넣을 저장소.</param>
+        /// <param name="enemySpawnerSpawnRequests">적 스포너 생성 요청 큐.</param>
+        /// <param name="enemySpawners">적 스포너를 넣을 저장소.</param>
         /// <param name="enemySpawnRequests">적 생성 요청 큐.</param>
         /// <param name="enemies">적을 넣을 저장소.</param>
         /// <param name="projectileSpawnRequests">투사체 생성 요청 큐.</param>
         /// <param name="projectiles">투사체를 넣을 저장소.</param>
         public static void Tick(
             Queue<PlayerSpawnRequest> playerSpawnRequests, PlayerStorage players,
+            Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests, EnemySpawnerStorage enemySpawners,
             Queue<EnemySpawnRequest> enemySpawnRequests, EnemyStorage enemies,
             Queue<ProjectileSpawnRequest> projectileSpawnRequests, ProjectileStorage projectiles)
         {
             SpawnPlayers(playerSpawnRequests, players);
+            SpawnEnemySpawners(enemySpawnerSpawnRequests, enemySpawners);
             SpawnEnemies(enemySpawnRequests, enemies);
             SpawnProjectiles(projectileSpawnRequests, projectiles);
         }
@@ -54,6 +58,29 @@ namespace Project06.Systems
             }
         }
 
+        private static void SpawnEnemySpawners(Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests, EnemySpawnerStorage enemySpawners)
+        {
+            while (enemySpawnerSpawnRequests.Count > 0)
+            {
+                EnemySpawnerSpawnRequest request = enemySpawnerSpawnRequests.Dequeue();
+                if (!TryTakeFreeIndex(enemySpawners.freeIndices, out int index))
+                {
+                    continue;
+                }
+
+                ref EnemySpawnerEntity enemySpawner = ref enemySpawners.entities[index];
+                enemySpawner.isAlive = true;
+                enemySpawner.generation++;
+                enemySpawner.position = request.position;
+                enemySpawner.facingDirection = request.facingDirection;
+                enemySpawner.spawner = request.spawner;
+                enemySpawner.enemyTypeIndex = request.enemyTypeIndex;
+                enemySpawner.enemy = request.enemy;
+                enemySpawner.spawnRemainingTicks = request.spawner.firstSpawnDelayTicks;
+                enemySpawner.spawnedCount = 0;
+            }
+        }
+
         private static void SpawnEnemies(Queue<EnemySpawnRequest> enemySpawnRequests, EnemyStorage enemies)
         {
             while (enemySpawnRequests.Count > 0)
@@ -68,6 +95,7 @@ namespace Project06.Systems
                 enemy.isAlive = true;
                 enemy.generation++;
                 enemy.enemyTypeIndex = request.enemyTypeIndex;
+                enemy.spawner = request.spawner;
                 enemy.position = request.position;
                 enemy.facingDirection = request.facingDirection;
                 enemy.enemy = request.enemy;

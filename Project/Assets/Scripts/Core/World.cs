@@ -14,8 +14,12 @@ namespace Project06.Core
         public ProjectileStorage projectiles = new ProjectileStorage(MAX_PROJECTILE_COUNT);
         // 적 엔티티 저장소
         public EnemyStorage enemies = new EnemyStorage(MAX_ENEMY_COUNT);
+        // 적 스포너 엔티티 저장소
+        public EnemySpawnerStorage enemySpawners = new EnemySpawnerStorage(MAX_ENEMY_SPAWNER_COUNT);
         // 틱 마지막에 SpawnSystem이 처리할 플레이어 생성 요청
         public Queue<PlayerSpawnRequest> playerSpawnRequests = new Queue<PlayerSpawnRequest>();
+        // 틱 마지막에 SpawnSystem이 처리할 적 스포너 생성 요청
+        public Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests = new Queue<EnemySpawnerSpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 적 생성 요청
         public Queue<EnemySpawnRequest> enemySpawnRequests = new Queue<EnemySpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 투사체 생성 요청
@@ -24,6 +28,8 @@ namespace Project06.Core
         public List<PlayerFiredRecord> playerFiredRecords = new List<PlayerFiredRecord>();
         // Update에서 쌓고 Tick에서 소비하는 입력 명령
         public CommandBuffer commandBuffer = new CommandBuffer();
+        // 판마다 같은 시드로 만드는 난수 생성기. System은 UnityEngine.Random 대신 이것을 받아 쓴다.
+        public System.Random random = new System.Random(RANDOM_SEED);
 
         // 동시에 존재할 수 있는 플레이어의 최대 수
         public const int MAX_PLAYER_COUNT = 1;
@@ -31,5 +37,9 @@ namespace Project06.Core
         public const int MAX_PROJECTILE_COUNT = 256;
         // 동시에 존재할 수 있는 적의 최대 수
         public const int MAX_ENEMY_COUNT = 128;
+        // 동시에 존재할 수 있는 적 스포너의 최대 수
+        public const int MAX_ENEMY_SPAWNER_COUNT = 64;
+        // 난수 생성기의 시드
+        public const int RANDOM_SEED = 0;
     }
 }
