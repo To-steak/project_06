@@ -626,8 +626,8 @@ MonoBehaviour:
   spawner:
     firstSpawnDelayTicks: 60
     intervalTicks: 50
-    maxAliveCount: 5
-    totalSpawnCount: 10
+    maxAliveCount: 1
+    totalSpawnCount: 1
     spawnRadius: 3
 --- !u!4 &1441905992
 Transform:

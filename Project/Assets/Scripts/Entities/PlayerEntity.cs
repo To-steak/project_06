@@ -21,6 +21,10 @@ namespace Project06.Entities
         public bool isRunning;
         // XZ 평면의 현재 속도(m/s)
         public Vector3 velocity;
+        // 플레이어 수치
+        public PlayerComponent player;
+        // 남은 체력
+        public float health;
         // 이동 수치
         public PlayerMovementComponent movement;
         // 조준하고 있는지 여부. 조준 입력을 누르고 있어도 달리거나 재장전 중이면 false다.

@@ -17,7 +17,7 @@ namespace Project06.Entities
         public const int MAX_PATH_CORNER_COUNT = 32;
 
         /// <summary>
-        /// 모든 슬롯이 빈 저장소를 만든다. 슬롯마다 경로 코너 배열을 미리 만든다.
+        /// 모든 슬롯이 빈 저장소를 만든다. 슬롯마다 경로 코너 배열을 미리 만들고, 공격 쿨다운 배열은 빈 배열로 둔다.
         /// </summary>
         /// <param name="capacity">동시에 존재할 수 있는 적의 최대 수.</param>
         public EnemyStorage(int capacity)
@@ -28,6 +28,7 @@ namespace Project06.Entities
             {
                 freeIndices.Add(index);
                 entities[index].pathCorners = new Vector3[MAX_PATH_CORNER_COUNT];
+                entities[index].attackCooldownRemainingTicks = System.Array.Empty<int>();
             }
 
             navigationPath = new NavMeshPath();
