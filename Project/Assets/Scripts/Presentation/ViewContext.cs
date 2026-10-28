@@ -39,5 +39,15 @@ namespace Project06.Presentation
         public int[] enemyViewGenerations;
         // 적 저장소 슬롯별로 표시 중인 View를 꺼낸 풀의 인덱스
         public int[] enemyViewPoolIndices;
+        // 종류별 공격 Trigger 해시. 적 종류 인덱스와 같은 순서이며, 안쪽은 공격 목록과 같은 순서다. 0이면 Trigger가 없다.
+        public int[][] enemyAttackTriggerHashes;
+        // 적 종류별 적 투사체 View 풀. 적 종류 인덱스와 같은 순서이며, 투사체 프리팹이 없는 종류는 null이다.
+        public ObjectPool<GameObject>[] enemyProjectilePools;
+        // 적 투사체 저장소 슬롯별로 표시 중인 View. 표시 중이 아니면 null이다.
+        public GameObject[] enemyProjectileViews;
+        // 적 투사체 저장소 슬롯별로 표시 중인 View가 가리키는 엔티티의 generation
+        public int[] enemyProjectileViewGenerations;
+        // 적 투사체 저장소 슬롯별로 표시 중인 View를 꺼낸 풀의 인덱스
+        public int[] enemyProjectileViewPoolIndices;
     }
 }

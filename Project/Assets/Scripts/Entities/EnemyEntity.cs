@@ -33,6 +33,14 @@ namespace Project06.Entities
         public int idleRemainingTicks;
         // Dead에서 소멸할 때까지 남은 틱
         public int deathRemainingTicks;
+        // Attack에서 하고 있는 공격의 enemy.attacks 인덱스
+        public int attackIndex;
+        // Attack에서 타격 전이면 타격할 때까지, 타격 후면 추격으로 돌아갈 때까지 남은 틱
+        public int attackRemainingTicks;
+        // Attack에서 이번 공격의 타격을 이미 했는지 여부. true면 후딜레이 중이다.
+        public bool hasAttackHit;
+        // 공격별로 다시 시작할 수 있을 때까지 남은 틱. enemy.attacks와 같은 순서이며, 길이는 공격 수 이상이다. 슬롯이 재사용될 때 길이가 모자랄 때만 SpawnSystem이 새로 만든다.
+        public int[] attackCooldownRemainingTicks;
         // 따라갈 NavMesh 경로의 코너. 슬롯마다 EnemyStorage가 미리 만들어 두고 재사용한다.
         public Vector3[] pathCorners;
         // pathCorners 중 유효한 코너 수

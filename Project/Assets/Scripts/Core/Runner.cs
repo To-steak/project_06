@@ -6,6 +6,7 @@ using Project06.Definitions;
 using Project06.Entities;
 using Project06.Presentation;
 using Project06.Presentation.Enemy.ViewSystems;
+using Project06.Presentation.EnemyProjectile.ViewSystems;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Player.ViewSystems;
 using Project06.Presentation.Projectile.ViewSystems;
@@ -74,7 +75,9 @@ namespace Project06.Core
             CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
             WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
             ProjectileViewSystem.Initialize(projectilePrefabs, _world.projectiles.entities.Length, _viewContext);
-            EnemyViewSystem.Initialize(CollectEnemyPrefabs(enemyDefinitions), _world.enemies.entities.Length, _viewContext);
+            CollectEnemyViewData(enemyDefinitions, out GameObject[] enemyPrefabs, out string[][] enemyAttackTriggerNames, out GameObject[] enemyProjectilePrefabs);
+            EnemyViewSystem.Initialize(enemyPrefabs, enemyAttackTriggerNames, _world.enemies.entities.Length, _viewContext);
+            EnemyProjectileViewSystem.Initialize(enemyProjectilePrefabs, _world.enemyProjectiles.entities.Length, _viewContext);
         }
 
         private void FixedUpdate()
@@ -85,15 +88,19 @@ namespace Project06.Core
             CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
             PlayerMoveSystem.Tick(_world.players);
             EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.random);
+            EnemyAttackSystem.Tick(_world.enemies, _world.players, _world.enemyProjectileSpawnRequests, _world.enemyAttackStartedRecords);
             ProjectileHitSystem.Tick(_world.projectiles, _world.enemies);
             ProjectileMoveSystem.Tick(_world.projectiles);
+            EnemyProjectileHitSystem.Tick(_world.enemyProjectiles, _world.players);
+            EnemyProjectileMoveSystem.Tick(_world.enemyProjectiles);
             PlayerFireSystem.Tick(_world.players, _world.projectileSpawnRequests, _world.playerFiredRecords);
             EnemySpawnerSystem.Tick(_world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
             SpawnSystem.Tick(
                 _world.playerSpawnRequests, _world.players,
                 _world.enemySpawnerSpawnRequests, _world.enemySpawners,
                 _world.enemySpawnRequests, _world.enemies,
-                _world.projectileSpawnRequests, _world.projectiles);
+                _world.projectileSpawnRequests, _world.projectiles,
+                _world.enemyProjectileSpawnRequests, _world.enemyProjectiles);
         }
 
         private void Update()
@@ -126,9 +133,11 @@ namespace Project06.Core
             }
 
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
-            EnemyViewSystem.Present(_world.enemies, interpolation, _viewContext);
+            EnemyViewSystem.Present(_world.enemies, _world.enemyAttackStartedRecords, interpolation, _viewContext);
+            EnemyProjectileViewSystem.Present(_world.enemyProjectiles, interpolation, _viewContext);
 
             _world.playerFiredRecords.Clear();
+            _world.enemyAttackStartedRecords.Clear();
         }
 
         // 씬의 PlayerAuthoring 위치에 PlayerDefinition 수치로 플레이어 생성을 요청한다. PlayerAuthoring이나 Catalog가 없으면 요청하지 않는다.
@@ -146,6 +155,7 @@ namespace Project06.Core
             {
                 position = playerAuthoring.transform.position,
                 facingDirection = startFacingDirection.sqrMagnitude > 0f ? startFacingDirection.normalized : Vector3.forward,
+                player = _definitionCatalog.player.player,
                 movement = _definitionCatalog.player.movement,
                 weaponIndex = -1,
                 caliberIndex = -1,
@@ -218,6 +228,7 @@ namespace Project06.Core
                 {
                     enemyTypeIndex = enemyDefinitions.Count;
                     enemyDefinitions.Add(definition);
+                    ValidateEnemyAttacks(definition);
                 }
 
                 Transform spawnerTransform = spawnerAuthoring.transform;
@@ -236,16 +247,29 @@ namespace Project06.Core
             return enemyDefinitions;
         }
 
-        // 적 종류 순서대로 적 프리팹을 모은다.
-        private static GameObject[] CollectEnemyPrefabs(List<EnemyDefinition> enemyDefinitions)
+        // 적 종류 순서대로 적 프리팹, 공격 Trigger 이름 목록, 적 투사체 프리팹을 모은다.
+        private static void CollectEnemyViewData(List<EnemyDefinition> enemyDefinitions, out GameObject[] enemyPrefabs, out string[][] attackTriggerNames, out GameObject[] enemyProjectilePrefabs)
         {
-            GameObject[] enemyPrefabs = new GameObject[enemyDefinitions.Count];
+            enemyPrefabs = new GameObject[enemyDefinitions.Count];
+            attackTriggerNames = new string[enemyDefinitions.Count][];
+            enemyProjectilePrefabs = new GameObject[enemyDefinitions.Count];
             for (int enemyTypeIndex = 0; enemyTypeIndex < enemyDefinitions.Count; enemyTypeIndex++)
             {
                 enemyPrefabs[enemyTypeIndex] = enemyDefinitions[enemyTypeIndex].enemyPrefab;
+                attackTriggerNames[enemyTypeIndex] = enemyDefinitions[enemyTypeIndex].attackTriggerNames;
+                enemyProjectilePrefabs[enemyTypeIndex] = enemyDefinitions[enemyTypeIndex].projectilePrefab;
             }
+        }
 
-            return enemyPrefabs;
+        // 적 Definition의 공격 목록과 Trigger 이름 목록의 길이가 다르면 에러 로그를 남긴다.
+        private static void ValidateEnemyAttacks(EnemyDefinition definition)
+        {
+            int attackCount = definition.enemy.attacks != null ? definition.enemy.attacks.Length : 0;
+            int triggerCount = definition.attackTriggerNames != null ? definition.attackTriggerNames.Length : 0;
+            if (triggerCount != attackCount)
+            {
+                Debug.LogError($"{definition.name}의 공격 수({attackCount})와 attackTriggerNames 수({triggerCount})가 다르다.", definition);
+            }
         }
 
         // 살아 있는 첫 플레이어의 슬롯 인덱스를 구한다. 없으면 -1을 돌려준다.

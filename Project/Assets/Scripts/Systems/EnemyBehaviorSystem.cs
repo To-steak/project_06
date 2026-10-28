@@ -11,8 +11,8 @@ namespace Project06.Systems
         /// 살아 있는 적마다 가장 가까운 살아 있는 플레이어와의 XZ 거리로 상태를 정하고, NavMesh 경로를 따라 한 틱만큼 옮긴다.
         /// 추격 중이 아닌 적은 생성 위치 주변을 걷고 서기를 반복하다가 감지 반지름 안에 플레이어가 들어오면 달려서 추격한다.
         /// 추격 중인 적은 플레이어가 해제 반지름 밖으로 나가면 Idle로 돌아가 감속해 멈춘다.
-        /// Dead인 적은 움직이지 않고 사망 시간을 한 틱 줄이며, 사망 시간이 끝나면 소멸시킨다.
-        /// PlayerMoveSystem 다음, ProjectileHitSystem 앞에 호출한다.
+        /// Dead인 적은 움직이지 않고 사망 시간을 한 틱 줄이며, 사망 시간이 끝나면 소멸시킨다. Attack인 적은 EnemyAttackSystem이 다루므로 건너뛴다.
+        /// PlayerMoveSystem 다음, EnemyAttackSystem 앞에 호출한다.
         /// </summary>
         /// <param name="enemies">옮기고 소멸시킬 적 저장소.</param>
         /// <param name="players">쫓을 플레이어 저장소. 읽기만 한다.</param>
@@ -31,6 +31,11 @@ namespace Project06.Systems
                 if (enemy.state == EnemyState.Dead)
                 {
                     TickDeath(ref enemy, index, enemies);
+                    continue;
+                }
+
+                if (enemy.state == EnemyState.Attack)
+                {
                     continue;
                 }
 
@@ -61,9 +66,16 @@ namespace Project06.Systems
             enemies.freeIndices.Add(index);
         }
 
-        // XZ 평면에서 position에 가장 가까운 살아 있는 플레이어를 찾는다. 없으면 false를 돌려준다.
-        private static bool TryFindNearestPlayer(PlayerStorage players, Vector3 position, out Vector3 targetPosition, out float targetSqrDistance)
+        // XZ 평면에서 position에 가장 가까운 살아 있는 플레이어를 찾는다. 없으면 false를 돌려준다. EnemyAttackSystem도 쓴다.
+        internal static bool TryFindNearestPlayer(PlayerStorage players, Vector3 position, out Vector3 targetPosition, out float targetSqrDistance)
         {
+            return TryFindNearestPlayer(players, position, out _, out targetPosition, out targetSqrDistance);
+        }
+
+        // TryFindNearestPlayer와 같고, 찾은 플레이어의 슬롯 인덱스도 돌려준다. 없으면 -1이다.
+        internal static bool TryFindNearestPlayer(PlayerStorage players, Vector3 position, out int targetIndex, out Vector3 targetPosition, out float targetSqrDistance)
+        {
+            targetIndex = -1;
             targetPosition = Vector3.zero;
             targetSqrDistance = float.MaxValue;
             bool hasTarget = false;
@@ -82,6 +94,7 @@ namespace Project06.Systems
                 if (sqrDistance < targetSqrDistance)
                 {
                     targetSqrDistance = sqrDistance;
+                    targetIndex = playerIndex;
                     targetPosition = player.currentPosition;
                     hasTarget = true;
                 }

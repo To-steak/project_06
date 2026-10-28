@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31975068f85605a4696944a6e557d135, type: 3}
   m_Name: Player Definition
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.PlayerDefinition
+  player:
+    maxHealth: 0
+    hitRadius: 0
   movement:
-    moveSpeed: 1
-    runSpeed: 2
+    moveSpeed: 3
+    runSpeed: 5
     acceleration: 10
   startWeapon: {fileID: 11400000, guid: 3340221d9fe28c24c80727dac7bd13a4, type: 2}

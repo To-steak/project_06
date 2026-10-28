@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using Project06.Components;
 using Project06.Entities;
 using Project06.Presentation.Enemy.Views;
+using Project06.Records;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -17,15 +19,31 @@ namespace Project06.Presentation.Enemy.ViewSystems
         private const string SPEED_PARAMETER = "Speed";
         // 사망했는지 여부(Bool). 체력이 0 이하가 되면 true가 되고, 사망 시간이 끝나 소멸할 때까지 유지된다.
         private const string IS_DEAD_PARAMETER = "IsDead";
+        // 공격 Trigger 이름이 비어 있음을 나타내는 해시
+        private const int NO_TRIGGER_HASH = 0;
 
         /// <summary>
-        /// 종류별 적 View 풀과 슬롯별 View 매핑을 만든다. 판 시작 시 한 번 호출한다.
+        /// 종류별 적 View 풀, 공격 Trigger 해시, 슬롯별 View 매핑을 만든다. 판 시작 시 한 번 호출한다.
         /// </summary>
         /// <param name="enemyPrefabs">종류별 적 프리팹. 적 종류 인덱스와 같은 순서이며 null이 섞여 있어도 된다. 루트에 EnemyView가 있어야 한다.</param>
+        /// <param name="attackTriggerNames">종류별 공격 Trigger 이름 목록. 적 종류 인덱스와 같은 순서이며, 안쪽은 공격 목록과 같은 순서다. null이나 빈 이름이 섞여 있어도 된다.</param>
         /// <param name="capacity">적 저장소의 슬롯 수.</param>
         /// <param name="context">View 실행 상태.</param>
-        public static void Initialize(GameObject[] enemyPrefabs, int capacity, ViewContext context)
+        public static void Initialize(GameObject[] enemyPrefabs, string[][] attackTriggerNames, int capacity, ViewContext context)
         {
+            context.enemyAttackTriggerHashes = new int[attackTriggerNames.Length][];
+            for (int enemyTypeIndex = 0; enemyTypeIndex < attackTriggerNames.Length; enemyTypeIndex++)
+            {
+                string[] triggerNames = attackTriggerNames[enemyTypeIndex] ?? new string[0];
+                int[] triggerHashes = new int[triggerNames.Length];
+                for (int attackIndex = 0; attackIndex < triggerNames.Length; attackIndex++)
+                {
+                    triggerHashes[attackIndex] = string.IsNullOrEmpty(triggerNames[attackIndex]) ? NO_TRIGGER_HASH : Animator.StringToHash(triggerNames[attackIndex]);
+                }
+
+                context.enemyAttackTriggerHashes[enemyTypeIndex] = triggerHashes;
+            }
+
             context.enemyPools = new ObjectPool<EnemyView>[enemyPrefabs.Length];
             for (int enemyTypeIndex = 0; enemyTypeIndex < enemyPrefabs.Length; enemyTypeIndex++)
             {
@@ -59,11 +77,13 @@ namespace Project06.Presentation.Enemy.ViewSystems
 
         /// <summary>
         /// 살아 있는 적마다 View를 풀에서 꺼내 위치와 방향을 맞추고 이동 속력과 사망 여부를 Animator에 넘긴다. 소멸했거나 슬롯이 재사용된 적의 View는 풀에 반납한다.
+        /// 이번 프레임에 공격을 시작한 기록이 있으면 그 적의 공격 애니메이션을 한 번 재생한다.
         /// </summary>
         /// <param name="enemies">표시할 적 저장소.</param>
+        /// <param name="enemyAttackStartedRecords">이번 프레임에 쌓인 적 공격 시작 기록.</param>
         /// <param name="interpolation">직전 틱에서 현재 틱까지 진행한 비율(0~1).</param>
         /// <param name="context">View 실행 상태.</param>
-        public static void Present(EnemyStorage enemies, float interpolation, ViewContext context)
+        public static void Present(EnemyStorage enemies, List<EnemyAttackStartedRecord> enemyAttackStartedRecords, float interpolation, ViewContext context)
         {
             EnemyEntity[] entities = enemies.entities;
             for (int index = 0; index < entities.Length; index++)
@@ -108,6 +128,31 @@ namespace Project06.Presentation.Enemy.ViewSystems
                     view.animator.SetFloat(SPEED_PARAMETER_HASH, GetBlendSpeed(in enemy));
                     view.animator.SetBool(IS_DEAD_PARAMETER_HASH, enemy.state == EnemyState.Dead);
                 }
+            }
+
+            PresentAttackStarts(enemyAttackStartedRecords, context);
+        }
+
+        // 공격을 시작한 적의 View가 아직 그 적을 표시하고 있으면 그 공격의 Trigger를 켠다. Trigger 이름이 없는 공격은 건너뛴다.
+        private static void PresentAttackStarts(List<EnemyAttackStartedRecord> enemyAttackStartedRecords, ViewContext context)
+        {
+            for (int recordIndex = 0; recordIndex < enemyAttackStartedRecords.Count; recordIndex++)
+            {
+                EnemyAttackStartedRecord record = enemyAttackStartedRecords[recordIndex];
+                int index = record.enemy.index;
+                EnemyView view = context.enemyViews[index];
+                if (view == null || view.animator == null || context.enemyViewGenerations[index] != record.enemy.generation)
+                {
+                    continue;
+                }
+
+                int[] triggerHashes = context.enemyAttackTriggerHashes[context.enemyViewPoolIndices[index]];
+                if (record.attackIndex < 0 || record.attackIndex >= triggerHashes.Length || triggerHashes[record.attackIndex] == NO_TRIGGER_HASH)
+                {
+                    continue;
+                }
+
+                view.animator.SetTrigger(triggerHashes[record.attackIndex]);
             }
         }
 

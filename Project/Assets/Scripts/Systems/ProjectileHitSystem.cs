@@ -68,7 +68,8 @@ namespace Project06.Systems
         }
 
         // XZ 평면에서 start부터 start + step까지의 선분이 center를 중심으로 한 반지름 radius의 원과 처음 만나는 비율(0~1)을 구한다. 시작점이 원 안이면 0이다.
-        private static bool TryGetHitRatio(Vector3 start, Vector3 step, Vector3 center, float radius, out float hitRatio)
+        // EnemyProjectileHitSystem도 쓴다.
+        internal static bool TryGetHitRatio(Vector3 start, Vector3 step, Vector3 center, float radius, out float hitRatio)
         {
             hitRatio = 0f;
             Vector2 offset = new Vector2(start.x - center.x, start.z - center.z);

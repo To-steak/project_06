@@ -31,5 +31,7 @@ namespace Project06.Components
         public int wanderWaitMaxTicks;
         // 체력이 0 이하가 된 뒤 사망 애니메이션을 보여 주고 사라지기까지 걸리는 시간(틱)
         public int deathDurationTicks;
+        // 공격 목록. 여러 공격이 가능하면 앞에 있는 공격을 고른다. 비어 있으면 공격하지 않는다.
+        public EnemyAttackComponent[] attacks;
     }
 }

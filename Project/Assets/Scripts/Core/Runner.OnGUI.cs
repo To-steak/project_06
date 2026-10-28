@@ -11,9 +11,9 @@ namespace Project06.Core
         // 디버그 표시 영역의 화면 가장자리 여백과 크기(픽셀)
         private const float DEBUG_GUI_MARGIN = 10f;
         private const float DEBUG_GUI_WIDTH = 320f;
-        private const float DEBUG_GUI_HEIGHT = 140f;
+        private const float DEBUG_GUI_HEIGHT = 160f;
 
-        // 디버그용으로 플레이어의 무기·탄약·재장전·행동 상태를 화면 왼쪽 위에 표시한다.
+        // 디버그용으로 플레이어의 체력·무기·탄약·재장전·행동 상태를 화면 왼쪽 위에 표시한다.
         private void OnGUI()
         {
             int playerIndex = _world != null ? FindAlivePlayerIndex() : -1;
@@ -40,6 +40,7 @@ namespace Project06.Core
                 : "재장전 안 함";
 
             GUILayout.BeginArea(new Rect(DEBUG_GUI_MARGIN, DEBUG_GUI_MARGIN, DEBUG_GUI_WIDTH, DEBUG_GUI_HEIGHT), GUI.skin.box);
+            GUILayout.Label($"체력: {player.health} / {player.player.maxHealth}");
             GUILayout.Label($"무기: {weaponName} ({caliberName})");
             GUILayout.Label($"탄창: {player.magazineAmmo} / {player.weapon.magazineCapacity}");
             GUILayout.Label($"예비 탄약: {reserveAmmo}");

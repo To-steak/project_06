@@ -104,6 +104,6 @@ Presentation/
 | `Presentation/` | `~ViewSystem`, `~View`, ViewContext, 오디오, 오브젝트 풀 | `Project06.Presentation` | Entity |
 | `UserInterface/` | UI View, Presenter | `Project06.UserInterface` | Entity, Persistence |
 | `Core/` | World, Runner, 부트스트랩, 로딩, 씬 전환 | `Project06.Core` | 전부 |
-| `Editor/` | 에디터 도구 | `Project06.Editor` (플랫폼: Editor 전용) | Definitions, Authoring |
+| `Editor/` | 에디터 도구 (Gizmo, PropertyDrawer) | `Project06.Editor` (플랫폼: Editor 전용) | Entity, Definitions, Authoring |
 
 - 표에 없는 종류의 타입을 만들어야 하면, 어디에 둘지 먼저 묻는다.
