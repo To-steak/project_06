@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using Project06.Components;
 using Project06.Entities;
+using Project06.Records;
 using UnityEngine;
 
 namespace Project06.Systems
@@ -9,10 +11,13 @@ namespace Project06.Systems
         /// <summary>
         /// 살아 있는 투사체마다 이번 틱에 날아갈 선분이 살아 있는 적의 피격 원(XZ 평면)과 만나는지 검사한다. ProjectileMoveSystem보다 먼저 호출한다.
         /// 가장 먼저 만나는 적에게 데미지를 주고 투사체를 소멸시키며, 체력이 0 이하가 된 적은 Dead로 바꾼다. Dead인 적은 맞지 않는다. 높이(Y)는 판정에 쓰지 않는다.
+        /// 살아남은 적은 경직 확률에 따라 HitStun이 된다. 공격 중이었으면 공격을 취소하고, 이미 경직 중이었으면 경직을 처음부터 다시 센다.
         /// </summary>
         /// <param name="projectiles">검사할 투사체 저장소.</param>
         /// <param name="enemyStorage">맞을 수 있는 적 저장소.</param>
-        public static void Tick(ProjectileStorage projectiles, EnemyStorage enemyStorage)
+        /// <param name="random">경직 여부를 정할 난수 생성기.</param>
+        /// <param name="enemyHitStunnedRecords">이번 틱에 경직에 걸린 기록 목록.</param>
+        public static void Tick(ProjectileStorage projectiles, EnemyStorage enemyStorage, System.Random random, List<EnemyHitStunnedRecord> enemyHitStunnedRecords)
         {
             EnemyEntity[] enemies = enemyStorage.entities;
             ProjectileEntity[] entities = projectiles.entities;
@@ -60,6 +65,16 @@ namespace Project06.Systems
                     hitEnemy.state = EnemyState.Dead;
                     hitEnemy.deathRemainingTicks = hitEnemy.enemy.deathDurationTicks;
                     hitEnemy.velocity = Vector3.zero;
+                }
+                else if (random.NextDouble() < hitEnemy.enemy.hitStunChance)
+                {
+                    hitEnemy.state = EnemyState.HitStun;
+                    hitEnemy.hitStunRemainingTicks = hitEnemy.enemy.hitStunTicks;
+                    hitEnemy.velocity = Vector3.zero;
+                    enemyHitStunnedRecords.Add(new EnemyHitStunnedRecord
+                    {
+                        enemy = new EntityIdentifier { index = hitEnemyIndex, generation = hitEnemy.generation },
+                    });
                 }
 
                 projectile.isAlive = false;

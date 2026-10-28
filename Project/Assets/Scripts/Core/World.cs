@@ -32,6 +32,8 @@ namespace Project06.Core
         public List<PlayerFiredRecord> playerFiredRecords = new List<PlayerFiredRecord>();
         // 적이 공격을 시작한 기록. LateUpdate 마지막에 비운다.
         public List<EnemyAttackStartedRecord> enemyAttackStartedRecords = new List<EnemyAttackStartedRecord>();
+        // 적이 경직에 걸린 기록. LateUpdate 마지막에 비운다.
+        public List<EnemyHitStunnedRecord> enemyHitStunnedRecords = new List<EnemyHitStunnedRecord>();
         // Update에서 쌓고 Tick에서 소비하는 입력 명령
         public CommandBuffer commandBuffer = new CommandBuffer();
         // 판마다 같은 시드로 만드는 난수 생성기. System은 UnityEngine.Random 대신 이것을 받아 쓴다.

@@ -12,6 +12,7 @@ namespace Project06.Presentation.Enemy.ViewSystems
     {
         private static readonly int SPEED_PARAMETER_HASH = Animator.StringToHash(SPEED_PARAMETER);
         private static readonly int IS_DEAD_PARAMETER_HASH = Animator.StringToHash(IS_DEAD_PARAMETER);
+        private static readonly int GET_HIT_PARAMETER_HASH = Animator.StringToHash(GET_HIT_PARAMETER);
 
         // 종류별 풀이 처음 확보하는 View 수
         private const int DEFAULT_POOL_CAPACITY = 16;
@@ -19,6 +20,8 @@ namespace Project06.Presentation.Enemy.ViewSystems
         private const string SPEED_PARAMETER = "Speed";
         // 사망했는지 여부(Bool). 체력이 0 이하가 되면 true가 되고, 사망 시간이 끝나 소멸할 때까지 유지된다.
         private const string IS_DEAD_PARAMETER = "IsDead";
+        // 경직에 걸린 프레임에 켜는 Trigger
+        private const string GET_HIT_PARAMETER = "GetHit";
         // 공격 Trigger 이름이 비어 있음을 나타내는 해시
         private const int NO_TRIGGER_HASH = 0;
 
@@ -77,13 +80,14 @@ namespace Project06.Presentation.Enemy.ViewSystems
 
         /// <summary>
         /// 살아 있는 적마다 View를 풀에서 꺼내 위치와 방향을 맞추고 이동 속력과 사망 여부를 Animator에 넘긴다. 소멸했거나 슬롯이 재사용된 적의 View는 풀에 반납한다.
-        /// 이번 프레임에 공격을 시작한 기록이 있으면 그 적의 공격 애니메이션을 한 번 재생한다.
+        /// 이번 프레임에 공격을 시작한 기록이 있으면 그 적의 공격 애니메이션을, 경직에 걸린 기록이 있으면 피격 애니메이션을 한 번 재생한다.
         /// </summary>
         /// <param name="enemies">표시할 적 저장소.</param>
         /// <param name="enemyAttackStartedRecords">이번 프레임에 쌓인 적 공격 시작 기록.</param>
+        /// <param name="enemyHitStunnedRecords">이번 프레임에 쌓인 적 경직 기록.</param>
         /// <param name="interpolation">직전 틱에서 현재 틱까지 진행한 비율(0~1).</param>
         /// <param name="context">View 실행 상태.</param>
-        public static void Present(EnemyStorage enemies, List<EnemyAttackStartedRecord> enemyAttackStartedRecords, float interpolation, ViewContext context)
+        public static void Present(EnemyStorage enemies, List<EnemyAttackStartedRecord> enemyAttackStartedRecords, List<EnemyHitStunnedRecord> enemyHitStunnedRecords, float interpolation, ViewContext context)
         {
             EnemyEntity[] entities = enemies.entities;
             for (int index = 0; index < entities.Length; index++)
@@ -131,6 +135,33 @@ namespace Project06.Presentation.Enemy.ViewSystems
             }
 
             PresentAttackStarts(enemyAttackStartedRecords, context);
+            PresentHitStuns(enemyHitStunnedRecords, context);
+        }
+
+        // 경직에 걸린 적의 View가 아직 그 적을 표시하고 있으면 피격 Trigger를 켠다. 같은 프레임에 공격 Trigger가 켜졌다면 끈다.
+        private static void PresentHitStuns(List<EnemyHitStunnedRecord> enemyHitStunnedRecords, ViewContext context)
+        {
+            for (int recordIndex = 0; recordIndex < enemyHitStunnedRecords.Count; recordIndex++)
+            {
+                EnemyHitStunnedRecord record = enemyHitStunnedRecords[recordIndex];
+                int index = record.enemy.index;
+                EnemyView view = context.enemyViews[index];
+                if (view == null || view.animator == null || context.enemyViewGenerations[index] != record.enemy.generation)
+                {
+                    continue;
+                }
+
+                int[] triggerHashes = context.enemyAttackTriggerHashes[context.enemyViewPoolIndices[index]];
+                for (int attackIndex = 0; attackIndex < triggerHashes.Length; attackIndex++)
+                {
+                    if (triggerHashes[attackIndex] != NO_TRIGGER_HASH)
+                    {
+                        view.animator.ResetTrigger(triggerHashes[attackIndex]);
+                    }
+                }
+
+                view.animator.SetTrigger(GET_HIT_PARAMETER_HASH);
+            }
         }
 
         // 공격을 시작한 적의 View가 아직 그 적을 표시하고 있으면 그 공격의 Trigger를 켠다. Trigger 이름이 없는 공격은 건너뛴다.

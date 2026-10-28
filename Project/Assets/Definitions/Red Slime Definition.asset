@@ -26,6 +26,8 @@ MonoBehaviour:
     wanderWaitMinTicks: 20
     wanderWaitMaxTicks: 60
     deathDurationTicks: 75
+    hitStunChance: 0.05
+    hitStunTicks: 42
     attacks:
     - kind: 0
       range: 1

@@ -89,7 +89,7 @@ namespace Project06.Core
             PlayerMoveSystem.Tick(_world.players);
             EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.random);
             EnemyAttackSystem.Tick(_world.enemies, _world.players, _world.enemyProjectileSpawnRequests, _world.enemyAttackStartedRecords);
-            ProjectileHitSystem.Tick(_world.projectiles, _world.enemies);
+            ProjectileHitSystem.Tick(_world.projectiles, _world.enemies, _world.random, _world.enemyHitStunnedRecords);
             ProjectileMoveSystem.Tick(_world.projectiles);
             EnemyProjectileHitSystem.Tick(_world.enemyProjectiles, _world.players);
             EnemyProjectileMoveSystem.Tick(_world.enemyProjectiles);
@@ -133,11 +133,12 @@ namespace Project06.Core
             }
 
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
-            EnemyViewSystem.Present(_world.enemies, _world.enemyAttackStartedRecords, interpolation, _viewContext);
+            EnemyViewSystem.Present(_world.enemies, _world.enemyAttackStartedRecords, _world.enemyHitStunnedRecords, interpolation, _viewContext);
             EnemyProjectileViewSystem.Present(_world.enemyProjectiles, interpolation, _viewContext);
 
             _world.playerFiredRecords.Clear();
             _world.enemyAttackStartedRecords.Clear();
+            _world.enemyHitStunnedRecords.Clear();
         }
 
         // 씬의 PlayerAuthoring 위치에 PlayerDefinition 수치로 플레이어 생성을 요청한다. PlayerAuthoring이나 Catalog가 없으면 요청하지 않는다.

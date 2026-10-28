@@ -33,6 +33,8 @@ namespace Project06.Entities
         public int idleRemainingTicks;
         // Dead에서 소멸할 때까지 남은 틱
         public int deathRemainingTicks;
+        // HitStun에서 추격으로 돌아갈 때까지 남은 틱
+        public int hitStunRemainingTicks;
         // Attack에서 하고 있는 공격의 enemy.attacks 인덱스
         public int attackIndex;
         // Attack에서 타격 전이면 타격할 때까지, 타격 후면 추격으로 돌아갈 때까지 남은 틱

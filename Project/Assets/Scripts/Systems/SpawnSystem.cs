@@ -114,6 +114,7 @@ namespace Project06.Systems
                 enemy.state = EnemyState.Idle;
                 enemy.idleRemainingTicks = 0;
                 enemy.deathRemainingTicks = 0;
+                enemy.hitStunRemainingTicks = 0;
                 enemy.attackRemainingTicks = 0;
                 enemy.hasAttackHit = false;
                 // 슬롯의 쿨다운 배열이 이 적의 공격 수보다 작을 때만 새로 만들고, 아니면 재사용한다.
