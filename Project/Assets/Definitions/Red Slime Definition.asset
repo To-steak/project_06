@@ -32,7 +32,7 @@ MonoBehaviour:
     - kind: 0
       range: 1
       damage: 10
-      windupTicks: 21
+      windupTicks: 17
       recoveryTicks: 50
       cooldownTicks: 200
       projectile:
@@ -42,7 +42,7 @@ MonoBehaviour:
     - kind: 0
       range: 2
       damage: 10
-      windupTicks: 21
+      windupTicks: 22
       recoveryTicks: 50
       cooldownTicks: 300
       projectile:
