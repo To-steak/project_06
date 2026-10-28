@@ -7,6 +7,8 @@ using Project06.Presentation;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Player.ViewSystems;
 using Project06.Presentation.Projectile.ViewSystems;
+using Project06.Presentation.Weapon.Views;
+using Project06.Presentation.Weapon.ViewSystems;
 using Project06.Systems;
 using UnityEngine;
 
@@ -80,7 +82,9 @@ namespace Project06.Core
             }
 
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
-            ProjectileViewSystem.Initialize(GetProjectilePrefabs(), _world.projectiles.entities.Length, _viewContext);
+            CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
+            WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
+            ProjectileViewSystem.Initialize(projectilePrefabs, _world.projectiles.entities.Length, _viewContext);
         }
 
         private void FixedUpdate()
@@ -111,6 +115,7 @@ namespace Project06.Core
         {
             float interpolation = Mathf.Clamp01((Time.time - Time.fixedTime) / Time.fixedDeltaTime);
             PlayerViewSystem.Present(in _world.player, _world.playerFiredRecords, interpolation, _viewContext);
+            WeaponViewSystem.Present(in _world.player, _world.playerFiredRecords, _viewContext);
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
 
             _world.playerFiredRecords.Clear();
@@ -132,34 +137,33 @@ namespace Project06.Core
             player.weapon = startWeapon.weapon;
         }
 
-        // DefinitionCatalog.weapons 순서대로 투사체 프리팹을 모은다.
-        private GameObject[] GetProjectilePrefabs()
+        // DefinitionCatalog.weapons 순서대로 총 프리팹과 투사체 프리팹을 모은다.
+        private void CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs)
         {
-            WeaponDefinition[] weapons = _definitionCatalog != null ? _definitionCatalog.weapons : null;
-            if (weapons == null)
-            {
-                return new GameObject[0];
-            }
+            WeaponDefinition[] weapons = _definitionCatalog != null && _definitionCatalog.weapons != null
+                ? _definitionCatalog.weapons
+                : new WeaponDefinition[0];
 
-            GameObject[] prefabs = new GameObject[weapons.Length];
+            weaponPrefabs = new GameObject[weapons.Length];
+            projectilePrefabs = new GameObject[weapons.Length];
             for (int weaponIndex = 0; weaponIndex < weapons.Length; weaponIndex++)
             {
-                prefabs[weaponIndex] = weapons[weaponIndex] != null ? weapons[weaponIndex].projectilePrefab : null;
+                WeaponDefinition weapon = weapons[weaponIndex];
+                weaponPrefabs[weaponIndex] = weapon != null ? weapon.weaponPrefab : null;
+                projectilePrefabs[weaponIndex] = weapon != null ? weapon.projectilePrefab : null;
             }
-
-            return prefabs;
         }
 
         // 총구의 월드 위치를 구한다. 총구가 연결되어 있지 않으면 플레이어 위치를 쓴다.
         private Vector3 GetMuzzlePosition()
         {
-            PlayerView playerView = _viewContext.playerView;
-            if (playerView == null || playerView.weaponView == null || playerView.weaponView.muzzle == null)
+            WeaponView weaponView = _viewContext.equippedWeaponView;
+            if (weaponView == null || weaponView.muzzle == null)
             {
                 return _world.player.currentPosition;
             }
 
-            return playerView.weaponView.muzzle.position;
+            return weaponView.muzzle.position;
         }
 
         // 화면 좌표의 커서를 origin 높이의 수평면에 투영해, origin에서 그 지점으로 향하는 XZ 방향을 구한다.

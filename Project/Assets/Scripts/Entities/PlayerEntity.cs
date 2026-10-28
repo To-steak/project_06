@@ -23,7 +23,7 @@ namespace Project06.Entities
         public PlayerMovementComponent movement;
         // 조준하고 있는지 여부. 조준 입력을 누르고 있어도 달리면 false다.
         public bool isAiming;
-        // 발사 입력을 누르고 있는지 여부
+        // 조준 입력과 발사 입력을 함께 누르고 있는지 여부
         public bool isFiring;
         // 장착한 무기의 DefinitionCatalog.weapons 인덱스. 음수면 무기가 없다.
         public int weaponIndex;

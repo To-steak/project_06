@@ -1,4 +1,5 @@
 using Project06.Presentation.Player.Views;
+using Project06.Presentation.Weapon.Views;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -8,6 +9,14 @@ namespace Project06.Presentation
     {
         // 씬에 배치된 플레이어 View
         public PlayerView playerView;
+        // 무기별 총 프리팹. DefinitionCatalog.weapons와 같은 순서이며, 프리팹이 없는 무기는 null이다.
+        public GameObject[] weaponPrefabs;
+        // 무기별로 한 번 생성해 둔 총 View. 아직 장착한 적 없는 무기는 null이다.
+        public WeaponView[] weaponViews;
+        // 지금 손에 표시 중인 총의 무기 인덱스. 음수면 표시 중인 총이 없다.
+        public int equippedWeaponIndex = -1;
+        // 지금 손에 표시 중인 총 View. 없으면 null이다.
+        public WeaponView equippedWeaponView;
         // 무기별 투사체 View 풀. DefinitionCatalog.weapons와 같은 순서이며, 프리팹이 없는 무기는 null이다.
         public ObjectPool<GameObject>[] projectilePools;
         // 투사체 저장소 슬롯별로 표시 중인 View. 표시 중이 아니면 null이다.

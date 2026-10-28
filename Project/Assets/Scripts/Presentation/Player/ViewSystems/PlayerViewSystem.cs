@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Project06.Entities;
 using Project06.Presentation.Player.Views;
-using Project06.Presentation.Weapon.Views;
 using Project06.Records;
 using UnityEngine;
 
@@ -25,7 +24,7 @@ namespace Project06.Presentation.Player.ViewSystems
 
         /// <summary>
         /// 플레이어 위치를 직전 틱과 현재 틱 사이로 보간하고 바라보는 방향으로 회전해 View에 반영한 뒤, 바라보는 방향 기준 이동량과 조준 여부를 Animator에 넘긴다.
-        /// 이번 프레임에 발사 기록이 있으면 발사 애니메이션, 총구 섬광, 발사음을 한 번 재생한다.
+        /// 이번 프레임에 발사 기록이 있으면 발사 애니메이션을 한 번 재생한다.
         /// </summary>
         /// <param name="player">표시할 플레이어.</param>
         /// <param name="playerFiredRecords">이번 프레임에 쌓인 플레이어 발사 기록.</param>
@@ -45,8 +44,6 @@ namespace Project06.Presentation.Player.ViewSystems
                 playerView.transform.rotation = Quaternion.LookRotation(player.facingDirection, Vector3.up);
             }
 
-            bool hasFired = playerFiredRecords.Count > 0;
-
             if (playerView.animator != null)
             {
                 Vector3 blendPosition = GetBlendPosition(in player);
@@ -54,23 +51,9 @@ namespace Project06.Presentation.Player.ViewSystems
                 playerView.animator.SetFloat(MOVE_X_PARAMETER_HASH, localBlendPosition.x);
                 playerView.animator.SetFloat(MOVE_Z_PARAMETER_HASH, localBlendPosition.z);
                 playerView.animator.SetBool(IS_AIMING_PARAMETER_HASH, player.isAiming);
-                if (hasFired)
+                if (playerFiredRecords.Count > 0)
                 {
                     playerView.animator.SetTrigger(FIRE_PARAMETER_HASH);
-                }
-            }
-
-            WeaponView weaponView = playerView.weaponView;
-            if (hasFired && weaponView != null)
-            {
-                if (weaponView.muzzleFlash != null)
-                {
-                    weaponView.muzzleFlash.Play();
-                }
-
-                if (weaponView.fireAudioSource != null)
-                {
-                    weaponView.fireAudioSource.Play();
                 }
             }
         }

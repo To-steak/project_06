@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 5.656854, z: -5.6568546}
+  m_LocalPosition: {x: 0, y: 1.4142135, z: -1.4142137}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -416,74 +416,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!1001 &1309506918
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 2419535841174610108, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_Name
-      value: Pistol_O
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8678879175722728431, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 828841806d559c140ae7ad4785597c50, type: 3}
---- !u!114 &1309506919 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1371898678686808137, guid: 828841806d559c140ae7ad4785597c50, type: 3}
-  m_PrefabInstance: {fileID: 1309506918}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b17cb5e96a2bfec4c8b6cbd686c99f01, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.Weapon.Views.WeaponView
 --- !u!4 &1479341456 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3386553548112770079, guid: 0be39f993789e3042a63eea079434690, type: 3}
@@ -559,7 +491,7 @@ Transform:
   m_GameObject: {fileID: 1873711858}
   serializedVersion: 2
   m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 5.656854, z: -5.6568546}
+  m_LocalPosition: {x: 0, y: 1.4142135, z: -1.4142137}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -577,7 +509,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 886251e9a18ece04ea8e61686c173e1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachinePositionComposer
-  CameraDistance: 8
+  CameraDistance: 2
   DeadZoneDepth: 0
   Composition:
     ScreenPosition: {x: 0, y: 0}
@@ -644,10 +576,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3785914207653576712, guid: 0be39f993789e3042a63eea079434690, type: 3}
-      propertyPath: weaponView
-      value: 
-      objectReference: {fileID: 1309506919}
     - target: {fileID: 5659979137459974790, guid: 0be39f993789e3042a63eea079434690, type: 3}
       propertyPath: m_Name
       value: Player
@@ -665,4 +593,3 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 1873711860}
   - {fileID: 450811874465088959}
-  - {fileID: 1309506918}
