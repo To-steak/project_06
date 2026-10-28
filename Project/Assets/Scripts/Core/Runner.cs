@@ -103,12 +103,13 @@ namespace Project06.Core
             _world.commandBuffer.moveCommand.direction = new Vector3(moveInput.x, 0f, moveInput.y);
             _world.commandBuffer.moveCommand.run = _playerActions.General.Run.IsPressed();
             Vector2 lookInput = _playerActions.General.Look.ReadValue<Vector2>();
-            _world.commandBuffer.lookCommand.direction = GetCursorDirection(lookInput, _world.player.currentPosition);
-            _world.commandBuffer.aimCommand.aim = _playerActions.General.Aim.IsPressed();
             Vector3 muzzlePosition = GetMuzzlePosition();
+            _world.commandBuffer.lookCommand.hasTarget = TryGetCursorPoint(lookInput, muzzlePosition.y, out Vector3 aimPosition);
+            _world.commandBuffer.lookCommand.targetPosition = aimPosition;
+            _world.commandBuffer.lookCommand.muzzleOffset = GetMuzzleOffset();
+            _world.commandBuffer.aimCommand.aim = _playerActions.General.Aim.IsPressed();
             _world.commandBuffer.fireCommand.fire = _playerActions.General.Fire.IsPressed();
             _world.commandBuffer.fireCommand.origin = muzzlePosition;
-            _world.commandBuffer.fireCommand.direction = GetCursorDirection(lookInput, muzzlePosition);
         }
 
         private void LateUpdate()
@@ -166,26 +167,38 @@ namespace Project06.Core
             return weaponView.muzzle.position;
         }
 
-        // 화면 좌표의 커서를 origin 높이의 수평면에 투영해, origin에서 그 지점으로 향하는 XZ 방향을 구한다.
-        // 투영할 수 없으면 길이 0을 돌려줘, 받는 쪽이 기존 방향을 쓰게 한다.
-        private static Vector3 GetCursorDirection(Vector2 screenPosition, Vector3 origin)
+        // 플레이어 View 기준 총구의 로컬 위치를 구한다. 총구가 연결되어 있지 않으면 0을 돌려준다.
+        private Vector3 GetMuzzleOffset()
         {
+            PlayerView playerView = _viewContext.playerView;
+            WeaponView weaponView = _viewContext.equippedWeaponView;
+            if (playerView == null || weaponView == null || weaponView.muzzle == null)
+            {
+                return Vector3.zero;
+            }
+
+            return playerView.transform.InverseTransformPoint(weaponView.muzzle.position);
+        }
+
+        // 화면 좌표의 커서를 높이 height의 수평면에 투영한 월드 위치를 구한다. 투영할 수 없으면 false를 돌려준다.
+        private static bool TryGetCursorPoint(Vector2 screenPosition, float height, out Vector3 point)
+        {
+            point = Vector3.zero;
             Camera mainCamera = Camera.main;
             if (mainCamera == null)
             {
-                return Vector3.zero;
+                return false;
             }
 
             Ray ray = mainCamera.ScreenPointToRay(screenPosition);
-            Plane groundPlane = new Plane(Vector3.up, origin);
-            if (!groundPlane.Raycast(ray, out float distance))
+            Plane plane = new Plane(Vector3.up, new Vector3(0f, height, 0f));
+            if (!plane.Raycast(ray, out float distance))
             {
-                return Vector3.zero;
+                return false;
             }
 
-            Vector3 direction = ray.GetPoint(distance) - origin;
-            direction.y = 0f;
-            return direction;
+            point = ray.GetPoint(distance);
+            return true;
         }
     }
 }

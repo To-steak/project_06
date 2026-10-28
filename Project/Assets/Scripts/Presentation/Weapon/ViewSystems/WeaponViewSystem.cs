@@ -23,8 +23,7 @@ namespace Project06.Presentation.Weapon.ViewSystems
         }
 
         /// <summary>
-        /// 플레이어가 장착한 무기가 바뀌었으면 손의 총을 바꾸고, 오른손 손가락을 총의 손가락 타깃에 맞춘 뒤, 이번 프레임에 발사 기록이 있으면 총구 섬광과 발사음을 한 번 재생한다.
-        /// 손가락을 맞추려면 PlayerViewSystem.Present보다 뒤에 호출해야 한다.
+        /// 플레이어가 장착한 무기가 바뀌었으면 손의 총을 바꾸고, 이번 프레임에 발사 기록이 있으면 총구 섬광과 발사음을 한 번 재생한다.
         /// 총 View는 무기마다 처음 장착할 때 한 번만 생성하고, 이후에는 켜고 끄기만 한다.
         /// </summary>
         /// <param name="player">총을 든 플레이어.</param>
@@ -53,14 +52,7 @@ namespace Project06.Presentation.Weapon.ViewSystems
             }
 
             WeaponView weaponView = context.equippedWeaponView;
-            if (weaponView == null)
-            {
-                return;
-            }
-
-            ApplyFingerTargets(context.playerView, weaponView);
-
-            if (playerFiredRecords.Count == 0)
+            if (weaponView == null || playerFiredRecords.Count == 0)
             {
                 return;
             }
@@ -108,28 +100,6 @@ namespace Project06.Presentation.Weapon.ViewSystems
             AlignGripToSocket(weaponView);
             context.weaponViews[weaponIndex] = weaponView;
             return weaponView;
-        }
-
-        // 애니메이션이 정한 손가락 본의 회전을 총의 손가락 타깃 회전으로 덮어쓴다. Animator가 갱신된 뒤인 LateUpdate에서 불러야 한다.
-        private static void ApplyFingerTargets(PlayerView playerView, WeaponView weaponView)
-        {
-            Transform[] fingers = playerView.rightHandFingers;
-            Transform[] targets = weaponView.rightHandFingerTargets;
-            if (fingers == null || targets == null)
-            {
-                return;
-            }
-
-            int count = Mathf.Min(fingers.Length, targets.Length);
-            for (int fingerIndex = 0; fingerIndex < count; fingerIndex++)
-            {
-                Transform finger = fingers[fingerIndex];
-                Transform target = targets[fingerIndex];
-                if (finger != null && target != null)
-                {
-                    finger.rotation = target.rotation;
-                }
-            }
         }
 
         // 소켓 바로 아래에 붙은 총의 로컬 위치·회전을 바꿔, grip이 소켓과 같은 위치·회전에 오게 한다.
