@@ -26,6 +26,7 @@ paths:
 ## 스타일
 - `var` 금지. 타입을 명시한다.
 - 파일 하나에 타입 하나, 파일 이름은 타입 이름과 같다. 중첩 타입 금지.
+- 예외: 한 타입을 역할별로 나눌 때는 `partial`로 파일을 나눈다. 본 파일은 `타입이름.cs`, 나머지는 `타입이름.역할.cs`(역할은 PascalCase)로 짓고 같은 폴더에 둔다. 예: `Runner.cs`, `Runner.Gizmos.cs`. 에디터 전용 파일은 파일 전체를 `#if UNITY_EDITOR`로 감싼다.
 - 중괄호는 다음 줄에 연다 (Allman).
 - 멤버 순서: public 필드 → `[SerializeField] private` 필드 → private 필드 → const → public 메서드 → private 메서드.
 - 엔티티 데이터는 struct + public 필드. 배열 원소 struct는 **반드시 `ref`로 접근**한다 (`ref EnemyEntity enemy = ref enemies[index];`). 매개변수는 수정하면 `ref`, 읽기만 하면 `in`.
