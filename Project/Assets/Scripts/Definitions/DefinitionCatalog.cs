@@ -11,5 +11,7 @@ namespace Project06.Definitions
         public WeaponDefinition[] weapons;
         // 모든 구경 Definition. 엔티티는 구경을 이 배열의 인덱스로 가리킨다.
         public CaliberDefinition[] calibers;
+        // 적 Definition. 씬의 모든 EnemyAuthoring 위치에 이 적을 생성한다.
+        public EnemyDefinition enemy;
     }
 }

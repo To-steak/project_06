@@ -30,5 +30,7 @@ namespace Project06.Presentation
         public int[] projectileViewGenerations;
         // 투사체 저장소 슬롯별로 표시 중인 View를 꺼낸 풀의 인덱스
         public int[] projectileViewPoolIndices;
+        // World.enemies와 같은 순서로 생성한 적 View. 프리팹이 없으면 null이다.
+        public GameObject[] enemyViews;
     }
 }

@@ -1,0 +1,14 @@
+{
+    "name": "Project06.Editor",
+    "rootNamespace": "Project06.Editor",
+    "references": ["Project06.Entity", "Project06.Definitions", "Project06.Authoring"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

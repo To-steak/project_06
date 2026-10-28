@@ -4,6 +4,7 @@ using Project06.Commands;
 using Project06.Definitions;
 using Project06.Entities;
 using Project06.Presentation;
+using Project06.Presentation.Enemy.ViewSystems;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Player.ViewSystems;
 using Project06.Presentation.Projectile.ViewSystems;
@@ -87,10 +88,18 @@ namespace Project06.Core
                 EquipStartWeapon(ref _world.player);
             }
 
+            if (_definitionCatalog != null)
+            {
+                _world.enemies = CreateEnemies();
+            }
+
+            GameObject enemyPrefab = _definitionCatalog != null && _definitionCatalog.enemy != null ? _definitionCatalog.enemy.enemyPrefab : null;
+
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
             CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
             WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
             ProjectileViewSystem.Initialize(projectilePrefabs, _world.projectiles.entities.Length, _viewContext);
+            EnemyViewSystem.Initialize(enemyPrefab, _world.enemies, _viewContext);
         }
 
         private void FixedUpdate()
@@ -100,6 +109,7 @@ namespace Project06.Core
             commandBuffer.reloadCommand = default;
             CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, ref _world.player);
             PlayerMoveSystem.Tick(ref _world.player);
+            ProjectileHitSystem.Tick(_world.projectiles, _world.enemies);
             ProjectileMoveSystem.Tick(_world.projectiles);
             PlayerFireSystem.Tick(ref _world.player, _world.projectileSpawnRequests, _world.playerFiredRecords);
             SpawnSystem.Tick(_world.projectileSpawnRequests, _world.projectiles);
@@ -128,6 +138,7 @@ namespace Project06.Core
             PlayerViewSystem.Present(in _world.player, _world.playerFiredRecords, interpolation, _viewContext);
             WeaponViewSystem.Present(in _world.player, _world.playerFiredRecords, _viewContext);
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
+            EnemyViewSystem.Present(_world.enemies, _viewContext);
 
             _world.playerFiredRecords.Clear();
         }
@@ -208,6 +219,40 @@ namespace Project06.Core
             }
 
             return reserveAmmo;
+        }
+
+        // 씬의 EnemyAuthoring마다 DefinitionCatalog.enemy 수치로 적 엔티티를 만든다. 적 Definition이 없으면 적을 만들지 않는다.
+        private EnemyEntity[] CreateEnemies()
+        {
+            EnemyAuthoring[] enemyAuthorings = FindObjectsByType<EnemyAuthoring>(FindObjectsSortMode.None);
+            EnemyDefinition definition = _definitionCatalog.enemy;
+            if (definition == null)
+            {
+                if (enemyAuthorings.Length > 0)
+                {
+                    Debug.LogError("씬에 EnemyAuthoring이 있지만 DefinitionCatalog.enemy가 비어 있다.");
+                }
+
+                return new EnemyEntity[0];
+            }
+
+            EnemyEntity[] enemies = new EnemyEntity[enemyAuthorings.Length];
+            for (int index = 0; index < enemyAuthorings.Length; index++)
+            {
+                Transform enemyTransform = enemyAuthorings[index].transform;
+                Vector3 facingDirection = enemyTransform.forward;
+                facingDirection.y = 0f;
+                enemies[index] = new EnemyEntity
+                {
+                    isAlive = true,
+                    position = enemyTransform.position,
+                    facingDirection = facingDirection.sqrMagnitude > 0f ? facingDirection.normalized : Vector3.forward,
+                    enemy = definition.enemy,
+                    health = definition.enemy.maxHealth,
+                };
+            }
+
+            return enemies;
         }
 
         // DefinitionCatalog.weapons 순서대로 총 프리팹과 투사체 프리팹을 모은다.
