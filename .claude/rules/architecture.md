@@ -33,7 +33,7 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 MoveSystem.Tick(_world.enemies, _world.enemyMovedRecords);
 ```
 
-- **엔티티 생성은 SpawnSystem(틱 마지막)에서만 한다.** 다른 System은 생성 요청 큐(`Queue<~Request>`)에 넣기만 한다. 소멸은 즉시 하고, 이후 System은 `IsAlive`로 건너뛴다.
+- **엔티티는 모두 `~Storage`에 담고, 생성은 SpawnSystem(틱 마지막)에서만 한다.** 하나뿐인 엔티티(플레이어)도 예외가 없다. 다른 System과 Core는 생성 요청 큐(`Queue<~SpawnRequest>`)에 넣기만 한다. 소멸은 즉시 하고, 이후 System은 `IsAlive`로 건너뛴다.
 - 엔티티는 객체 참조 대신 `EntityIdentifier { index, generation }`로 가리킨다. 엔티티 저장소(`~Storage`)는 종류별 배열과 빈 슬롯 목록으로 보관하고, 슬롯을 재사용할 때 generation을 올린다.
 - System 간 호출은 직접 호출한다.
 - 서비스 클래스, ServiceLocator를 만들지 않는다.
@@ -41,8 +41,8 @@ MoveSystem.Tick(_world.enemies, _world.enemyMovedRecords);
 ## 데이터와 로딩
 - 수치는 하드코딩하지 않고 `~Definition`(ScriptableObject)에 둔다.
 - **데이터는 struct로 품는다.** Logic이 쓰는 값은 `Components/`의 `[Serializable]` struct(`~Component`)로 정의하고, `~Definition`과 `~Authoring`은 그 struct를 필드로 가진다. 같은 필드를 두 곳에 정의하지 않는다. 프리팹 등 View용 참조는 struct 밖에 둔다.
-- **로딩:** Core가 `~Definition`의 struct를 World에 대입한다. `~Authoring`은 판 시작 시 Core가 struct에 Transform 위치 등 씬 값을 채워 World에 넣는다. System은 Definition과 Authoring을 참조하지 않는다.
-- 씬에 배치한 엔티티의 종류는 `~Authoring`이 `~Definition`을 필드로 가리켜 정한다. Authoring은 Definition을 가리키기만 하고, 판 시작 시 Core가 그 Definition의 struct를 읽어 World에 넣는다.
+- **로딩:** Core가 `~Definition`의 struct를 World에 대입한다. 판 시작 시 Core는 `~Authoring`마다 Transform 위치 등 씬 값을 채운 생성 요청을 큐에 넣고, 엔티티는 첫 틱의 SpawnSystem이 만든다. Core는 World에 엔티티를 직접 넣지 않는다. System은 Definition과 Authoring을 참조하지 않는다.
+- 씬에 배치한 엔티티의 종류는 `~Authoring`이 `~Definition`을 필드로 가리켜 정한다. Authoring은 Definition을 가리키기만 하고, 판 시작 시 Core가 그 Definition의 struct를 읽어 생성 요청에 담는다.
 - Authoring이 가리키지 않는 Definition은 `Assets/Resources/DefinitionCatalog.asset` 하나에 모은다. Runner가 시작할 때 `Resources.Load`로 이 Catalog만 읽는다. 다른 곳에서 `Resources.Load`를 쓰지 않는다.
 - 테이블은 생성 시점에만 조회하고 필요한 값은 엔티티에 복사한다. 매 틱 로직은 엔티티 자신의 값만 쓴다.
 
