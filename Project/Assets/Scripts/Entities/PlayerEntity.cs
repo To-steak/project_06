@@ -5,8 +5,10 @@ namespace Project06.Entities
 {
     public struct PlayerEntity
     {
-        // 살아 있는지 여부
+        // 살아 있는지 여부. false인 슬롯은 빈 슬롯 목록에 들어 있다.
         public bool isAlive;
+        // 이 슬롯이 재사용된 횟수
+        public int generation;
         // 직전 틱의 위치. View가 보간할 때 쓴다.
         public Vector3 previousPosition;
         // 현재 틱의 위치

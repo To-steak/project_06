@@ -7,12 +7,13 @@ namespace Project06.Systems
     {
         /// <summary>
         /// 살아 있는 투사체마다 이번 틱에 날아갈 선분이 살아 있는 적의 피격 원(XZ 평면)과 만나는지 검사한다. ProjectileMoveSystem보다 먼저 호출한다.
-        /// 가장 먼저 만나는 적에게 데미지를 주고 투사체를 소멸시키며, 체력이 0 이하가 된 적은 죽인다. 높이(Y)는 판정에 쓰지 않는다.
+        /// 가장 먼저 만나는 적에게 데미지를 주고 투사체를 소멸시키며, 체력이 0 이하가 된 적은 소멸시킨다. 높이(Y)는 판정에 쓰지 않는다.
         /// </summary>
         /// <param name="projectiles">검사할 투사체 저장소.</param>
-        /// <param name="enemies">맞을 수 있는 적 목록.</param>
-        public static void Tick(ProjectileStorage projectiles, EnemyEntity[] enemies)
+        /// <param name="enemyStorage">맞을 수 있는 적 저장소.</param>
+        public static void Tick(ProjectileStorage projectiles, EnemyStorage enemyStorage)
         {
+            EnemyEntity[] enemies = enemyStorage.entities;
             ProjectileEntity[] entities = projectiles.entities;
             for (int index = 0; index < entities.Length; index++)
             {
@@ -56,6 +57,7 @@ namespace Project06.Systems
                 if (hitEnemy.health <= 0f)
                 {
                     hitEnemy.isAlive = false;
+                    enemyStorage.freeIndices.Add(hitEnemyIndex);
                 }
 
                 projectile.isAlive = false;

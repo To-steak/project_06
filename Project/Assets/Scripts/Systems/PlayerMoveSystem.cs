@@ -8,14 +8,24 @@ namespace Project06.Systems
         /// <summary>
         /// 플레이어 속도를 목표 속도로 가속한 뒤 한 틱만큼 옮긴다.
         /// </summary>
-        /// <param name="player">옮길 플레이어.</param>
-        public static void Tick(ref PlayerEntity player)
+        /// <param name="players">옮길 플레이어 저장소.</param>
+        public static void Tick(PlayerStorage players)
         {
-            if (!player.isAlive)
+            PlayerEntity[] entities = players.entities;
+            for (int index = 0; index < entities.Length; index++)
             {
-                return;
-            }
+                ref PlayerEntity player = ref entities[index];
+                if (!player.isAlive)
+                {
+                    continue;
+                }
 
+                Move(ref player);
+            }
+        }
+
+        private static void Move(ref PlayerEntity player)
+        {
             float targetSpeed = player.isRunning ? player.movement.runSpeed : player.movement.moveSpeed;
             Vector3 targetVelocity = player.moveDirection * targetSpeed;
             float maxDelta = player.movement.acceleration * Time.fixedDeltaTime;
