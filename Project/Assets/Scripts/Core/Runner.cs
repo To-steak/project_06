@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Project06.Authoring;
 using Project06.Commands;
 using Project06.Definitions;
@@ -10,6 +11,7 @@ using Project06.Presentation.Player.ViewSystems;
 using Project06.Presentation.Projectile.ViewSystems;
 using Project06.Presentation.Weapon.Views;
 using Project06.Presentation.Weapon.ViewSystems;
+using Project06.Requests;
 using Project06.Systems;
 using UnityEngine;
 
@@ -68,51 +70,31 @@ namespace Project06.Core
             _world = new World();
             _viewContext = new ViewContext();
 
-            PlayerAuthoring playerAuthoring = FindFirstObjectByType<PlayerAuthoring>();
-            if (playerAuthoring != null && _definitionCatalog != null)
-            {
-                Vector3 startPosition = playerAuthoring.transform.position;
-                Vector3 startFacingDirection = playerAuthoring.transform.forward;
-                startFacingDirection.y = 0f;
-                _world.player = new PlayerEntity
-                {
-                    isAlive = true,
-                    previousPosition = startPosition,
-                    currentPosition = startPosition,
-                    facingDirection = startFacingDirection.sqrMagnitude > 0f ? startFacingDirection.normalized : Vector3.forward,
-                    movement = _definitionCatalog.player.movement,
-                    weaponIndex = -1,
-                    caliberIndex = -1,
-                    reserveAmmo = CreateStartReserveAmmo(),
-                };
-                EquipStartWeapon(ref _world.player);
-            }
-
-            if (_definitionCatalog != null)
-            {
-                _world.enemies = CreateEnemies();
-            }
-
-            GameObject enemyPrefab = _definitionCatalog != null && _definitionCatalog.enemy != null ? _definitionCatalog.enemy.enemyPrefab : null;
+            // 씬에 배치한 엔티티는 생성 요청만 넣고, 첫 틱의 SpawnSystem이 만든다.
+            EnqueuePlayerSpawn();
+            List<EnemyDefinition> enemyDefinitions = EnqueueEnemySpawns();
 
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
             CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
             WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
             ProjectileViewSystem.Initialize(projectilePrefabs, _world.projectiles.entities.Length, _viewContext);
-            EnemyViewSystem.Initialize(enemyPrefab, _world.enemies, _viewContext);
+            EnemyViewSystem.Initialize(CollectEnemyPrefabs(enemyDefinitions), _world.enemies.entities.Length, _viewContext);
         }
 
         private void FixedUpdate()
         {
             CommandBuffer commandBuffer = _world.commandBuffer;
-            PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, ref _world.player);
+            PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
             commandBuffer.reloadCommand = default;
-            CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, ref _world.player);
-            PlayerMoveSystem.Tick(ref _world.player);
+            CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
+            PlayerMoveSystem.Tick(_world.players);
             ProjectileHitSystem.Tick(_world.projectiles, _world.enemies);
             ProjectileMoveSystem.Tick(_world.projectiles);
-            PlayerFireSystem.Tick(ref _world.player, _world.projectileSpawnRequests, _world.playerFiredRecords);
-            SpawnSystem.Tick(_world.projectileSpawnRequests, _world.projectiles);
+            PlayerFireSystem.Tick(_world.players, _world.projectileSpawnRequests, _world.playerFiredRecords);
+            SpawnSystem.Tick(
+                _world.playerSpawnRequests, _world.players,
+                _world.enemySpawnRequests, _world.enemies,
+                _world.projectileSpawnRequests, _world.projectiles);
         }
 
         private void Update()
@@ -135,8 +117,15 @@ namespace Project06.Core
         private void LateUpdate()
         {
             float interpolation = Mathf.Clamp01((Time.time - Time.fixedTime) / Time.fixedDeltaTime);
-            PlayerViewSystem.Present(in _world.player, _world.playerFiredRecords, interpolation, _viewContext);
-            WeaponViewSystem.Present(in _world.player, _world.playerFiredRecords, _viewContext);
+            // 씬의 플레이어 View는 하나라서 살아 있는 첫 플레이어를 표시한다.
+            int playerIndex = FindAlivePlayerIndex();
+            if (playerIndex >= 0)
+            {
+                ref PlayerEntity player = ref _world.players.entities[playerIndex];
+                PlayerViewSystem.Present(in player, _world.playerFiredRecords, interpolation, _viewContext);
+                WeaponViewSystem.Present(in player, _world.playerFiredRecords, _viewContext);
+            }
+
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
             EnemyViewSystem.Present(_world.enemies, _viewContext);
 
@@ -147,12 +136,13 @@ namespace Project06.Core
         // 디버그용으로 플레이어의 무기·탄약·재장전·행동 상태를 화면 왼쪽 위에 표시한다. 에디터와 개발 빌드에서만 컴파일된다.
         private void OnGUI()
         {
-            if (_world == null || !_world.player.isAlive)
+            int playerIndex = _world != null ? FindAlivePlayerIndex() : -1;
+            if (playerIndex < 0)
             {
                 return;
             }
 
-            ref PlayerEntity player = ref _world.player;
+            ref PlayerEntity player = ref _world.players.entities[playerIndex];
             WeaponDefinition[] weapons = _definitionCatalog != null ? _definitionCatalog.weapons : null;
             CaliberDefinition[] calibers = _definitionCatalog != null ? _definitionCatalog.calibers : null;
 
@@ -179,8 +169,32 @@ namespace Project06.Core
         }
 #endif
 
-        // PlayerDefinition의 시작 무기를 Catalog에서 찾아 탄창을 가득 채운 채 플레이어에 장착한다. 찾지 못하면 무기 없이 둔다.
-        private void EquipStartWeapon(ref PlayerEntity player)
+        // 씬의 PlayerAuthoring 위치에 PlayerDefinition 수치로 플레이어 생성을 요청한다. PlayerAuthoring이나 Catalog가 없으면 요청하지 않는다.
+        private void EnqueuePlayerSpawn()
+        {
+            PlayerAuthoring playerAuthoring = FindFirstObjectByType<PlayerAuthoring>();
+            if (playerAuthoring == null || _definitionCatalog == null)
+            {
+                return;
+            }
+
+            Vector3 startFacingDirection = playerAuthoring.transform.forward;
+            startFacingDirection.y = 0f;
+            PlayerSpawnRequest request = new PlayerSpawnRequest
+            {
+                position = playerAuthoring.transform.position,
+                facingDirection = startFacingDirection.sqrMagnitude > 0f ? startFacingDirection.normalized : Vector3.forward,
+                movement = _definitionCatalog.player.movement,
+                weaponIndex = -1,
+                caliberIndex = -1,
+                reserveAmmo = CreateStartReserveAmmo(),
+            };
+            EquipStartWeapon(ref request);
+            _world.playerSpawnRequests.Enqueue(request);
+        }
+
+        // PlayerDefinition의 시작 무기를 Catalog에서 찾아 탄창을 가득 채운 채 생성 요청에 담는다. 찾지 못하면 무기 없이 둔다.
+        private void EquipStartWeapon(ref PlayerSpawnRequest request)
         {
             WeaponDefinition startWeapon = _definitionCatalog.player.startWeapon;
             WeaponDefinition[] weapons = _definitionCatalog.weapons;
@@ -191,13 +205,13 @@ namespace Project06.Core
                 return;
             }
 
-            player.weaponIndex = weaponIndex;
-            player.weapon = startWeapon.weapon;
-            player.magazineAmmo = startWeapon.weapon.magazineCapacity;
+            request.weaponIndex = weaponIndex;
+            request.weapon = startWeapon.weapon;
+            request.magazineAmmo = startWeapon.weapon.magazineCapacity;
 
             CaliberDefinition[] calibers = _definitionCatalog.calibers;
-            player.caliberIndex = calibers != null && startWeapon.caliber != null ? Array.IndexOf(calibers, startWeapon.caliber) : -1;
-            if (player.caliberIndex < 0)
+            request.caliberIndex = calibers != null && startWeapon.caliber != null ? Array.IndexOf(calibers, startWeapon.caliber) : -1;
+            if (request.caliberIndex < 0)
             {
                 Debug.LogError($"{startWeapon.name}의 구경이 DefinitionCatalog.calibers에 없다. 이 무기는 재장전할 수 없다.");
             }
@@ -221,38 +235,69 @@ namespace Project06.Core
             return reserveAmmo;
         }
 
-        // 씬의 EnemyAuthoring마다 DefinitionCatalog.enemy 수치로 적 엔티티를 만든다. 적 Definition이 없으면 적을 만들지 않는다.
-        private EnemyEntity[] CreateEnemies()
+        // 씬의 EnemyAuthoring마다 그 Authoring이 가리키는 EnemyDefinition 수치로 적 생성을 요청한다. definition이 비어 있는 EnemyAuthoring은 건너뛴다.
+        // 가리킨 EnemyDefinition을 중복 없이 모아 돌려준다. 적 종류 인덱스는 이 목록의 인덱스다.
+        private List<EnemyDefinition> EnqueueEnemySpawns()
         {
+            List<EnemyDefinition> enemyDefinitions = new List<EnemyDefinition>();
             EnemyAuthoring[] enemyAuthorings = FindObjectsByType<EnemyAuthoring>(FindObjectsSortMode.None);
-            EnemyDefinition definition = _definitionCatalog.enemy;
-            if (definition == null)
+            for (int authoringIndex = 0; authoringIndex < enemyAuthorings.Length; authoringIndex++)
             {
-                if (enemyAuthorings.Length > 0)
+                EnemyAuthoring enemyAuthoring = enemyAuthorings[authoringIndex];
+                EnemyDefinition definition = enemyAuthoring.definition;
+                if (definition == null)
                 {
-                    Debug.LogError("씬에 EnemyAuthoring이 있지만 DefinitionCatalog.enemy가 비어 있다.");
+                    Debug.LogError($"EnemyAuthoring '{enemyAuthoring.name}'의 definition이 비어 있다.", enemyAuthoring);
+                    continue;
                 }
 
-                return new EnemyEntity[0];
-            }
+                int enemyTypeIndex = enemyDefinitions.IndexOf(definition);
+                if (enemyTypeIndex < 0)
+                {
+                    enemyTypeIndex = enemyDefinitions.Count;
+                    enemyDefinitions.Add(definition);
+                }
 
-            EnemyEntity[] enemies = new EnemyEntity[enemyAuthorings.Length];
-            for (int index = 0; index < enemyAuthorings.Length; index++)
-            {
-                Transform enemyTransform = enemyAuthorings[index].transform;
+                Transform enemyTransform = enemyAuthoring.transform;
                 Vector3 facingDirection = enemyTransform.forward;
                 facingDirection.y = 0f;
-                enemies[index] = new EnemyEntity
+                _world.enemySpawnRequests.Enqueue(new EnemySpawnRequest
                 {
-                    isAlive = true,
+                    enemyTypeIndex = enemyTypeIndex,
                     position = enemyTransform.position,
                     facingDirection = facingDirection.sqrMagnitude > 0f ? facingDirection.normalized : Vector3.forward,
                     enemy = definition.enemy,
-                    health = definition.enemy.maxHealth,
-                };
+                });
             }
 
-            return enemies;
+            return enemyDefinitions;
+        }
+
+        // 적 종류 순서대로 적 프리팹을 모은다.
+        private static GameObject[] CollectEnemyPrefabs(List<EnemyDefinition> enemyDefinitions)
+        {
+            GameObject[] enemyPrefabs = new GameObject[enemyDefinitions.Count];
+            for (int enemyTypeIndex = 0; enemyTypeIndex < enemyDefinitions.Count; enemyTypeIndex++)
+            {
+                enemyPrefabs[enemyTypeIndex] = enemyDefinitions[enemyTypeIndex].enemyPrefab;
+            }
+
+            return enemyPrefabs;
+        }
+
+        // 살아 있는 첫 플레이어의 슬롯 인덱스를 구한다. 없으면 -1을 돌려준다.
+        private int FindAlivePlayerIndex()
+        {
+            PlayerEntity[] players = _world.players.entities;
+            for (int index = 0; index < players.Length; index++)
+            {
+                if (players[index].isAlive)
+                {
+                    return index;
+                }
+            }
+
+            return -1;
         }
 
         // DefinitionCatalog.weapons 순서대로 총 프리팹과 투사체 프리팹을 모은다.
@@ -278,7 +323,8 @@ namespace Project06.Core
             WeaponView weaponView = _viewContext.equippedWeaponView;
             if (weaponView == null || weaponView.muzzle == null)
             {
-                return _world.player.currentPosition;
+                int playerIndex = FindAlivePlayerIndex();
+                return playerIndex >= 0 ? _world.players.entities[playerIndex].currentPosition : Vector3.zero;
             }
 
             return weaponView.muzzle.position;

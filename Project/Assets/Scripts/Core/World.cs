@@ -8,12 +8,16 @@ namespace Project06.Core
 {
     public class World
     {
-        // 플레이어 엔티티
-        public PlayerEntity player;
+        // 플레이어 엔티티 저장소
+        public PlayerStorage players = new PlayerStorage(MAX_PLAYER_COUNT);
         // 투사체 엔티티 저장소
         public ProjectileStorage projectiles = new ProjectileStorage(MAX_PROJECTILE_COUNT);
-        // 적 엔티티. 판 시작 시 씬의 EnemyAuthoring 수만큼 만든다.
-        public EnemyEntity[] enemies = new EnemyEntity[0];
+        // 적 엔티티 저장소
+        public EnemyStorage enemies = new EnemyStorage(MAX_ENEMY_COUNT);
+        // 틱 마지막에 SpawnSystem이 처리할 플레이어 생성 요청
+        public Queue<PlayerSpawnRequest> playerSpawnRequests = new Queue<PlayerSpawnRequest>();
+        // 틱 마지막에 SpawnSystem이 처리할 적 생성 요청
+        public Queue<EnemySpawnRequest> enemySpawnRequests = new Queue<EnemySpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 투사체 생성 요청
         public Queue<ProjectileSpawnRequest> projectileSpawnRequests = new Queue<ProjectileSpawnRequest>();
         // 플레이어가 발사한 기록. LateUpdate 마지막에 비운다.
@@ -21,7 +25,11 @@ namespace Project06.Core
         // Update에서 쌓고 Tick에서 소비하는 입력 명령
         public CommandBuffer commandBuffer = new CommandBuffer();
 
+        // 동시에 존재할 수 있는 플레이어의 최대 수
+        public const int MAX_PLAYER_COUNT = 1;
         // 동시에 존재할 수 있는 투사체의 최대 수
         public const int MAX_PROJECTILE_COUNT = 256;
+        // 동시에 존재할 수 있는 적의 최대 수
+        public const int MAX_ENEMY_COUNT = 128;
     }
 }

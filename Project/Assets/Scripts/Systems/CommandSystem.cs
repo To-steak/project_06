@@ -16,14 +16,24 @@ namespace Project06.Systems
         /// <param name="lookCommand">이번 틱에 적용할 바라보기 명령.</param>
         /// <param name="aimCommand">이번 틱에 적용할 조준 명령.</param>
         /// <param name="fireCommand">이번 틱에 적용할 발사 명령.</param>
-        /// <param name="player">명령을 받을 플레이어.</param>
-        public static void Tick(in MoveCommand moveCommand, in LookCommand lookCommand, in AimCommand aimCommand, in FireCommand fireCommand, ref PlayerEntity player)
+        /// <param name="players">명령을 받을 플레이어 저장소. 살아 있는 플레이어 모두에게 같은 명령을 적용한다.</param>
+        public static void Tick(in MoveCommand moveCommand, in LookCommand lookCommand, in AimCommand aimCommand, in FireCommand fireCommand, PlayerStorage players)
         {
-            if (!player.isAlive)
+            PlayerEntity[] entities = players.entities;
+            for (int index = 0; index < entities.Length; index++)
             {
-                return;
-            }
+                ref PlayerEntity player = ref entities[index];
+                if (!player.isAlive)
+                {
+                    continue;
+                }
 
+                ApplyCommands(in moveCommand, in lookCommand, in aimCommand, in fireCommand, ref player);
+            }
+        }
+
+        private static void ApplyCommands(in MoveCommand moveCommand, in LookCommand lookCommand, in AimCommand aimCommand, in FireCommand fireCommand, ref PlayerEntity player)
+        {
             Vector3 direction = moveCommand.direction;
             direction.y = 0f;
             player.moveDirection = Vector3.ClampMagnitude(direction, 1f);

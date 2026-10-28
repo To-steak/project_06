@@ -1,7 +1,7 @@
 {
     "name": "Project06.Authoring",
     "rootNamespace": "Project06.Authoring",
-    "references": ["Project06.Entity"],
+    "references": ["Project06.Entity", "Project06.Definitions"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

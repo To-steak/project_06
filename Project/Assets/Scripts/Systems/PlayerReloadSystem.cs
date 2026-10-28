@@ -14,14 +14,24 @@ namespace Project06.Systems
         /// <param name="reloadCommand">이번 틱에 적용할 재장전 명령.</param>
         /// <param name="aimCommand">이번 틱의 조준 명령. 빈 탄창 자동 재장전 판단에 쓴다.</param>
         /// <param name="fireCommand">이번 틱의 발사 명령. 빈 탄창 자동 재장전 판단에 쓴다.</param>
-        /// <param name="player">재장전할 플레이어.</param>
-        public static void Tick(in ReloadCommand reloadCommand, in AimCommand aimCommand, in FireCommand fireCommand, ref PlayerEntity player)
+        /// <param name="players">재장전할 플레이어 저장소. 살아 있는 플레이어 모두에게 같은 명령을 적용한다.</param>
+        public static void Tick(in ReloadCommand reloadCommand, in AimCommand aimCommand, in FireCommand fireCommand, PlayerStorage players)
         {
-            if (!player.isAlive || player.weaponIndex < 0)
+            PlayerEntity[] entities = players.entities;
+            for (int index = 0; index < entities.Length; index++)
             {
-                return;
-            }
+                ref PlayerEntity player = ref entities[index];
+                if (!player.isAlive || player.weaponIndex < 0)
+                {
+                    continue;
+                }
 
+                Reload(in reloadCommand, in aimCommand, in fireCommand, ref player);
+            }
+        }
+
+        private static void Reload(in ReloadCommand reloadCommand, in AimCommand aimCommand, in FireCommand fireCommand, ref PlayerEntity player)
+        {
             if (player.isReloading)
             {
                 if (reloadCommand.cancel)
