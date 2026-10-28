@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Project06.Editor
 {
-    // 인스펙터에서 EnemyAttackComponent를 그린다. 근접 공격이면 원거리 전용인 투사체 수치를 숨긴다. 숨긴 값도 에셋에는 남는다.
+    // 인스펙터에서 EnemyAttackComponent를 그린다. 근접이면 판정 모양만, 원거리면 투사체 수치만 보인다. 숨긴 값도 에셋에는 남는다.
     [CustomPropertyDrawer(typeof(EnemyAttackComponent))]
     public class EnemyAttackComponentDrawer : PropertyDrawer
     {
@@ -18,11 +18,13 @@ namespace Project06.Editor
             nameof(EnemyAttackComponent.recoveryTicks),
             nameof(EnemyAttackComponent.cooldownTicks),
         };
+        // 근접 공격일 때만 그리는 필드
+        private const string MELEE_HIT_FIELD_NAME = nameof(EnemyAttackComponent.meleeHit);
         // 원거리 공격일 때만 그리는 필드
         private const string PROJECTILE_FIELD_NAME = nameof(EnemyAttackComponent.projectile);
 
         /// <summary>
-        /// 접기 화살표와 이름을 그리고, 펼쳐져 있으면 공통 필드와 원거리일 때의 투사체 수치를 그린다.
+        /// 접기 화살표와 이름을 그리고, 펼쳐져 있으면 공통 필드와 종류에 맞는 판정 모양 또는 투사체 수치를 그린다.
         /// </summary>
         /// <param name="position">그릴 영역.</param>
         /// <param name="property">그릴 EnemyAttackComponent 속성.</param>
@@ -42,10 +44,7 @@ namespace Project06.Editor
                     y = DrawField(position, y, property.FindPropertyRelative(COMMON_FIELD_NAMES[fieldIndex]));
                 }
 
-                if (IsRanged(property))
-                {
-                    DrawField(position, y, property.FindPropertyRelative(PROJECTILE_FIELD_NAME));
-                }
+                DrawField(position, y, property.FindPropertyRelative(GetKindFieldName(property)));
 
                 EditorGUI.indentLevel--;
             }
@@ -54,7 +53,7 @@ namespace Project06.Editor
         }
 
         /// <summary>
-        /// 접혀 있으면 한 줄, 펼쳐져 있으면 그리는 필드들의 높이 합을 구한다. 근접이면 투사체 수치의 높이를 빼고 센다.
+        /// 접혀 있으면 한 줄, 펼쳐져 있으면 그리는 필드들의 높이 합을 구한다. 종류에 맞지 않는 필드의 높이는 빼고 센다.
         /// </summary>
         /// <param name="property">그릴 EnemyAttackComponent 속성.</param>
         /// <param name="label">인스펙터가 넘긴 이름.</param>
@@ -72,11 +71,7 @@ namespace Project06.Editor
                 height += GetFieldHeight(property.FindPropertyRelative(COMMON_FIELD_NAMES[fieldIndex]));
             }
 
-            if (IsRanged(property))
-            {
-                height += GetFieldHeight(property.FindPropertyRelative(PROJECTILE_FIELD_NAME));
-            }
-
+            height += GetFieldHeight(property.FindPropertyRelative(GetKindFieldName(property)));
             return height;
         }
 
@@ -93,10 +88,11 @@ namespace Project06.Editor
             return EditorGUI.GetPropertyHeight(field, true) + EditorGUIUtility.standardVerticalSpacing;
         }
 
-        private static bool IsRanged(SerializedProperty property)
+        // 공격 종류에 맞는 전용 필드 이름을 돌려준다.
+        private static string GetKindFieldName(SerializedProperty property)
         {
             SerializedProperty kind = property.FindPropertyRelative(nameof(EnemyAttackComponent.kind));
-            return kind.enumValueIndex == (int)EnemyAttackKind.Ranged;
+            return kind.enumValueIndex == (int)EnemyAttackKind.Ranged ? PROJECTILE_FIELD_NAME : MELEE_HIT_FIELD_NAME;
         }
     }
 }

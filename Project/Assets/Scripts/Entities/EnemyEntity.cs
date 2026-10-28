@@ -37,10 +37,12 @@ namespace Project06.Entities
         public int hitStunRemainingTicks;
         // Attack에서 하고 있는 공격의 enemy.attacks 인덱스
         public int attackIndex;
-        // Attack에서 타격 전이면 타격할 때까지, 타격 후면 추격으로 돌아갈 때까지 남은 틱
+        // Attack에서 지금 공격 단계
+        public EnemyAttackPhase attackPhase;
+        // Attack에서 지금 공격 단계가 끝날 때까지 남은 틱
         public int attackRemainingTicks;
-        // Attack에서 이번 공격의 타격을 이미 했는지 여부. true면 후딜레이 중이다.
-        public bool hasAttackHit;
+        // Attack에서 이번 근접 공격으로 이미 플레이어를 맞혔는지 여부. true면 타격 구간이 남아 있어도 더 맞히지 않는다.
+        public bool hasAttackDamaged;
         // 공격별로 다시 시작할 수 있을 때까지 남은 틱. enemy.attacks와 같은 순서이며, 길이는 공격 수 이상이다. 슬롯이 재사용될 때 길이가 모자랄 때만 SpawnSystem이 새로 만든다.
         public int[] attackCooldownRemainingTicks;
         // 따라갈 NavMesh 경로의 코너. 슬롯마다 EnemyStorage가 미리 만들어 두고 재사용한다.
