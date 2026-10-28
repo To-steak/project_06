@@ -45,8 +45,9 @@ namespace Project06.Presentation.Enemy.ViewSystems
         /// 살아 있는 적마다 View를 풀에서 꺼내 위치와 방향을 맞추고, 소멸했거나 슬롯이 재사용된 적의 View는 풀에 반납한다.
         /// </summary>
         /// <param name="enemies">표시할 적 저장소.</param>
+        /// <param name="interpolation">직전 틱에서 현재 틱까지 진행한 비율(0~1).</param>
         /// <param name="context">View 실행 상태.</param>
-        public static void Present(EnemyStorage enemies, ViewContext context)
+        public static void Present(EnemyStorage enemies, float interpolation, ViewContext context)
         {
             EnemyEntity[] entities = enemies.entities;
             for (int index = 0; index < entities.Length; index++)
@@ -80,7 +81,7 @@ namespace Project06.Presentation.Enemy.ViewSystems
                     context.enemyViewPoolIndices[index] = enemy.enemyTypeIndex;
                 }
 
-                view.transform.position = enemy.position;
+                view.transform.position = Vector3.Lerp(enemy.previousPosition, enemy.currentPosition, interpolation);
                 if (enemy.facingDirection.sqrMagnitude > 0f)
                 {
                     view.transform.rotation = Quaternion.LookRotation(enemy.facingDirection, Vector3.up);

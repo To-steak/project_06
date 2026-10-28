@@ -15,4 +15,10 @@ MonoBehaviour:
   enemy:
     maxHealth: 100
     hitRadius: 0.5
+    moveSpeed: 1
+    acceleration: 10
+    detectionRadius: 3
+    loseRadius: 5
+    stopDistance: 1
+    pathUpdateIntervalTicks: 20
   enemyPrefab: {fileID: 6168152276632316411, guid: 87d48c6f4369d5440a58e0b0f781a3b8, type: 3}

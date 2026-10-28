@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Project06.Components;
 using Project06.Entities;
 using Project06.Requests;
+using UnityEngine;
 
 namespace Project06.Systems
 {
@@ -96,10 +98,16 @@ namespace Project06.Systems
                 enemy.generation++;
                 enemy.enemyTypeIndex = request.enemyTypeIndex;
                 enemy.spawner = request.spawner;
-                enemy.position = request.position;
+                enemy.previousPosition = request.position;
+                enemy.currentPosition = request.position;
                 enemy.facingDirection = request.facingDirection;
+                enemy.velocity = Vector3.zero;
                 enemy.enemy = request.enemy;
                 enemy.health = request.enemy.maxHealth;
+                enemy.state = EnemyState.Idle;
+                enemy.pathCornerCount = 0;
+                enemy.pathCornerIndex = 0;
+                enemy.pathUpdateRemainingTicks = 0;
             }
         }
 

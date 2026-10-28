@@ -13,13 +13,27 @@ namespace Project06.Entities
         public int enemyTypeIndex;
         // 이 적을 낸 스포너
         public EntityIdentifier spawner;
-        // 월드 위치
-        public Vector3 position;
+        // 직전 틱의 위치. View가 보간할 때 쓴다.
+        public Vector3 previousPosition;
+        // 현재 틱의 위치
+        public Vector3 currentPosition;
         // XZ 평면에서 바라보는 방향. 길이는 1이다.
         public Vector3 facingDirection;
+        // 현재 속도(m/s). 크기만 이동 거리에 쓰고, 실제 이동은 경로를 따른다.
+        public Vector3 velocity;
         // 적 수치
         public EnemyComponent enemy;
         // 남은 체력
         public float health;
+        // AI 상태
+        public EnemyState state;
+        // 따라갈 NavMesh 경로의 코너. 슬롯마다 EnemyStorage가 미리 만들어 두고 재사용한다.
+        public Vector3[] pathCorners;
+        // pathCorners 중 유효한 코너 수
+        public int pathCornerCount;
+        // 다음에 향할 코너의 인덱스. pathCornerCount 이상이면 경로를 다 걸었다.
+        public int pathCornerIndex;
+        // 경로를 다시 계산할 때까지 남은 틱
+        public int pathUpdateRemainingTicks;
     }
 }

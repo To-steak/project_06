@@ -40,7 +40,7 @@ namespace Project06.Systems
                         continue;
                     }
 
-                    if (TryGetHitRatio(projectile.currentPosition, step, enemy.position, enemy.enemy.hitRadius, out float hitRatio) && hitRatio < nearestHitRatio)
+                    if (TryGetHitRatio(projectile.currentPosition, step, enemy.currentPosition, enemy.enemy.hitRadius, out float hitRatio) && hitRatio < nearestHitRatio)
                     {
                         nearestHitRatio = hitRatio;
                         hitEnemyIndex = enemyIndex;
