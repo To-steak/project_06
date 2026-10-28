@@ -42,7 +42,7 @@ namespace Project06.Presentation.Projectile.ViewSystems
         }
 
         /// <summary>
-        /// 살아 있는 투사체마다 View를 풀에서 꺼내 직전 틱과 현재 틱 사이로 보간해 놓고, 소멸했거나 슬롯이 재사용된 투사체의 View는 풀에 반납한다.
+        /// 살아 있는 투사체마다 View를 풀에서 꺼내 직전 틱과 현재 틱 사이로 보간해 놓고(새로 꺼낸 View는 꼬리를 지우고), 소멸했거나 슬롯이 재사용된 투사체의 View는 풀에 반납한다.
         /// </summary>
         /// <param name="projectiles">표시할 투사체 저장소.</param>
         /// <param name="interpolation">직전 틱에서 현재 틱까지 진행한 비율(0~1).</param>
@@ -67,7 +67,8 @@ namespace Project06.Presentation.Projectile.ViewSystems
                     continue;
                 }
 
-                if (view == null)
+                bool isNewView = view == null;
+                if (isNewView)
                 {
                     ObjectPool<GameObject> pool = GetPool(projectile.weaponIndex, context);
                     if (pool == null)
@@ -86,6 +87,21 @@ namespace Project06.Presentation.Projectile.ViewSystems
                 {
                     view.transform.rotation = Quaternion.LookRotation(projectile.velocity, Vector3.up);
                 }
+
+                if (isNewView)
+                {
+                    ClearTrails(view);
+                }
+            }
+        }
+
+        // 풀에서 다시 꺼낸 투사체가 이전에 날아간 자리부터 꼬리를 그리지 않도록, 출발 위치로 옮긴 뒤 꼬리를 지운다.
+        private static void ClearTrails(GameObject view)
+        {
+            TrailRenderer trail = view.GetComponentInChildren<TrailRenderer>();
+            if (trail != null)
+            {
+                trail.Clear();
             }
         }
 

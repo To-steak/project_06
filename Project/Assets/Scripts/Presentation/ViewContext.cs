@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Weapon.Views;
 using UnityEngine;
@@ -17,6 +18,8 @@ namespace Project06.Presentation
         public int equippedWeaponIndex = -1;
         // 지금 손에 표시 중인 총 View. 없으면 null이다.
         public WeaponView equippedWeaponView;
+        // 아직 내보내지 않은 탄피의 배출 예정 시각(Time.time 기준 초). 장착한 총이 바뀌면 비운다.
+        public List<float> pendingShellEjectionTimes = new List<float>();
         // 장전음을 마지막으로 처리한 장전 경과 틱. 장전 중이 아니면 -1이다.
         public int presentedReloadElapsedTicks = -1;
         // 무기별 투사체 View 풀. DefinitionCatalog.weapons와 같은 순서이며, 프리팹이 없는 무기는 null이다.

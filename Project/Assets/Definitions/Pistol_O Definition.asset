@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.WeaponDefinition
   weapon:
     fireIntervalTicks: 20
-    projectileSpeed: 3
+    projectileSpeed: 20
     projectileRange: 20
     damage: 20
     magazineCapacity: 12

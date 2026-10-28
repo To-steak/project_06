@@ -12,6 +12,10 @@ namespace Project06.Presentation.Weapon.Views
         public Transform muzzle;
         // 발사할 때 재생할 총구 섬광. 없어도 된다.
         public ParticleSystem muzzleFlash;
+        // 탄피를 내보낼 Particle System. 배출구 위치에 두고 Mesh 렌더 모드로 탄피 모델을 쓴다. 없으면 탄피를 내보내지 않는다.
+        public ParticleSystem shellEjection;
+        // 발사한 틱부터 탄피를 내보낼 때까지의 틱. 슬라이드가 끝까지 후퇴하는 시점에 맞춘다.
+        public int shellEjectionDelayTicks;
         // 발사음을 재생할 AudioSource. 없으면 발사음을 내지 않는다.
         public AudioSource fireAudioSource;
         // 발사할 때마다 하나를 무작위로 골라 재생할 발사음. 비어 있으면 fireAudioSource의 clip을 재생한다.

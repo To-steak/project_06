@@ -32,7 +32,7 @@ namespace Project06.Presentation.Weapon.ViewSystems
 
         /// <summary>
         /// 플레이어가 장착한 무기가 바뀌었으면 손의 총을 바꾸고, 총 Animator에 슬라이드 멈춤 여부를 넘기며, 장전 중이면 장전 진행 틱에 맞춰 장전음을 재생한다.
-        /// 이번 프레임에 발사 기록이 있으면 총 Animator의 발사 애니메이션, 총구 섬광, 발사음을 한 번 재생한다.
+        /// 이번 프레임에 발사 기록이 있으면 총 Animator의 발사 애니메이션, 총구 섬광, 발사음을 한 번 재생하고, 쏜 발 수만큼 탄피를 지연 시간 뒤에 내보낸다.
         /// 총 View는 무기마다 처음 장착할 때 한 번만 생성하고, 이후에는 켜고 끄기만 한다.
         /// </summary>
         /// <param name="player">총을 든 플레이어.</param>
@@ -53,6 +53,7 @@ namespace Project06.Presentation.Weapon.ViewSystems
                 }
 
                 context.equippedWeaponIndex = player.weaponIndex;
+                context.pendingShellEjectionTimes.Clear();
                 context.equippedWeaponView = GetOrCreateWeaponView(player.weaponIndex, context.playerView, context);
                 if (context.equippedWeaponView != null)
                 {
@@ -78,6 +79,8 @@ namespace Project06.Presentation.Weapon.ViewSystems
             }
 
             PlayReloadSounds(in player, weaponView, context);
+            ScheduleShellEjections(playerFiredRecords.Count, weaponView, context);
+            EjectDueShells(weaponView, context);
 
             if (!hasFired)
             {
@@ -90,6 +93,40 @@ namespace Project06.Presentation.Weapon.ViewSystems
             }
 
             PlayFireSound(weaponView);
+        }
+
+        // 이번 프레임에 쏜 발 수만큼 탄피 배출 시각을 예약한다. 발사 후 shellEjectionDelayTicks만큼 지난 시각이다.
+        private static void ScheduleShellEjections(int firedCount, WeaponView weaponView, ViewContext context)
+        {
+            if (weaponView.shellEjection == null)
+            {
+                return;
+            }
+
+            float ejectionTime = Time.time + weaponView.shellEjectionDelayTicks * Time.fixedDeltaTime;
+            for (int shotIndex = 0; shotIndex < firedCount; shotIndex++)
+            {
+                context.pendingShellEjectionTimes.Add(ejectionTime);
+            }
+        }
+
+        // 배출 시각이 지난 탄피를 한 개씩 내보낸다.
+        private static void EjectDueShells(WeaponView weaponView, ViewContext context)
+        {
+            List<float> ejectionTimes = context.pendingShellEjectionTimes;
+            for (int ejectionIndex = ejectionTimes.Count - 1; ejectionIndex >= 0; ejectionIndex--)
+            {
+                if (ejectionTimes[ejectionIndex] > Time.time)
+                {
+                    continue;
+                }
+
+                ejectionTimes.RemoveAt(ejectionIndex);
+                if (weaponView.shellEjection != null)
+                {
+                    weaponView.shellEjection.Emit(1);
+                }
+            }
         }
 
         // 지난 프레임 이후 장전 경과 틱이 지나친 장전음을 재생한다. 한 프레임에 여러 틱이 지나도 빠뜨리지 않는다.
@@ -178,8 +215,21 @@ namespace Project06.Presentation.Weapon.ViewSystems
             }
 
             AlignGripToSocket(weaponView);
+            SetShellCollisionPlane(weaponView, playerView);
             context.weaponViews[weaponIndex] = weaponView;
             return weaponView;
+        }
+
+        // 탄피가 부딪힐 바닥 평면을 플레이어 루트로 지정한다. 플레이어 루트는 늘 발밑에 있고 수평으로만 돌아서 위쪽이 하늘을 향한다.
+        private static void SetShellCollisionPlane(WeaponView weaponView, PlayerView playerView)
+        {
+            if (weaponView.shellEjection == null)
+            {
+                return;
+            }
+
+            ParticleSystem.CollisionModule collision = weaponView.shellEjection.collision;
+            collision.SetPlane(0, playerView.transform);
         }
 
         // 소켓 바로 아래에 붙은 총의 로컬 위치·회전을 바꿔, grip이 소켓과 같은 위치·회전에 오게 한다.
