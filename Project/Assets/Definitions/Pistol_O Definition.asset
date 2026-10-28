@@ -14,8 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.WeaponDefinition
   weapon:
     fireIntervalTicks: 20
-    projectileSpeed: 3
+    projectileSpeed: 20
     projectileRange: 20
     damage: 20
+    magazineCapacity: 12
+    reloadTicks: 85
+  caliber: {fileID: 11400000, guid: 5e2dbc2a871a4ec42a53d81621948ca1, type: 2}
   weaponPrefab: {fileID: 7479669588817133862, guid: 828841806d559c140ae7ad4785597c50, type: 3}
   projectilePrefab: {fileID: 6189764978447943182, guid: 249ad4012778a7d4b902fa8ae70a22b4, type: 3}
