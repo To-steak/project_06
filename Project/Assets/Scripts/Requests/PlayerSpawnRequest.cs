@@ -9,6 +9,8 @@ namespace Project06.Requests
         public Vector3 position;
         // XZ 평면에서 바라보는 방향. 길이는 1이다.
         public Vector3 facingDirection;
+        // 플레이어 수치
+        public PlayerComponent player;
         // 이동 수치
         public PlayerMovementComponent movement;
         // 장착할 무기의 DefinitionCatalog.weapons 인덱스. 음수면 무기가 없다.

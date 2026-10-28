@@ -202,7 +202,7 @@ Animator:
   m_GameObject: {fileID: 4060554693649904517}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 6520c6d7889f4c72b416f07f34edd515, type: 3}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: d1becf682bf215043907df9b618796e2, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -452,6 +452,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3502193056411191211}
+  - component: {fileID: 4309210142904450135}
   m_Layer: 0
   m_Name: Red Slime
   m_TagString: Untagged
@@ -475,6 +476,19 @@ Transform:
   - {fileID: 6809814890230710726}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4309210142904450135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6168152276632316411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb7cba0e792c24e488ea8701575fc025, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.Enemy.Views.EnemyView
+  animator: {fileID: 8761633073437349495}
 --- !u!1 &8702776974026971839
 GameObject:
   m_ObjectHideFlags: 0

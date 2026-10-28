@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using Project06.Authoring;
 using Project06.Commands;
-using Project06.Components;
 using Project06.Definitions;
 using Project06.Entities;
 using Project06.Presentation;
 using Project06.Presentation.Enemy.ViewSystems;
+using Project06.Presentation.EnemyProjectile.ViewSystems;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Player.ViewSystems;
 using Project06.Presentation.Projectile.ViewSystems;
@@ -15,13 +15,10 @@ using Project06.Presentation.Weapon.ViewSystems;
 using Project06.Requests;
 using Project06.Systems;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Project06.Core
 {
-    public class Runner : MonoBehaviour
+    public partial class Runner : MonoBehaviour
     {
         private World _world;
         private ViewContext _viewContext;
@@ -29,17 +26,6 @@ namespace Project06.Core
         private DefinitionCatalog _definitionCatalog;
 
         private const string DEFINITION_CATALOG_PATH = "Definition Catalog";
-        // 디버그 표시 영역의 화면 가장자리 여백과 크기(픽셀)
-        private const float DEBUG_GUI_MARGIN = 10f;
-        private const float DEBUG_GUI_WIDTH = 320f;
-        private const float DEBUG_GUI_HEIGHT = 140f;
-#if UNITY_EDITOR
-        // 적 디버그 기즈모 색
-        private static readonly Color ENEMY_DETECTION_RADIUS_COLOR = new Color(1f, 0.9f, 0.2f, 1f);
-        private static readonly Color ENEMY_LOSE_RADIUS_COLOR = new Color(0.7f, 0.4f, 1f, 1f);
-        private static readonly Color ENEMY_STOP_DISTANCE_COLOR = new Color(0.3f, 1f, 0.4f, 1f);
-        private static readonly Color ENEMY_PATH_COLOR = new Color(0.2f, 0.8f, 1f, 1f);
-#endif
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Create()
@@ -89,7 +75,9 @@ namespace Project06.Core
             CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
             WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
             ProjectileViewSystem.Initialize(projectilePrefabs, _world.projectiles.entities.Length, _viewContext);
-            EnemyViewSystem.Initialize(CollectEnemyPrefabs(enemyDefinitions), _world.enemies.entities.Length, _viewContext);
+            CollectEnemyViewData(enemyDefinitions, out GameObject[] enemyPrefabs, out string[][] enemyAttackTriggerNames, out GameObject[] enemyProjectilePrefabs);
+            EnemyViewSystem.Initialize(enemyPrefabs, enemyAttackTriggerNames, _world.enemies.entities.Length, _viewContext);
+            EnemyProjectileViewSystem.Initialize(enemyProjectilePrefabs, _world.enemyProjectiles.entities.Length, _viewContext);
         }
 
         private void FixedUpdate()
@@ -99,16 +87,20 @@ namespace Project06.Core
             commandBuffer.reloadCommand = default;
             CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
             PlayerMoveSystem.Tick(_world.players);
-            EnemyBehaviorSystem.Tick(_world.enemies, _world.players);
-            ProjectileHitSystem.Tick(_world.projectiles, _world.enemies);
+            EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.random);
+            EnemyAttackSystem.Tick(_world.enemies, _world.players, _world.enemyProjectileSpawnRequests, _world.enemyAttackStartedRecords);
+            ProjectileHitSystem.Tick(_world.projectiles, _world.enemies, _world.random, _world.enemyHitStunnedRecords);
             ProjectileMoveSystem.Tick(_world.projectiles);
+            EnemyProjectileHitSystem.Tick(_world.enemyProjectiles, _world.players);
+            EnemyProjectileMoveSystem.Tick(_world.enemyProjectiles);
             PlayerFireSystem.Tick(_world.players, _world.projectileSpawnRequests, _world.playerFiredRecords);
             EnemySpawnerSystem.Tick(_world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
             SpawnSystem.Tick(
                 _world.playerSpawnRequests, _world.players,
                 _world.enemySpawnerSpawnRequests, _world.enemySpawners,
                 _world.enemySpawnRequests, _world.enemies,
-                _world.projectileSpawnRequests, _world.projectiles);
+                _world.projectileSpawnRequests, _world.projectiles,
+                _world.enemyProjectileSpawnRequests, _world.enemyProjectiles);
         }
 
         private void Update()
@@ -141,91 +133,13 @@ namespace Project06.Core
             }
 
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
-            EnemyViewSystem.Present(_world.enemies, interpolation, _viewContext);
+            EnemyViewSystem.Present(_world.enemies, _world.enemyAttackStartedRecords, _world.enemyHitStunnedRecords, interpolation, _viewContext);
+            EnemyProjectileViewSystem.Present(_world.enemyProjectiles, interpolation, _viewContext);
 
             _world.playerFiredRecords.Clear();
+            _world.enemyAttackStartedRecords.Clear();
+            _world.enemyHitStunnedRecords.Clear();
         }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        // 디버그용으로 플레이어의 무기·탄약·재장전·행동 상태를 화면 왼쪽 위에 표시한다. 에디터와 개발 빌드에서만 컴파일된다.
-        private void OnGUI()
-        {
-            int playerIndex = _world != null ? FindAlivePlayerIndex() : -1;
-            if (playerIndex < 0)
-            {
-                return;
-            }
-
-            ref PlayerEntity player = ref _world.players.entities[playerIndex];
-            WeaponDefinition[] weapons = _definitionCatalog != null ? _definitionCatalog.weapons : null;
-            CaliberDefinition[] calibers = _definitionCatalog != null ? _definitionCatalog.calibers : null;
-
-            string weaponName = weapons != null && player.weaponIndex >= 0 && player.weaponIndex < weapons.Length && weapons[player.weaponIndex] != null
-                ? weapons[player.weaponIndex].name
-                : "없음";
-            string caliberName = calibers != null && player.caliberIndex >= 0 && player.caliberIndex < calibers.Length && calibers[player.caliberIndex] != null
-                ? calibers[player.caliberIndex].name
-                : "없음";
-            int reserveAmmo = player.reserveAmmo != null && player.caliberIndex >= 0 && player.caliberIndex < player.reserveAmmo.Length
-                ? player.reserveAmmo[player.caliberIndex]
-                : 0;
-            string reloadText = player.isReloading
-                ? $"재장전 중 {player.weapon.reloadTicks - player.reloadRemainingTicks} / {player.weapon.reloadTicks} 틱"
-                : "재장전 안 함";
-
-            GUILayout.BeginArea(new Rect(DEBUG_GUI_MARGIN, DEBUG_GUI_MARGIN, DEBUG_GUI_WIDTH, DEBUG_GUI_HEIGHT), GUI.skin.box);
-            GUILayout.Label($"무기: {weaponName} ({caliberName})");
-            GUILayout.Label($"탄창: {player.magazineAmmo} / {player.weapon.magazineCapacity}");
-            GUILayout.Label($"예비 탄약: {reserveAmmo}");
-            GUILayout.Label(reloadText);
-            GUILayout.Label($"조준 {player.isAiming} · 발사 {player.isFiring} · 달리기 {player.isRunning}");
-            GUILayout.EndArea();
-        }
-#endif
-
-#if UNITY_EDITOR
-        // 디버그용으로 살아 있는 적마다 자기 위치를 중심으로 감지 반지름, 추격 해제 반지름, 정지 거리를 XZ 평면 원으로 그린다. 추격 중이면 남은 NavMesh 경로도 그린다.
-        // Idle이면 감지 원을, 추격 중이면 해제 원과 정지 원을 그린다. 에디터에서만 컴파일된다.
-        private void OnDrawGizmos()
-        {
-            if (_world == null)
-            {
-                return;
-            }
-
-            EnemyEntity[] enemies = _world.enemies.entities;
-            for (int index = 0; index < enemies.Length; index++)
-            {
-                ref EnemyEntity enemy = ref enemies[index];
-                if (!enemy.isAlive)
-                {
-                    continue;
-                }
-
-                Vector3 position = enemy.currentPosition;
-                if (enemy.state == EnemyState.Idle)
-                {
-                    Handles.color = ENEMY_DETECTION_RADIUS_COLOR;
-                    Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.detectionRadius);
-                    continue;
-                }
-
-                Handles.color = ENEMY_LOSE_RADIUS_COLOR;
-                Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.loseRadius);
-                Handles.color = ENEMY_STOP_DISTANCE_COLOR;
-                Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.stopDistance);
-
-                Handles.color = ENEMY_PATH_COLOR;
-                Vector3 lineStart = position;
-                for (int cornerIndex = enemy.pathCornerIndex; cornerIndex < enemy.pathCornerCount; cornerIndex++)
-                {
-                    Vector3 corner = enemy.pathCorners[cornerIndex];
-                    Handles.DrawLine(lineStart, corner);
-                    lineStart = corner;
-                }
-            }
-        }
-#endif
 
         // 씬의 PlayerAuthoring 위치에 PlayerDefinition 수치로 플레이어 생성을 요청한다. PlayerAuthoring이나 Catalog가 없으면 요청하지 않는다.
         private void EnqueuePlayerSpawn()
@@ -242,6 +156,7 @@ namespace Project06.Core
             {
                 position = playerAuthoring.transform.position,
                 facingDirection = startFacingDirection.sqrMagnitude > 0f ? startFacingDirection.normalized : Vector3.forward,
+                player = _definitionCatalog.player.player,
                 movement = _definitionCatalog.player.movement,
                 weaponIndex = -1,
                 caliberIndex = -1,
@@ -314,6 +229,7 @@ namespace Project06.Core
                 {
                     enemyTypeIndex = enemyDefinitions.Count;
                     enemyDefinitions.Add(definition);
+                    ValidateEnemyAttacks(definition);
                 }
 
                 Transform spawnerTransform = spawnerAuthoring.transform;
@@ -332,16 +248,29 @@ namespace Project06.Core
             return enemyDefinitions;
         }
 
-        // 적 종류 순서대로 적 프리팹을 모은다.
-        private static GameObject[] CollectEnemyPrefabs(List<EnemyDefinition> enemyDefinitions)
+        // 적 종류 순서대로 적 프리팹, 공격 Trigger 이름 목록, 적 투사체 프리팹을 모은다.
+        private static void CollectEnemyViewData(List<EnemyDefinition> enemyDefinitions, out GameObject[] enemyPrefabs, out string[][] attackTriggerNames, out GameObject[] enemyProjectilePrefabs)
         {
-            GameObject[] enemyPrefabs = new GameObject[enemyDefinitions.Count];
+            enemyPrefabs = new GameObject[enemyDefinitions.Count];
+            attackTriggerNames = new string[enemyDefinitions.Count][];
+            enemyProjectilePrefabs = new GameObject[enemyDefinitions.Count];
             for (int enemyTypeIndex = 0; enemyTypeIndex < enemyDefinitions.Count; enemyTypeIndex++)
             {
                 enemyPrefabs[enemyTypeIndex] = enemyDefinitions[enemyTypeIndex].enemyPrefab;
+                attackTriggerNames[enemyTypeIndex] = enemyDefinitions[enemyTypeIndex].attackTriggerNames;
+                enemyProjectilePrefabs[enemyTypeIndex] = enemyDefinitions[enemyTypeIndex].projectilePrefab;
             }
+        }
 
-            return enemyPrefabs;
+        // 적 Definition의 공격 목록과 Trigger 이름 목록의 길이가 다르면 에러 로그를 남긴다.
+        private static void ValidateEnemyAttacks(EnemyDefinition definition)
+        {
+            int attackCount = definition.enemy.attacks != null ? definition.enemy.attacks.Length : 0;
+            int triggerCount = definition.attackTriggerNames != null ? definition.attackTriggerNames.Length : 0;
+            if (triggerCount != attackCount)
+            {
+                Debug.LogError($"{definition.name}의 공격 수({attackCount})와 attackTriggerNames 수({triggerCount})가 다르다.", definition);
+            }
         }
 
         // 살아 있는 첫 플레이어의 슬롯 인덱스를 구한다. 없으면 -1을 돌려준다.

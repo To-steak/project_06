@@ -14,6 +14,8 @@ namespace Project06.Core
         public ProjectileStorage projectiles = new ProjectileStorage(MAX_PROJECTILE_COUNT);
         // 적 엔티티 저장소
         public EnemyStorage enemies = new EnemyStorage(MAX_ENEMY_COUNT);
+        // 적 투사체 엔티티 저장소
+        public EnemyProjectileStorage enemyProjectiles = new EnemyProjectileStorage(MAX_ENEMY_PROJECTILE_COUNT);
         // 적 스포너 엔티티 저장소
         public EnemySpawnerStorage enemySpawners = new EnemySpawnerStorage(MAX_ENEMY_SPAWNER_COUNT);
         // 틱 마지막에 SpawnSystem이 처리할 플레이어 생성 요청
@@ -24,8 +26,14 @@ namespace Project06.Core
         public Queue<EnemySpawnRequest> enemySpawnRequests = new Queue<EnemySpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 투사체 생성 요청
         public Queue<ProjectileSpawnRequest> projectileSpawnRequests = new Queue<ProjectileSpawnRequest>();
+        // 틱 마지막에 SpawnSystem이 처리할 적 투사체 생성 요청
+        public Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests = new Queue<EnemyProjectileSpawnRequest>();
         // 플레이어가 발사한 기록. LateUpdate 마지막에 비운다.
         public List<PlayerFiredRecord> playerFiredRecords = new List<PlayerFiredRecord>();
+        // 적이 공격을 시작한 기록. LateUpdate 마지막에 비운다.
+        public List<EnemyAttackStartedRecord> enemyAttackStartedRecords = new List<EnemyAttackStartedRecord>();
+        // 적이 경직에 걸린 기록. LateUpdate 마지막에 비운다.
+        public List<EnemyHitStunnedRecord> enemyHitStunnedRecords = new List<EnemyHitStunnedRecord>();
         // Update에서 쌓고 Tick에서 소비하는 입력 명령
         public CommandBuffer commandBuffer = new CommandBuffer();
         // 판마다 같은 시드로 만드는 난수 생성기. System은 UnityEngine.Random 대신 이것을 받아 쓴다.
@@ -37,6 +45,8 @@ namespace Project06.Core
         public const int MAX_PROJECTILE_COUNT = 256;
         // 동시에 존재할 수 있는 적의 최대 수
         public const int MAX_ENEMY_COUNT = 128;
+        // 동시에 존재할 수 있는 적 투사체의 최대 수
+        public const int MAX_ENEMY_PROJECTILE_COUNT = 256;
         // 동시에 존재할 수 있는 적 스포너의 최대 수
         public const int MAX_ENEMY_SPAWNER_COUNT = 64;
         // 난수 생성기의 시드

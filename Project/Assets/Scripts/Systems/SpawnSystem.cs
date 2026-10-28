@@ -19,16 +19,20 @@ namespace Project06.Systems
         /// <param name="enemies">적을 넣을 저장소.</param>
         /// <param name="projectileSpawnRequests">투사체 생성 요청 큐.</param>
         /// <param name="projectiles">투사체를 넣을 저장소.</param>
+        /// <param name="enemyProjectileSpawnRequests">적 투사체 생성 요청 큐.</param>
+        /// <param name="enemyProjectiles">적 투사체를 넣을 저장소.</param>
         public static void Tick(
             Queue<PlayerSpawnRequest> playerSpawnRequests, PlayerStorage players,
             Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests, EnemySpawnerStorage enemySpawners,
             Queue<EnemySpawnRequest> enemySpawnRequests, EnemyStorage enemies,
-            Queue<ProjectileSpawnRequest> projectileSpawnRequests, ProjectileStorage projectiles)
+            Queue<ProjectileSpawnRequest> projectileSpawnRequests, ProjectileStorage projectiles,
+            Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests, EnemyProjectileStorage enemyProjectiles)
         {
             SpawnPlayers(playerSpawnRequests, players);
             SpawnEnemySpawners(enemySpawnerSpawnRequests, enemySpawners);
             SpawnEnemies(enemySpawnRequests, enemies);
             SpawnProjectiles(projectileSpawnRequests, projectiles);
+            SpawnEnemyProjectiles(enemyProjectileSpawnRequests, enemyProjectiles);
         }
 
         private static void SpawnPlayers(Queue<PlayerSpawnRequest> playerSpawnRequests, PlayerStorage players)
@@ -50,6 +54,8 @@ namespace Project06.Systems
                     previousPosition = request.position,
                     currentPosition = request.position,
                     facingDirection = request.facingDirection,
+                    player = request.player,
+                    health = request.player.maxHealth,
                     movement = request.movement,
                     weaponIndex = request.weaponIndex,
                     weapon = request.weapon,
@@ -100,11 +106,27 @@ namespace Project06.Systems
                 enemy.spawner = request.spawner;
                 enemy.previousPosition = request.position;
                 enemy.currentPosition = request.position;
+                enemy.spawnPosition = request.position;
                 enemy.facingDirection = request.facingDirection;
                 enemy.velocity = Vector3.zero;
                 enemy.enemy = request.enemy;
                 enemy.health = request.enemy.maxHealth;
                 enemy.state = EnemyState.Idle;
+                enemy.idleRemainingTicks = 0;
+                enemy.deathRemainingTicks = 0;
+                enemy.hitStunRemainingTicks = 0;
+                enemy.attackRemainingTicks = 0;
+                enemy.hasAttackHit = false;
+                // 슬롯의 쿨다운 배열이 이 적의 공격 수보다 작을 때만 새로 만들고, 아니면 재사용한다.
+                int attackCount = request.enemy.attacks != null ? request.enemy.attacks.Length : 0;
+                if (enemy.attackCooldownRemainingTicks.Length < attackCount)
+                {
+                    enemy.attackCooldownRemainingTicks = new int[attackCount];
+                }
+                else
+                {
+                    System.Array.Clear(enemy.attackCooldownRemainingTicks, 0, enemy.attackCooldownRemainingTicks.Length);
+                }
                 enemy.pathCornerCount = 0;
                 enemy.pathCornerIndex = 0;
                 enemy.pathUpdateRemainingTicks = 0;
@@ -130,6 +152,28 @@ namespace Project06.Systems
                 projectile.velocity = request.velocity;
                 projectile.remainingDistance = request.range;
                 projectile.damage = request.damage;
+            }
+        }
+
+        private static void SpawnEnemyProjectiles(Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests, EnemyProjectileStorage enemyProjectiles)
+        {
+            while (enemyProjectileSpawnRequests.Count > 0)
+            {
+                EnemyProjectileSpawnRequest request = enemyProjectileSpawnRequests.Dequeue();
+                if (!TryTakeFreeIndex(enemyProjectiles.freeIndices, out int index))
+                {
+                    continue;
+                }
+
+                ref EnemyProjectileEntity enemyProjectile = ref enemyProjectiles.entities[index];
+                enemyProjectile.isAlive = true;
+                enemyProjectile.generation++;
+                enemyProjectile.enemyTypeIndex = request.enemyTypeIndex;
+                enemyProjectile.previousPosition = request.position;
+                enemyProjectile.currentPosition = request.position;
+                enemyProjectile.velocity = request.velocity;
+                enemyProjectile.remainingDistance = request.range;
+                enemyProjectile.damage = request.damage;
             }
         }
 
