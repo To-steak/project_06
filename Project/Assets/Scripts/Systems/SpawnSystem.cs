@@ -107,6 +107,7 @@ namespace Project06.Systems
                 enemy.health = request.enemy.maxHealth;
                 enemy.state = EnemyState.Idle;
                 enemy.idleRemainingTicks = 0;
+                enemy.deathRemainingTicks = 0;
                 enemy.pathCornerCount = 0;
                 enemy.pathCornerIndex = 0;
                 enemy.pathUpdateRemainingTicks = 0;

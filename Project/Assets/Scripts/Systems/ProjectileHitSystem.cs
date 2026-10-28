@@ -1,3 +1,4 @@
+using Project06.Components;
 using Project06.Entities;
 using UnityEngine;
 
@@ -7,7 +8,7 @@ namespace Project06.Systems
     {
         /// <summary>
         /// 살아 있는 투사체마다 이번 틱에 날아갈 선분이 살아 있는 적의 피격 원(XZ 평면)과 만나는지 검사한다. ProjectileMoveSystem보다 먼저 호출한다.
-        /// 가장 먼저 만나는 적에게 데미지를 주고 투사체를 소멸시키며, 체력이 0 이하가 된 적은 소멸시킨다. 높이(Y)는 판정에 쓰지 않는다.
+        /// 가장 먼저 만나는 적에게 데미지를 주고 투사체를 소멸시키며, 체력이 0 이하가 된 적은 Dead로 바꾼다. Dead인 적은 맞지 않는다. 높이(Y)는 판정에 쓰지 않는다.
         /// </summary>
         /// <param name="projectiles">검사할 투사체 저장소.</param>
         /// <param name="enemyStorage">맞을 수 있는 적 저장소.</param>
@@ -35,7 +36,7 @@ namespace Project06.Systems
                 for (int enemyIndex = 0; enemyIndex < enemies.Length; enemyIndex++)
                 {
                     ref EnemyEntity enemy = ref enemies[enemyIndex];
-                    if (!enemy.isAlive)
+                    if (!enemy.isAlive || enemy.state == EnemyState.Dead)
                     {
                         continue;
                     }
@@ -56,8 +57,9 @@ namespace Project06.Systems
                 hitEnemy.health -= projectile.damage;
                 if (hitEnemy.health <= 0f)
                 {
-                    hitEnemy.isAlive = false;
-                    enemyStorage.freeIndices.Add(hitEnemyIndex);
+                    hitEnemy.state = EnemyState.Dead;
+                    hitEnemy.deathRemainingTicks = hitEnemy.enemy.deathDurationTicks;
+                    hitEnemy.velocity = Vector3.zero;
                 }
 
                 projectile.isAlive = false;

@@ -31,6 +31,8 @@ namespace Project06.Entities
         public EnemyState state;
         // Idle에서 배회를 다시 시작할 때까지 남은 틱
         public int idleRemainingTicks;
+        // Dead에서 소멸할 때까지 남은 틱
+        public int deathRemainingTicks;
         // 따라갈 NavMesh 경로의 코너. 슬롯마다 EnemyStorage가 미리 만들어 두고 재사용한다.
         public Vector3[] pathCorners;
         // pathCorners 중 유효한 코너 수

@@ -8,5 +8,7 @@ namespace Project06.Components
         Wander,
         // 플레이어를 NavMesh 경로로 쫓는다. 플레이어가 해제 반지름 밖으로 나가면 Idle이 된다.
         Chase,
+        // 체력이 0 이하가 되어 사망 애니메이션을 보여 주는 중이다. 움직이지 않고 맞지 않으며, 사망 시간이 끝나면 소멸한다.
+        Dead,
     }
 }

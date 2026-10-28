@@ -1,3 +1,4 @@
+using Project06.Components;
 using Project06.Entities;
 using Project06.Presentation.Enemy.Views;
 using UnityEngine;
@@ -8,11 +9,14 @@ namespace Project06.Presentation.Enemy.ViewSystems
     public static class EnemyViewSystem
     {
         private static readonly int SPEED_PARAMETER_HASH = Animator.StringToHash(SPEED_PARAMETER);
+        private static readonly int IS_DEAD_PARAMETER_HASH = Animator.StringToHash(IS_DEAD_PARAMETER);
 
         // 종류별 풀이 처음 확보하는 View 수
         private const int DEFAULT_POOL_CAPACITY = 16;
         // 이동 속력(Float). 0은 정지, 1은 걷기 속도, 2는 달리기 속도가 되도록 정규화한다.
         private const string SPEED_PARAMETER = "Speed";
+        // 사망했는지 여부(Bool). 체력이 0 이하가 되면 true가 되고, 사망 시간이 끝나 소멸할 때까지 유지된다.
+        private const string IS_DEAD_PARAMETER = "IsDead";
 
         /// <summary>
         /// 종류별 적 View 풀과 슬롯별 View 매핑을 만든다. 판 시작 시 한 번 호출한다.
@@ -54,7 +58,7 @@ namespace Project06.Presentation.Enemy.ViewSystems
         }
 
         /// <summary>
-        /// 살아 있는 적마다 View를 풀에서 꺼내 위치와 방향을 맞추고 이동 속력을 Animator에 넘긴다. 소멸했거나 슬롯이 재사용된 적의 View는 풀에 반납한다.
+        /// 살아 있는 적마다 View를 풀에서 꺼내 위치와 방향을 맞추고 이동 속력과 사망 여부를 Animator에 넘긴다. 소멸했거나 슬롯이 재사용된 적의 View는 풀에 반납한다.
         /// </summary>
         /// <param name="enemies">표시할 적 저장소.</param>
         /// <param name="interpolation">직전 틱에서 현재 틱까지 진행한 비율(0~1).</param>
@@ -102,6 +106,7 @@ namespace Project06.Presentation.Enemy.ViewSystems
                 if (view.animator != null)
                 {
                     view.animator.SetFloat(SPEED_PARAMETER_HASH, GetBlendSpeed(in enemy));
+                    view.animator.SetBool(IS_DEAD_PARAMETER_HASH, enemy.state == EnemyState.Dead);
                 }
             }
         }
