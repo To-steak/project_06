@@ -138,6 +138,24 @@ namespace Project06.Core
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Reload"",
+                    ""type"": ""Button"",
+                    ""id"": ""dde62e7b-9fef-44d4-ac32-61f6be31f3e9"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Cancel"",
+                    ""type"": ""Button"",
+                    ""id"": ""0722409c-ab39-422c-b0b6-92278d5e200c"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -239,6 +257,28 @@ namespace Project06.Core
                     ""action"": ""Aim"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3f265a26-f91b-4c45-850d-81957d201d85"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Reload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9c37cf5f-5b5a-4d5d-a2cb-73601ad8d35c"",
+                    ""path"": ""<Keyboard>/x"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cancel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -269,6 +309,8 @@ namespace Project06.Core
             m_General_Look = m_General.FindAction("Look", throwIfNotFound: true);
             m_General_Fire = m_General.FindAction("Fire", throwIfNotFound: true);
             m_General_Aim = m_General.FindAction("Aim", throwIfNotFound: true);
+            m_General_Reload = m_General.FindAction("Reload", throwIfNotFound: true);
+            m_General_Cancel = m_General.FindAction("Cancel", throwIfNotFound: true);
         }
 
         ~@PlayerActions()
@@ -354,6 +396,8 @@ namespace Project06.Core
         private readonly InputAction m_General_Look;
         private readonly InputAction m_General_Fire;
         private readonly InputAction m_General_Aim;
+        private readonly InputAction m_General_Reload;
+        private readonly InputAction m_General_Cancel;
         /// <summary>
         /// Provides access to input actions defined in input action map "General".
         /// </summary>
@@ -385,6 +429,14 @@ namespace Project06.Core
             /// Provides access to the underlying input action "General/Aim".
             /// </summary>
             public InputAction @Aim => m_Wrapper.m_General_Aim;
+            /// <summary>
+            /// Provides access to the underlying input action "General/Reload".
+            /// </summary>
+            public InputAction @Reload => m_Wrapper.m_General_Reload;
+            /// <summary>
+            /// Provides access to the underlying input action "General/Cancel".
+            /// </summary>
+            public InputAction @Cancel => m_Wrapper.m_General_Cancel;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -426,6 +478,12 @@ namespace Project06.Core
                 @Aim.started += instance.OnAim;
                 @Aim.performed += instance.OnAim;
                 @Aim.canceled += instance.OnAim;
+                @Reload.started += instance.OnReload;
+                @Reload.performed += instance.OnReload;
+                @Reload.canceled += instance.OnReload;
+                @Cancel.started += instance.OnCancel;
+                @Cancel.performed += instance.OnCancel;
+                @Cancel.canceled += instance.OnCancel;
             }
 
             /// <summary>
@@ -452,6 +510,12 @@ namespace Project06.Core
                 @Aim.started -= instance.OnAim;
                 @Aim.performed -= instance.OnAim;
                 @Aim.canceled -= instance.OnAim;
+                @Reload.started -= instance.OnReload;
+                @Reload.performed -= instance.OnReload;
+                @Reload.canceled -= instance.OnReload;
+                @Cancel.started -= instance.OnCancel;
+                @Cancel.performed -= instance.OnCancel;
+                @Cancel.canceled -= instance.OnCancel;
             }
 
             /// <summary>
@@ -540,6 +604,20 @@ namespace Project06.Core
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnAim(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Reload" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnReload(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Cancel" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnCancel(InputAction.CallbackContext context);
         }
     }
 }

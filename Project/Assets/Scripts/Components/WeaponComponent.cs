@@ -13,5 +13,9 @@ namespace Project06.Components
         public float projectileRange;
         // 투사체 한 발의 데미지
         public float damage;
+        // 탄창 용량
+        public int magazineCapacity;
+        // 재장전에 걸리는 틱. 이 시간이 지나야 탄창이 채워진다.
+        public int reloadTicks;
     }
 }

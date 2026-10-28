@@ -15,16 +15,20 @@ namespace Project06.Entities
         public Vector3 moveDirection;
         // XZ 평면에서 바라보는 방향. 길이는 1이다.
         public Vector3 facingDirection;
-        // 달리고 있는지 여부. 달리기 입력을 누르고 이동 입력이 있을 때 true이며, 발사 중이면 false다.
+        // 달리고 있는지 여부. 달리기 입력을 누르고 이동 입력이 있을 때 true이며, 발사 중이거나 재장전 중이면 false다.
         public bool isRunning;
         // XZ 평면의 현재 속도(m/s)
         public Vector3 velocity;
         // 이동 수치
         public PlayerMovementComponent movement;
-        // 조준하고 있는지 여부. 조준 입력을 누르고 있어도 달리면 false다.
+        // 조준하고 있는지 여부. 조준 입력을 누르고 있어도 달리거나 재장전 중이면 false다.
         public bool isAiming;
-        // 조준 입력과 발사 입력을 함께 누르고 있는지 여부
+        // 조준 입력과 발사 입력을 함께 누르고 있는지 여부. 재장전 중이면 false다.
         public bool isFiring;
+        // 재장전 중인지 여부
+        public bool isReloading;
+        // 재장전이 끝날 때까지 남은 틱
+        public int reloadRemainingTicks;
         // 장착한 무기의 DefinitionCatalog.weapons 인덱스. 음수면 무기가 없다.
         public int weaponIndex;
         // 장착한 무기의 수치
@@ -33,5 +37,11 @@ namespace Project06.Entities
         public Vector3 muzzlePosition;
         // 다음 발사까지 남은 틱
         public int fireCooldownTicks;
+        // 장착한 무기가 쓰는 구경의 DefinitionCatalog.calibers 인덱스. 음수면 구경이 없어 재장전할 수 없다.
+        public int caliberIndex;
+        // 장착한 무기의 탄창에 남은 탄 수
+        public int magazineAmmo;
+        // 구경별 예비 탄약 수. DefinitionCatalog.calibers와 같은 순서다.
+        public int[] reserveAmmo;
     }
 }

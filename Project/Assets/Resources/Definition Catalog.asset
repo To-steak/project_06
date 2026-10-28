@@ -15,3 +15,8 @@ MonoBehaviour:
   player: {fileID: 11400000, guid: fd89d1d51c8e3b948986e7ba59d60883, type: 2}
   weapons:
   - {fileID: 11400000, guid: 3340221d9fe28c24c80727dac7bd13a4, type: 2}
+  calibers:
+  - {fileID: 11400000, guid: 5e2dbc2a871a4ec42a53d81621948ca1, type: 2}
+  - {fileID: 11400000, guid: 0edc930d209cbb14682685c8286e5317, type: 2}
+  - {fileID: 11400000, guid: d48dfe747973f7f43a490fa630ca5939, type: 2}
+  - {fileID: 11400000, guid: 70eced35194251d4ab16d5dba4b67dd8, type: 2}

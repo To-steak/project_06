@@ -23,7 +23,7 @@ namespace Project06.Presentation.Weapon.ViewSystems
         }
 
         /// <summary>
-        /// 플레이어가 장착한 무기가 바뀌었으면 손의 총을 바꾸고, 이번 프레임에 발사 기록이 있으면 총구 섬광과 발사음을 한 번 재생한다.
+        /// 플레이어가 장착한 무기가 바뀌었으면 손의 총을 바꾸고, 장전 중이면 장전 진행 틱에 맞춰 장전음을 재생하며, 이번 프레임에 발사 기록이 있으면 총구 섬광과 발사음을 한 번 재생한다.
         /// 총 View는 무기마다 처음 장착할 때 한 번만 생성하고, 이후에는 켜고 끄기만 한다.
         /// </summary>
         /// <param name="player">총을 든 플레이어.</param>
@@ -52,7 +52,14 @@ namespace Project06.Presentation.Weapon.ViewSystems
             }
 
             WeaponView weaponView = context.equippedWeaponView;
-            if (weaponView == null || playerFiredRecords.Count == 0)
+            if (weaponView == null)
+            {
+                return;
+            }
+
+            PlayReloadSounds(in player, weaponView, context);
+
+            if (playerFiredRecords.Count == 0)
             {
                 return;
             }
@@ -62,9 +69,62 @@ namespace Project06.Presentation.Weapon.ViewSystems
                 weaponView.muzzleFlash.Play();
             }
 
-            if (weaponView.fireAudioSource != null)
+            PlayFireSound(weaponView);
+        }
+
+        // 지난 프레임 이후 장전 경과 틱이 지나친 장전음을 재생한다. 한 프레임에 여러 틱이 지나도 빠뜨리지 않는다.
+        // 장전이 끝나거나 취소되면 기록을 지워, 다음 장전에서 처음부터 다시 재생한다.
+        private static void PlayReloadSounds(in PlayerEntity player, WeaponView weaponView, ViewContext context)
+        {
+            if (!player.isReloading)
             {
-                weaponView.fireAudioSource.Play();
+                context.presentedReloadElapsedTicks = -1;
+                return;
+            }
+
+            int elapsedTicks = player.weapon.reloadTicks - player.reloadRemainingTicks;
+            int previousElapsedTicks = context.presentedReloadElapsedTicks;
+            if (elapsedTicks < previousElapsedTicks)
+            {
+                // 프레임 사이에 장전이 취소되고 다시 시작되었다.
+                previousElapsedTicks = -1;
+            }
+
+            context.presentedReloadElapsedTicks = elapsedTicks;
+
+            AudioSource audioSource = weaponView.reloadAudioSource;
+            AudioClip[] clips = weaponView.reloadClips;
+            int[] clipTicks = weaponView.reloadClipTicks;
+            if (audioSource == null || clips == null || clipTicks == null)
+            {
+                return;
+            }
+
+            int count = Mathf.Min(clips.Length, clipTicks.Length);
+            for (int clipIndex = 0; clipIndex < count; clipIndex++)
+            {
+                int clipTick = clipTicks[clipIndex];
+                if (clipTick > previousElapsedTicks && clipTick <= elapsedTicks && clips[clipIndex] != null)
+                {
+                    audioSource.PlayOneShot(clips[clipIndex]);
+                }
+            }
+        }
+
+        // 발사음 중 하나를 무작위로 골라 겹쳐 재생한다. 연사로 이전 소리가 끝나기 전에 쏴도 끊기지 않는다.
+        private static void PlayFireSound(WeaponView weaponView)
+        {
+            AudioSource audioSource = weaponView.fireAudioSource;
+            if (audioSource == null)
+            {
+                return;
+            }
+
+            AudioClip[] clips = weaponView.fireClips;
+            AudioClip clip = clips != null && clips.Length > 0 ? clips[Random.Range(0, clips.Length)] : audioSource.clip;
+            if (clip != null)
+            {
+                audioSource.PlayOneShot(clip);
             }
         }
 

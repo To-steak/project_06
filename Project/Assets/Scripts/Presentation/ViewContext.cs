@@ -17,6 +17,8 @@ namespace Project06.Presentation
         public int equippedWeaponIndex = -1;
         // 지금 손에 표시 중인 총 View. 없으면 null이다.
         public WeaponView equippedWeaponView;
+        // 장전음을 마지막으로 처리한 장전 경과 틱. 장전 중이 아니면 -1이다.
+        public int presentedReloadElapsedTicks = -1;
         // 무기별 투사체 View 풀. DefinitionCatalog.weapons와 같은 순서이며, 프리팹이 없는 무기는 null이다.
         public ObjectPool<GameObject>[] projectilePools;
         // 투사체 저장소 슬롯별로 표시 중인 View. 표시 중이 아니면 null이다.
