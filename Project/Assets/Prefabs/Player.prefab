@@ -961,6 +961,7 @@ Transform:
   - {fileID: 9001854409769935116}
   - {fileID: 601225257914140147}
   - {fileID: 8200823516571779979}
+  - {fileID: 6392914554994773954}
   m_Father: {fileID: 9153810726098615302}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3069468321899817414
@@ -3576,6 +3577,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2732194069101312818}
+  - {fileID: 9044927756197774155}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6791675430409870922
@@ -3603,6 +3605,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.Player.Views.PlayerView
   animator: {fileID: 426068294755144269}
+  weaponSocket: {fileID: 6392914554994773954}
 --- !u!1 &5698355358564756463
 GameObject:
   m_ObjectHideFlags: 0
@@ -4570,6 +4573,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radius: 0.08
+--- !u!1 &7231926197727244872
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6392914554994773954}
+  m_Layer: 0
+  m_Name: Weapon Socket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6392914554994773954
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7231926197727244872}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: 0.7071068, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 915862734395791527}
+  m_LocalEulerAnglesHint: {x: 180, y: -90, z: 0}
 --- !u!1 &7291186586969087031
 GameObject:
   m_ObjectHideFlags: 0
@@ -4883,6 +4917,37 @@ Transform:
   m_Children:
   - {fileID: 4094055466593132401}
   m_Father: {fileID: 1148178357310165900}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7784792223286930064
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9044927756197774155}
+  m_Layer: 0
+  m_Name: Camera Pivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9044927756197774155
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7784792223286930064}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3386553548112770079}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7806022129587032781
 GameObject:

@@ -6,5 +6,7 @@ namespace Project06.Presentation.Player.Views
     {
         // 플레이어 모델의 Animator
         public Animator animator;
+        // 장착한 총을 붙일 손의 Transform
+        public Transform weaponSocket;
     }
 }

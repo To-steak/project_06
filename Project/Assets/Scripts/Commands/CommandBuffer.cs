@@ -6,5 +6,9 @@ namespace Project06.Commands
         public MoveCommand moveCommand;
         // 현재 바라보는 방향 입력. 이동 입력처럼 소비해도 비우지 않고, 매 Update에 덮어쓴다.
         public LookCommand lookCommand;
+        // 현재 조준 입력. 이동 입력처럼 소비해도 비우지 않고, 매 Update에 덮어쓴다.
+        public AimCommand aimCommand;
+        // 현재 발사 입력. 누르고 있는 동안 연사하는 입력이라 소비해도 비우지 않고, 매 Update에 덮어쓴다.
+        public FireCommand fireCommand;
     }
 }
