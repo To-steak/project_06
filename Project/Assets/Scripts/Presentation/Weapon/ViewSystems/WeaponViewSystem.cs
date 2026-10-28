@@ -89,7 +89,9 @@ namespace Project06.Presentation.Weapon.ViewSystems
 
             if (weaponView.muzzleFlash != null)
             {
-                weaponView.muzzleFlash.Play();
+                // 이전 화염이 아직 재생 중이면 Play가 무시되므로, 지우고 처음부터 다시 재생한다.
+                weaponView.muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                weaponView.muzzleFlash.Play(true);
             }
 
             PlayFireSound(weaponView);
