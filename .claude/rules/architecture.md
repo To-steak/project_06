@@ -16,7 +16,8 @@ ECS 패키지(DOTS)는 쓰지 않는다. "System은 함수, 상태는 데이터"
 - View는 게임 상태를 읽기만 한다. 입력은 명령 버퍼(`~Command`)를 거친다.
 - **Transform은 View만 쓴다.** Logic은 위치를 데이터(`previousPosition`, `currentPosition`)로 소유하고, View가 보간해 반영한다.
 - 판정 시점은 Logic의 타이머가 정한다. 애니메이션 이벤트로 게임 상태를 바꾸지 않는다.
-- Unity 물리(Rigidbody, Collider, `Physics` 쿼리)를 쓰지 않는다. 충돌과 범위 판정은 Logic이 직접 계산한다.
+- Unity 물리는 질의로만 쓴다. 지형 등 씬에 배치한 정적 오브젝트에 Collider를 붙이고, System이 `Tick` 안에서 `Physics` 질의(Raycast, SphereCast, Overlap 등)를 호출해 그 결과로 위치 데이터를 고친다.
+- Rigidbody, 물리 시뮬레이션, 충돌 콜백(`OnCollision~`, `OnTrigger~`)은 쓰지 않는다. 엔티티는 Collider를 갖지 않으며, 엔티티끼리의 충돌과 범위 판정은 Logic이 직접 계산한다.
 
 ## World / Runner
 - **World**는 한 판의 데이터(엔티티 저장소, 기록 목록, 요청 큐, 명령 버퍼, 난수 생성기)를 모아 두는 컨테이너다. Core에 있고 Runner만 쓴다. 판마다 `new World()`로 새로 만든다.
@@ -104,6 +105,6 @@ Presentation/
 | `Presentation/` | `~ViewSystem`, `~View`, ViewContext, 오디오, 오브젝트 풀 | `Project06.Presentation` | Entity |
 | `UserInterface/` | UI View, Presenter | `Project06.UserInterface` | Entity, Persistence |
 | `Core/` | World, Runner, 부트스트랩, 로딩, 씬 전환 | `Project06.Core` | 전부 |
-| `Editor/` | 에디터 도구 | `Project06.Editor` (플랫폼: Editor 전용) | Definitions, Authoring |
+| `Editor/` | 에디터 도구 (Gizmo, PropertyDrawer, CustomEditor) | `Project06.Editor` (플랫폼: Editor 전용) | Entity, Definitions, Authoring |
 
 - 표에 없는 종류의 타입을 만들어야 하면, 어디에 둘지 먼저 묻는다.
