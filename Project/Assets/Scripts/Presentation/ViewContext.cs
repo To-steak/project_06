@@ -49,5 +49,17 @@ namespace Project06.Presentation
         public int[] enemyProjectileViewGenerations;
         // 적 투사체 저장소 슬롯별로 표시 중인 View를 꺼낸 풀의 인덱스
         public int[] enemyProjectileViewPoolIndices;
+        // 조준 중 카메라가 플레이어에서 조준점 쪽으로 옮겨 가는 비율(0~1)
+        public float aimCameraWeight;
+        // 조준 중 카메라가 플레이어에서 옮겨 갈 수 있는 최대 수평 거리(m)
+        public float aimCameraMaxDistance;
+        // 카메라가 목표 위치를 따라가는 데 걸리는 대략적인 시간(초)
+        public float aimCameraSmoothTime;
+        // 판 시작 시 플레이어 View 기준 카메라 피벗의 로컬 위치
+        public Vector3 cameraPivotLocalPosition;
+        // 카메라 피벗을 기본 위치에서 옮겨 둔 현재 월드 오프셋
+        public Vector3 cameraAimOffset;
+        // cameraAimOffset을 부드럽게 따라가게 할 때 쓰는 변화 속도
+        public Vector3 cameraAimOffsetVelocity;
     }
 }

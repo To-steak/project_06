@@ -740,7 +740,7 @@ MonoBehaviour:
       Enabled: 0
       Size: {x: 0.2, y: 0.2}
     HardLimits:
-      Enabled: 0
+      Enabled: 1
       Size: {x: 0.8, y: 0.8}
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
@@ -804,6 +804,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3785914207653576712, guid: 0be39f993789e3042a63eea079434690, type: 3}
+      propertyPath: cameraPivot
+      value: 
+      objectReference: {fileID: 1957360017}
     - target: {fileID: 5659979137459974790, guid: 0be39f993789e3042a63eea079434690, type: 3}
       propertyPath: m_Name
       value: Player
