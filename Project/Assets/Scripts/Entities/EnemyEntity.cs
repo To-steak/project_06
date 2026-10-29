@@ -11,8 +11,10 @@ namespace Project06.Entities
         public int generation;
         // 적 종류 인덱스. 판 시작 시 Runner가 모은 적 Definition 목록의 인덱스이며, View가 프리팹을 고를 때 쓴다.
         public int enemyTypeIndex;
-        // 이 적을 낸 스포너
+        // 이 적을 낸 스포너. 보스는 어떤 적 스포너도 가리키지 않는다.
         public EntityIdentifier spawner;
+        // 보스인지 여부. 보스를 처치하면 승리한다.
+        public bool isBoss;
         // 직전 틱의 위치. View가 보간할 때 쓴다.
         public Vector3 previousPosition;
         // 현재 틱의 위치

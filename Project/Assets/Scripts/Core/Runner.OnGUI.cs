@@ -1,6 +1,8 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+using Project06.Components;
 using Project06.Definitions;
 using Project06.Entities;
+using Project06.Systems;
 using UnityEngine;
 
 namespace Project06.Core
@@ -15,10 +17,15 @@ namespace Project06.Core
         private const float DEBUG_GUI_MARGIN = 10f;
         private const float DEBUG_GUI_WIDTH = 360f;
         private const float DEBUG_GUI_MAX_HEIGHT = 400f;
+        // 승패 표시 상자의 크기(픽셀)와 글자 크기. 화면 가운데에 띄운다.
+        private const float GAME_RESULT_GUI_WIDTH = 240f;
+        private const float GAME_RESULT_GUI_HEIGHT = 80f;
+        private const int GAME_RESULT_FONT_SIZE = 40;
 
         // 디버그용으로 플레이어의 체력·무기·탄약·재장전·행동 상태와 첫 쉘터의 체력을 화면 왼쪽 위에 표시한다. 맨 위 버튼으로 접고 편다.
         private void OnGUI()
         {
+            DrawGameResult();
             int playerIndex = _world != null ? FindAlivePlayerIndex() : -1;
             if (playerIndex < 0)
             {
@@ -72,6 +79,23 @@ namespace Project06.Core
             GUILayout.EndArea();
         }
 
+        // 승패가 났으면 화면 가운데에 승리나 패배를 크게 표시한다.
+        private void DrawGameResult()
+        {
+            if (_world == null || _world.gameResult == GameResult.Playing)
+            {
+                return;
+            }
+
+            GUIStyle style = new GUIStyle(GUI.skin.box)
+            {
+                fontSize = GAME_RESULT_FONT_SIZE,
+                alignment = TextAnchor.MiddleCenter,
+            };
+            Rect rect = new Rect((Screen.width - GAME_RESULT_GUI_WIDTH) * 0.5f, (Screen.height - GAME_RESULT_GUI_HEIGHT) * 0.5f, GAME_RESULT_GUI_WIDTH, GAME_RESULT_GUI_HEIGHT);
+            GUI.Box(rect, _world.gameResult == GameResult.Victory ? "승리" : "패배", style);
+        }
+
         // 살아 있는 첫 낮밤의 날짜, 시간대, 다음 시간대까지 남은 시간을 글로 만든다. 낮밤이 없으면 없다고 쓴다.
         private string GetDayNightText()
         {
@@ -81,6 +105,11 @@ namespace Project06.Core
                 ref DayNightEntity dayNight = ref dayNights[index];
                 if (dayNight.isAlive)
                 {
+                    if (DayNightSystem.IsFinalNight(in dayNight))
+                    {
+                        return $"{dayNight.dayCount}일째 밤 · 마지막 밤";
+                    }
+
                     int remainingSeconds = Mathf.CeilToInt(dayNight.remainingTicks * Time.fixedDeltaTime);
                     return $"{dayNight.dayCount}일째 {(dayNight.isNight ? "밤" : "낮")} · {(dayNight.isNight ? "낮" : "밤")}까지 {remainingSeconds / 60}:{remainingSeconds % 60:00}";
                 }

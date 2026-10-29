@@ -16,5 +16,7 @@ namespace Project06.Requests
         public Vector3 facingDirection;
         // 적 수치
         public EnemyComponent enemy;
+        // 보스인지 여부. 보스를 처치하면 승리한다.
+        public bool isBoss;
     }
 }
