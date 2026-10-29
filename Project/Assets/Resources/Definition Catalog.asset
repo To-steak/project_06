@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.DefinitionCatalog
   player: {fileID: 11400000, guid: fd89d1d51c8e3b948986e7ba59d60883, type: 2}
   shelter: {fileID: 11400000, guid: 17304f6470db0d948a1ab8e9e36bdebe, type: 2}
+  dayNight: {fileID: 11400000, guid: 566737a93a668534e8e2ebc094e30d3c, type: 2}
   weapons:
   - {fileID: 11400000, guid: 3340221d9fe28c24c80727dac7bd13a4, type: 2}
   calibers:

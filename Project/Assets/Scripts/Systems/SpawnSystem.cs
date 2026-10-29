@@ -15,6 +15,8 @@ namespace Project06.Systems
         /// <param name="players">플레이어를 넣을 저장소.</param>
         /// <param name="shelterSpawnRequests">쉘터 생성 요청 큐.</param>
         /// <param name="shelters">쉘터를 넣을 저장소.</param>
+        /// <param name="dayNightSpawnRequests">낮밤 생성 요청 큐.</param>
+        /// <param name="dayNights">낮밤을 넣을 저장소.</param>
         /// <param name="enemySpawnerSpawnRequests">적 스포너 생성 요청 큐.</param>
         /// <param name="enemySpawners">적 스포너를 넣을 저장소.</param>
         /// <param name="enemySpawnRequests">적 생성 요청 큐.</param>
@@ -26,6 +28,7 @@ namespace Project06.Systems
         public static void Tick(
             Queue<PlayerSpawnRequest> playerSpawnRequests, PlayerStorage players,
             Queue<ShelterSpawnRequest> shelterSpawnRequests, ShelterStorage shelters,
+            Queue<DayNightSpawnRequest> dayNightSpawnRequests, DayNightStorage dayNights,
             Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests, EnemySpawnerStorage enemySpawners,
             Queue<EnemySpawnRequest> enemySpawnRequests, EnemyStorage enemies,
             Queue<ProjectileSpawnRequest> projectileSpawnRequests, ProjectileStorage projectiles,
@@ -33,6 +36,7 @@ namespace Project06.Systems
         {
             SpawnPlayers(playerSpawnRequests, players);
             SpawnShelters(shelterSpawnRequests, shelters);
+            SpawnDayNights(dayNightSpawnRequests, dayNights);
             SpawnEnemySpawners(enemySpawnerSpawnRequests, enemySpawners);
             SpawnEnemies(enemySpawnRequests, enemies);
             SpawnProjectiles(projectileSpawnRequests, projectiles);
@@ -89,6 +93,26 @@ namespace Project06.Systems
                 shelter.shelter = request.shelter;
                 shelter.health = request.shelter.maxHealth;
                 shelter.isDestroyed = false;
+            }
+        }
+
+        private static void SpawnDayNights(Queue<DayNightSpawnRequest> dayNightSpawnRequests, DayNightStorage dayNights)
+        {
+            while (dayNightSpawnRequests.Count > 0)
+            {
+                DayNightSpawnRequest request = dayNightSpawnRequests.Dequeue();
+                if (!TryTakeFreeIndex(dayNights.freeIndices, out int index))
+                {
+                    continue;
+                }
+
+                ref DayNightEntity dayNight = ref dayNights.entities[index];
+                dayNight.isAlive = true;
+                dayNight.generation++;
+                dayNight.dayNight = request.dayNight;
+                dayNight.isNight = false;
+                dayNight.remainingTicks = Mathf.Max(1, request.dayNight.dayTicks);
+                dayNight.dayCount = 1;
             }
         }
 

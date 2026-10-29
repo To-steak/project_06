@@ -67,8 +67,26 @@ namespace Project06.Core
             GUILayout.Label(reloadText);
             GUILayout.Label($"조준 {player.isAiming} · 발사 {player.isFiring} · 달리기 {player.isRunning}");
             GUILayout.Label(GetShelterText());
+            GUILayout.Label(GetDayNightText());
             GUILayout.EndVertical();
             GUILayout.EndArea();
+        }
+
+        // 살아 있는 첫 낮밤의 날짜, 시간대, 다음 시간대까지 남은 시간을 글로 만든다. 낮밤이 없으면 없다고 쓴다.
+        private string GetDayNightText()
+        {
+            DayNightEntity[] dayNights = _world.dayNights.entities;
+            for (int index = 0; index < dayNights.Length; index++)
+            {
+                ref DayNightEntity dayNight = ref dayNights[index];
+                if (dayNight.isAlive)
+                {
+                    int remainingSeconds = Mathf.CeilToInt(dayNight.remainingTicks * Time.fixedDeltaTime);
+                    return $"{dayNight.dayCount}일째 {(dayNight.isNight ? "밤" : "낮")} · {(dayNight.isNight ? "낮" : "밤")}까지 {remainingSeconds / 60}:{remainingSeconds % 60:00}";
+                }
+            }
+
+            return "낮밤: 없음";
         }
 
         // 살아 있는 첫 쉘터의 체력이나 파괴 여부를 글로 만든다. 쉘터가 없으면 없다고 쓴다.

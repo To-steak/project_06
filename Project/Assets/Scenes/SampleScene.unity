@@ -730,7 +730,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Project06.Authoring::Project06.Authoring.EnemySpawnerAuthoring
   definition: {fileID: 11400000, guid: c894ee2e82e2df34baa7c47ff9667ca4, type: 2}
   spawner:
-    firstSpawnDelayTicks: 60
+    firstSpawnDelayTicks: 100
     intervalTicks: 50
     maxAliveCount: 1
     totalSpawnCount: 1

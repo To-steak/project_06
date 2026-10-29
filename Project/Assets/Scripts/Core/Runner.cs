@@ -72,6 +72,7 @@ namespace Project06.Core
             // 씬에 배치한 엔티티는 생성 요청만 넣고, 첫 틱의 SpawnSystem이 만든다.
             EnqueuePlayerSpawn();
             EnqueueShelterSpawn();
+            EnqueueDayNightSpawn();
             List<EnemyDefinition> enemyDefinitions = EnqueueEnemySpawnerSpawns();
 
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
@@ -87,6 +88,7 @@ namespace Project06.Core
 
         private void FixedUpdate()
         {
+            DayNightSystem.Tick(_world.dayNights, _world.enemySpawners, _world.enemies);
             CommandBuffer commandBuffer = _world.commandBuffer;
             PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.fireCommand, _world.players);
             commandBuffer.reloadCommand = default;
@@ -102,10 +104,11 @@ namespace Project06.Core
             PlayerDeathSystem.Tick(_world.players);
             ShelterDestroySystem.Tick(_world.shelters);
             PlayerFireSystem.Tick(_world.players, _world.projectileSpawnRequests, _world.playerFiredRecords);
-            EnemySpawnerSystem.Tick(_world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
+            EnemySpawnerSystem.Tick(_world.dayNights, _world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
             SpawnSystem.Tick(
                 _world.playerSpawnRequests, _world.players,
                 _world.shelterSpawnRequests, _world.shelters,
+                _world.dayNightSpawnRequests, _world.dayNights,
                 _world.enemySpawnerSpawnRequests, _world.enemySpawners,
                 _world.enemySpawnRequests, _world.enemies,
                 _world.projectileSpawnRequests, _world.projectiles,
@@ -195,6 +198,26 @@ namespace Project06.Core
             {
                 position = shelterAuthoring.transform.position,
                 shelter = _definitionCatalog.shelter.shelter,
+            });
+        }
+
+        // DayNightDefinition 수치로 낮밤 생성을 요청한다. DayNightDefinition이 없으면 요청하지 않으며, 그러면 적 스포너가 항상 적을 낸다.
+        private void EnqueueDayNightSpawn()
+        {
+            if (_definitionCatalog == null)
+            {
+                return;
+            }
+
+            if (_definitionCatalog.dayNight == null)
+            {
+                Debug.LogError("DefinitionCatalog의 dayNight가 비어 있다.", _definitionCatalog);
+                return;
+            }
+
+            _world.dayNightSpawnRequests.Enqueue(new DayNightSpawnRequest
+            {
+                dayNight = _definitionCatalog.dayNight.dayNight,
             });
         }
 
