@@ -90,6 +90,7 @@ namespace Project06.Core
             CollectEnemyViewData(enemyDefinitions, out GameObject[] enemyPrefabs, out string[][] enemyAttackTriggerNames, out GameObject[] enemyProjectilePrefabs);
             EnemyViewSystem.Initialize(enemyPrefabs, enemyAttackTriggerNames, _world.enemies.entities.Length, _viewContext);
             EnemyProjectileViewSystem.Initialize(enemyProjectilePrefabs, _world.enemyProjectiles.entities.Length, _viewContext);
+            InitializeUserInterface();
         }
 
         private void FixedUpdate()
@@ -169,6 +170,7 @@ namespace Project06.Core
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
             EnemyViewSystem.Present(_world.enemies, _world.enemyAttackStartedRecords, _world.enemyHitStunnedRecords, interpolation, _viewContext);
             EnemyProjectileViewSystem.Present(_world.enemyProjectiles, interpolation, _viewContext);
+            PresentUserInterface(playerIndex, dayNightIndex);
 
             _world.playerFiredRecords.Clear();
             _world.enemyAttackStartedRecords.Clear();

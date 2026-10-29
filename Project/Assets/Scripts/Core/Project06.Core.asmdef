@@ -1,7 +1,7 @@
 {
     "name": "Project06.Core",
     "rootNamespace": "Project06.Core",
-    "references": ["Project06.Entity", "Project06.Systems", "Project06.Authoring", "Project06.Definitions", "Project06.Presentation", "Unity.InputSystem"],
+    "references": ["Project06.Entity", "Project06.Systems", "Project06.Authoring", "Project06.Definitions", "Project06.Presentation", "Project06.UserInterface", "Unity.InputSystem"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
