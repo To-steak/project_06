@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using Project06.Components;
 using Project06.Entities;
 using Project06.Presentation.Enemy.Views;
+using Project06.Presentation.Pooling;
 using Project06.Records;
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace Project06.Presentation.Enemy.ViewSystems
 {
@@ -47,7 +47,7 @@ namespace Project06.Presentation.Enemy.ViewSystems
                 context.enemyAttackTriggerHashes[enemyTypeIndex] = triggerHashes;
             }
 
-            context.enemyPools = new ObjectPool<EnemyView>[enemyPrefabs.Length];
+            context.enemyPools = new ViewPool<EnemyView>[enemyPrefabs.Length];
             for (int enemyTypeIndex = 0; enemyTypeIndex < enemyPrefabs.Length; enemyTypeIndex++)
             {
                 GameObject prefab = enemyPrefabs[enemyTypeIndex];
@@ -63,14 +63,7 @@ namespace Project06.Presentation.Enemy.ViewSystems
                     continue;
                 }
 
-                context.enemyPools[enemyTypeIndex] = new ObjectPool<EnemyView>(
-                    () => Object.Instantiate(prefabView),
-                    view => view.gameObject.SetActive(true),
-                    view => view.gameObject.SetActive(false),
-                    view => Object.Destroy(view.gameObject),
-                    false,
-                    DEFAULT_POOL_CAPACITY,
-                    capacity);
+                context.enemyPools[enemyTypeIndex] = new ViewPool<EnemyView>(prefabView, DEFAULT_POOL_CAPACITY);
             }
 
             context.enemyViews = new EnemyView[capacity];
@@ -109,7 +102,7 @@ namespace Project06.Presentation.Enemy.ViewSystems
 
                 if (view == null)
                 {
-                    ObjectPool<EnemyView> pool = GetPool(enemy.enemyTypeIndex, context);
+                    ViewPool<EnemyView> pool = GetPool(enemy.enemyTypeIndex, context);
                     if (pool == null)
                     {
                         continue;
@@ -187,7 +180,7 @@ namespace Project06.Presentation.Enemy.ViewSystems
             }
         }
 
-        private static ObjectPool<EnemyView> GetPool(int enemyTypeIndex, ViewContext context)
+        private static ViewPool<EnemyView> GetPool(int enemyTypeIndex, ViewContext context)
         {
             if (enemyTypeIndex < 0 || enemyTypeIndex >= context.enemyPools.Length)
             {
