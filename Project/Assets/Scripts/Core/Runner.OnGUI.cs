@@ -8,12 +8,15 @@ namespace Project06.Core
     // 화면 디버그 표시. 에디터와 개발 빌드에서만 컴파일된다.
     public partial class Runner
     {
-        // 디버그 표시 영역의 화면 가장자리 여백과 크기(픽셀)
-        private const float DEBUG_GUI_MARGIN = 10f;
-        private const float DEBUG_GUI_WIDTH = 320f;
-        private const float DEBUG_GUI_HEIGHT = 160f;
+        // 디버그 표시를 펼쳐 두었는지 여부. 접으면 펴기 버튼만 보인다.
+        private bool _isDebugGuiExpanded = true;
 
-        // 디버그용으로 플레이어의 체력·무기·탄약·재장전·행동 상태를 화면 왼쪽 위에 표시한다.
+        // 디버그 표시 영역의 화면 가장자리 여백과 너비, 최대 높이(픽셀). 상자 높이는 내용에 맞춘다.
+        private const float DEBUG_GUI_MARGIN = 10f;
+        private const float DEBUG_GUI_WIDTH = 360f;
+        private const float DEBUG_GUI_MAX_HEIGHT = 400f;
+
+        // 디버그용으로 플레이어의 체력·무기·탄약·재장전·행동 상태와 첫 쉘터의 체력을 화면 왼쪽 위에 표시한다. 맨 위 버튼으로 접고 편다.
         private void OnGUI()
         {
             int playerIndex = _world != null ? FindAlivePlayerIndex() : -1;
@@ -39,7 +42,20 @@ namespace Project06.Core
                 ? $"재장전 중 {player.weapon.reloadTicks - player.reloadRemainingTicks} / {player.weapon.reloadTicks} 틱"
                 : "재장전 안 함";
 
-            GUILayout.BeginArea(new Rect(DEBUG_GUI_MARGIN, DEBUG_GUI_MARGIN, DEBUG_GUI_WIDTH, DEBUG_GUI_HEIGHT), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(DEBUG_GUI_MARGIN, DEBUG_GUI_MARGIN, DEBUG_GUI_WIDTH, DEBUG_GUI_MAX_HEIGHT));
+            GUILayout.BeginVertical(GUI.skin.box);
+            if (GUILayout.Button(_isDebugGuiExpanded ? "디버그 ▲ 접기" : "디버그 ▼ 펴기"))
+            {
+                _isDebugGuiExpanded = !_isDebugGuiExpanded;
+            }
+
+            if (!_isDebugGuiExpanded)
+            {
+                GUILayout.EndVertical();
+                GUILayout.EndArea();
+                return;
+            }
+
             GUILayout.Label(player.isGettingUp
                 ? $"일어나는 중 · 조작까지 {player.getUpRemainingTicks} 틱"
                 : player.isDead
@@ -50,7 +66,25 @@ namespace Project06.Core
             GUILayout.Label($"예비 탄약: {reserveAmmo}");
             GUILayout.Label(reloadText);
             GUILayout.Label($"조준 {player.isAiming} · 발사 {player.isFiring} · 달리기 {player.isRunning}");
+            GUILayout.Label(GetShelterText());
+            GUILayout.EndVertical();
             GUILayout.EndArea();
+        }
+
+        // 살아 있는 첫 쉘터의 체력이나 파괴 여부를 글로 만든다. 쉘터가 없으면 없다고 쓴다.
+        private string GetShelterText()
+        {
+            ShelterEntity[] shelters = _world.shelters.entities;
+            for (int index = 0; index < shelters.Length; index++)
+            {
+                ref ShelterEntity shelter = ref shelters[index];
+                if (shelter.isAlive)
+                {
+                    return shelter.isDestroyed ? "쉘터: 파괴됨" : $"쉘터 체력: {shelter.health} / {shelter.shelter.maxHealth}";
+                }
+            }
+
+            return "쉘터: 없음";
         }
     }
 }

@@ -13,6 +13,8 @@ namespace Project06.Systems
         /// </summary>
         /// <param name="playerSpawnRequests">플레이어 생성 요청 큐.</param>
         /// <param name="players">플레이어를 넣을 저장소.</param>
+        /// <param name="shelterSpawnRequests">쉘터 생성 요청 큐.</param>
+        /// <param name="shelters">쉘터를 넣을 저장소.</param>
         /// <param name="enemySpawnerSpawnRequests">적 스포너 생성 요청 큐.</param>
         /// <param name="enemySpawners">적 스포너를 넣을 저장소.</param>
         /// <param name="enemySpawnRequests">적 생성 요청 큐.</param>
@@ -23,12 +25,14 @@ namespace Project06.Systems
         /// <param name="enemyProjectiles">적 투사체를 넣을 저장소.</param>
         public static void Tick(
             Queue<PlayerSpawnRequest> playerSpawnRequests, PlayerStorage players,
+            Queue<ShelterSpawnRequest> shelterSpawnRequests, ShelterStorage shelters,
             Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests, EnemySpawnerStorage enemySpawners,
             Queue<EnemySpawnRequest> enemySpawnRequests, EnemyStorage enemies,
             Queue<ProjectileSpawnRequest> projectileSpawnRequests, ProjectileStorage projectiles,
             Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests, EnemyProjectileStorage enemyProjectiles)
         {
             SpawnPlayers(playerSpawnRequests, players);
+            SpawnShelters(shelterSpawnRequests, shelters);
             SpawnEnemySpawners(enemySpawnerSpawnRequests, enemySpawners);
             SpawnEnemies(enemySpawnRequests, enemies);
             SpawnProjectiles(projectileSpawnRequests, projectiles);
@@ -65,6 +69,26 @@ namespace Project06.Systems
                     magazineAmmo = request.magazineAmmo,
                     reserveAmmo = request.reserveAmmo,
                 };
+            }
+        }
+
+        private static void SpawnShelters(Queue<ShelterSpawnRequest> shelterSpawnRequests, ShelterStorage shelters)
+        {
+            while (shelterSpawnRequests.Count > 0)
+            {
+                ShelterSpawnRequest request = shelterSpawnRequests.Dequeue();
+                if (!TryTakeFreeIndex(shelters.freeIndices, out int index))
+                {
+                    continue;
+                }
+
+                ref ShelterEntity shelter = ref shelters.entities[index];
+                shelter.isAlive = true;
+                shelter.generation++;
+                shelter.position = request.position;
+                shelter.shelter = request.shelter;
+                shelter.health = request.shelter.maxHealth;
+                shelter.isDestroyed = false;
             }
         }
 
@@ -108,12 +132,12 @@ namespace Project06.Systems
                 enemy.spawner = request.spawner;
                 enemy.previousPosition = request.position;
                 enemy.currentPosition = request.position;
-                enemy.spawnPosition = request.position;
                 enemy.facingDirection = request.facingDirection;
                 enemy.velocity = Vector3.zero;
                 enemy.enemy = request.enemy;
                 enemy.health = request.enemy.maxHealth;
                 enemy.state = EnemyState.Idle;
+                enemy.targetKind = EnemyTargetKind.Player;
                 enemy.idleRemainingTicks = 0;
                 enemy.deathRemainingTicks = 0;
                 enemy.hitStunRemainingTicks = 0;

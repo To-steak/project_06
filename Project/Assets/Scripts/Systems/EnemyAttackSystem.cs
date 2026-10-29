@@ -10,17 +10,19 @@ namespace Project06.Systems
     public static class EnemyAttackSystem
     {
         /// <summary>
-        /// 살아 있는 적마다 공격별 쿨다운을 한 틱 줄이고, 추격 중인 적은 쿨다운이 끝났고 사거리 안에 플레이어가 있는 공격 중 목록 앞쪽 공격을 시작한다.
+        /// 살아 있는 적마다 공격별 쿨다운을 한 틱 줄이고, 추격 중인 적은 쿨다운이 끝났고 사거리 안에 목표(플레이어 또는 쉘터)가 있는 공격 중 목록 앞쪽 공격을 시작한다. 쉘터까지의 거리는 피격 원의 경계부터 잰다.
         /// 공격 중인 적은 제자리에 서서 선딜레이 → 타격 구간 → 후딜레이를 거친 뒤 추격으로 돌아간다.
-        /// 근접은 타격 구간 동안 매 틱 판정 모양(바라보는 방향 기준 원·캡슐)과 플레이어 피격 원이 겹치는지 검사해 한 번만 데미지를 준다. 원거리는 타격 구간에 들어오는 틱에 그 순간 플레이어 쪽으로 투사체 생성을 요청한다.
+        /// 근접은 타격 구간 동안 매 틱 판정 모양(바라보는 방향 기준 원·캡슐)과 플레이어·쉘터 피격 원이 겹치는지 검사해 한 번만 데미지를 준다. 플레이어와 쉘터가 함께 닿으면 플레이어가 맞는다.
+        /// 원거리는 타격 구간에 들어오는 틱에 그 순간 목표 쪽으로 투사체 생성을 요청한다.
         /// EnemyBehaviorSystem 다음, EnemySeparationSystem 앞에 호출한다.
         /// </summary>
         /// <param name="enemies">공격할 적 저장소.</param>
         /// <param name="players">공격받을 플레이어 저장소.</param>
+        /// <param name="shelters">공격받을 쉘터 저장소.</param>
         /// <param name="enemyProjectileSpawnRequests">적 투사체 생성 요청 큐.</param>
         /// <param name="enemyAttackStartedRecords">이번 틱에 공격을 시작한 기록 목록.</param>
         public static void Tick(
-            EnemyStorage enemies, PlayerStorage players,
+            EnemyStorage enemies, PlayerStorage players, ShelterStorage shelters,
             Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests, List<EnemyAttackStartedRecord> enemyAttackStartedRecords)
         {
             EnemyEntity[] entities = enemies.entities;
@@ -43,11 +45,11 @@ namespace Project06.Systems
 
                 if (enemy.state == EnemyState.Chase)
                 {
-                    TryStartAttack(ref enemy, index, players, enemyAttackStartedRecords);
+                    TryStartAttack(ref enemy, index, players, shelters, enemyAttackStartedRecords);
                 }
                 else if (enemy.state == EnemyState.Attack)
                 {
-                    TickAttack(ref enemy, players, enemyProjectileSpawnRequests);
+                    TickAttack(ref enemy, players, shelters, enemyProjectileSpawnRequests);
                 }
             }
         }
@@ -69,8 +71,8 @@ namespace Project06.Systems
             return meleeHit.radius;
         }
 
-        // 가장 가까운 플레이어가 쿨다운이 끝난 공격의 사거리 안에 있으면 그중 목록 앞쪽 공격을 시작하고, 그 공격의 쿨다운을 건다.
-        private static void TryStartAttack(ref EnemyEntity enemy, int index, PlayerStorage players, List<EnemyAttackStartedRecord> enemyAttackStartedRecords)
+        // 목표 종류에 맞는 가장 가까운 목표가 쿨다운이 끝난 공격의 사거리 안에 있으면 그중 목록 앞쪽 공격을 시작하고, 그 공격의 쿨다운을 건다.
+        private static void TryStartAttack(ref EnemyEntity enemy, int index, PlayerStorage players, ShelterStorage shelters, List<EnemyAttackStartedRecord> enemyAttackStartedRecords)
         {
             EnemyAttackComponent[] attacks = enemy.enemy.attacks;
             if (attacks == null || attacks.Length == 0)
@@ -78,7 +80,7 @@ namespace Project06.Systems
                 return;
             }
 
-            if (!EnemyBehaviorSystem.TryFindNearestPlayer(players, enemy.currentPosition, out Vector3 targetPosition, out float targetSqrDistance))
+            if (!EnemyBehaviorSystem.TryFindTarget(in enemy, players, shelters, out Vector3 targetPosition, out float targetSqrDistance))
             {
                 return;
             }
@@ -111,7 +113,7 @@ namespace Project06.Systems
 
         // 제자리에 둔 채 공격 단계를 진행한다. 한 틱 안에서 남은 시간이 0인 단계는 바로 다음 단계로 넘어간다.
         // 선딜레이가 끝나면 타격 구간에 들어가며 원거리는 이때 투사체를 쏜다. 근접은 타격 구간 동안 매 틱 판정한다. 후딜레이가 끝나면 추격으로 돌아간다.
-        private static void TickAttack(ref EnemyEntity enemy, PlayerStorage players, Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests)
+        private static void TickAttack(ref EnemyEntity enemy, PlayerStorage players, ShelterStorage shelters, Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests)
         {
             enemy.previousPosition = enemy.currentPosition;
             EnemyAttackComponent attack = enemy.enemy.attacks[enemy.attackIndex];
@@ -129,7 +131,7 @@ namespace Project06.Systems
                 enemy.attackRemainingTicks = isMelee ? Mathf.Max(1, attack.meleeHit.activeTicks) : 0;
                 if (!isMelee)
                 {
-                    FireRanged(ref enemy, in attack, players, enemyProjectileSpawnRequests);
+                    FireRanged(ref enemy, in attack, players, shelters, enemyProjectileSpawnRequests);
                 }
             }
 
@@ -137,7 +139,7 @@ namespace Project06.Systems
             {
                 if (isMelee && !enemy.hasAttackDamaged)
                 {
-                    enemy.hasAttackDamaged = TryHitMelee(in enemy, in attack, players);
+                    enemy.hasAttackDamaged = TryHitMelee(in enemy, in attack, players, shelters);
                 }
 
                 enemy.attackRemainingTicks--;
@@ -164,12 +166,12 @@ namespace Project06.Systems
             }
 
             enemy.state = EnemyState.Chase;
-            // 공격하는 동안 플레이어가 움직였을 수 있으므로 다음 틱에 경로를 바로 다시 계산한다.
+            // 공격하는 동안 목표가 움직였거나 바뀌었을 수 있으므로 다음 틱에 경로를 바로 다시 계산한다.
             enemy.pathUpdateRemainingTicks = 0;
         }
 
-        // 판정 모양과 피격 원이 겹치는, 살아 있고 사망 중이 아닌 첫 플레이어에게 데미지를 준다. 맞혔으면 true를 돌려준다.
-        private static bool TryHitMelee(in EnemyEntity enemy, in EnemyAttackComponent attack, PlayerStorage players)
+        // 판정 모양과 피격 원이 겹치는, 살아 있고 사망 중이 아닌 첫 플레이어에게 데미지를 준다. 닿은 플레이어가 없으면 살아 있고 파괴되지 않은 첫 쉘터에게 준다. 맞혔으면 true를 돌려준다.
+        private static bool TryHitMelee(in EnemyEntity enemy, in EnemyAttackComponent attack, PlayerStorage players, ShelterStorage shelters)
         {
             float hitRadius = GetMeleeHitSegment(in enemy, in attack.meleeHit, out Vector3 start, out Vector3 end);
             PlayerEntity[] entities = players.entities;
@@ -191,6 +193,25 @@ namespace Project06.Systems
                 return true;
             }
 
+            ShelterEntity[] shelterEntities = shelters.entities;
+            for (int shelterIndex = 0; shelterIndex < shelterEntities.Length; shelterIndex++)
+            {
+                ref ShelterEntity shelter = ref shelterEntities[shelterIndex];
+                if (!shelter.isAlive || shelter.isDestroyed)
+                {
+                    continue;
+                }
+
+                float reach = hitRadius + shelter.shelter.hitRadius;
+                if (GetSqrDistanceToSegment(shelter.position, start, end) > reach * reach)
+                {
+                    continue;
+                }
+
+                shelter.health -= attack.damage;
+                return true;
+            }
+
             return false;
         }
 
@@ -204,10 +225,10 @@ namespace Project06.Systems
             return (toPoint - segment * ratio).sqrMagnitude;
         }
 
-        // 가장 가까운 플레이어 쪽(XZ 평면)으로 투사체 생성을 요청한다. 플레이어가 없으면 바라보는 방향으로 쏜다.
-        private static void FireRanged(ref EnemyEntity enemy, in EnemyAttackComponent attack, PlayerStorage players, Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests)
+        // 목표 종류에 맞는 가장 가까운 목표 쪽(XZ 평면)으로 투사체 생성을 요청한다. 목표가 없으면 바라보는 방향으로 쏜다.
+        private static void FireRanged(ref EnemyEntity enemy, in EnemyAttackComponent attack, PlayerStorage players, ShelterStorage shelters, Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests)
         {
-            if (EnemyBehaviorSystem.TryFindNearestPlayer(players, enemy.currentPosition, out Vector3 targetPosition, out _))
+            if (EnemyBehaviorSystem.TryFindTarget(in enemy, players, shelters, out Vector3 targetPosition, out _))
             {
                 Face(ref enemy, targetPosition - enemy.currentPosition);
             }

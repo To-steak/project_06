@@ -71,6 +71,7 @@ namespace Project06.Core
 
             // 씬에 배치한 엔티티는 생성 요청만 넣고, 첫 틱의 SpawnSystem이 만든다.
             EnqueuePlayerSpawn();
+            EnqueueShelterSpawn();
             List<EnemyDefinition> enemyDefinitions = EnqueueEnemySpawnerSpawns();
 
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
@@ -91,18 +92,20 @@ namespace Project06.Core
             commandBuffer.reloadCommand = default;
             CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
             PlayerMoveSystem.Tick(_world.players);
-            EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.random);
-            EnemyAttackSystem.Tick(_world.enemies, _world.players, _world.enemyProjectileSpawnRequests, _world.enemyAttackStartedRecords);
-            EnemySeparationSystem.Tick(_world.enemies, _world.players);
+            EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.shelters);
+            EnemyAttackSystem.Tick(_world.enemies, _world.players, _world.shelters, _world.enemyProjectileSpawnRequests, _world.enemyAttackStartedRecords);
+            EnemySeparationSystem.Tick(_world.enemies, _world.players, _world.shelters);
             ProjectileHitSystem.Tick(_world.projectiles, _world.enemies, _world.random, _world.enemyHitStunnedRecords);
             ProjectileMoveSystem.Tick(_world.projectiles);
-            EnemyProjectileHitSystem.Tick(_world.enemyProjectiles, _world.players);
+            EnemyProjectileHitSystem.Tick(_world.enemyProjectiles, _world.players, _world.shelters);
             EnemyProjectileMoveSystem.Tick(_world.enemyProjectiles);
             PlayerDeathSystem.Tick(_world.players);
+            ShelterDestroySystem.Tick(_world.shelters);
             PlayerFireSystem.Tick(_world.players, _world.projectileSpawnRequests, _world.playerFiredRecords);
             EnemySpawnerSystem.Tick(_world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
             SpawnSystem.Tick(
                 _world.playerSpawnRequests, _world.players,
+                _world.shelterSpawnRequests, _world.shelters,
                 _world.enemySpawnerSpawnRequests, _world.enemySpawners,
                 _world.enemySpawnRequests, _world.enemies,
                 _world.projectileSpawnRequests, _world.projectiles,
@@ -171,6 +174,28 @@ namespace Project06.Core
             };
             EquipStartWeapon(ref request);
             _world.playerSpawnRequests.Enqueue(request);
+        }
+
+        // 씬의 ShelterAuthoring 위치에 ShelterDefinition 수치로 쉘터 생성을 요청한다. ShelterAuthoring이나 ShelterDefinition이 없으면 요청하지 않는다.
+        private void EnqueueShelterSpawn()
+        {
+            ShelterAuthoring shelterAuthoring = FindFirstObjectByType<ShelterAuthoring>();
+            if (shelterAuthoring == null || _definitionCatalog == null)
+            {
+                return;
+            }
+
+            if (_definitionCatalog.shelter == null)
+            {
+                Debug.LogError("DefinitionCatalog의 shelter가 비어 있다.", _definitionCatalog);
+                return;
+            }
+
+            _world.shelterSpawnRequests.Enqueue(new ShelterSpawnRequest
+            {
+                position = shelterAuthoring.transform.position,
+                shelter = _definitionCatalog.shelter.shelter,
+            });
         }
 
         // PlayerDefinition의 시작 무기를 Catalog에서 찾아 탄창을 가득 채운 채 생성 요청에 담는다. 찾지 못하면 무기 없이 둔다.

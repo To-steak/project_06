@@ -8,14 +8,15 @@ namespace Project06.Systems
     public static class EnemySeparationSystem
     {
         /// <summary>
-        /// 살아 있고 사망 중이 아닌 적의 피격 원(XZ 평면)이 플레이어나 다른 적과 겹치면 겹친 만큼 밀어낸다.
-        /// 플레이어와 겹치면 적만 밀리고, 적끼리 겹치면 반씩 밀린다. 사망 중인 적은 밀지도 밀리지도 않는다.
+        /// 살아 있고 사망 중이 아닌 적의 피격 원(XZ 평면)이 플레이어, 쉘터나 다른 적과 겹치면 겹친 만큼 밀어낸다.
+        /// 플레이어나 쉘터와 겹치면 적만 밀리고, 적끼리 겹치면 반씩 밀린다. 사망 중인 적은 밀지도 밀리지도 않는다. 파괴된 쉘터도 남아 있으므로 적을 민다.
         /// 마지막으로 이번 틱에 움직인 적이 NavMesh 밖으로 나가지 않도록, 직전 틱 위치에서 NavMesh 위로 갈 수 있는 곳까지만 옮긴다.
         /// EnemyAttackSystem 다음, ProjectileHitSystem 앞에 호출한다.
         /// </summary>
         /// <param name="enemies">밀어낼 적 저장소.</param>
         /// <param name="players">적을 밀어내는 플레이어 저장소. 읽기만 한다.</param>
-        public static void Tick(EnemyStorage enemies, PlayerStorage players)
+        /// <param name="shelters">적을 밀어내는 쉘터 저장소. 읽기만 한다.</param>
+        public static void Tick(EnemyStorage enemies, PlayerStorage players, ShelterStorage shelters)
         {
             EnemyEntity[] entities = enemies.entities;
             for (int index = 0; index < entities.Length; index++)
@@ -27,6 +28,7 @@ namespace Project06.Systems
                 }
 
                 PushFromPlayers(ref enemy, players);
+                PushFromShelters(ref enemy, shelters);
                 for (int otherIndex = index + 1; otherIndex < entities.Length; otherIndex++)
                 {
                     ref EnemyEntity other = ref entities[otherIndex];
@@ -65,6 +67,25 @@ namespace Project06.Systems
                 }
 
                 if (TryGetOverlap(enemy.currentPosition, player.currentPosition, enemy.enemy.hitRadius + player.player.hitRadius, enemy.facingDirection, out Vector3 pushDirection, out float overlap))
+                {
+                    enemy.currentPosition += pushDirection * overlap;
+                }
+            }
+        }
+
+        // 살아 있는 쉘터마다 피격 원이 겹치면 적을 쉘터 반대쪽으로 겹친 만큼 옮긴다.
+        private static void PushFromShelters(ref EnemyEntity enemy, ShelterStorage shelters)
+        {
+            ShelterEntity[] entities = shelters.entities;
+            for (int shelterIndex = 0; shelterIndex < entities.Length; shelterIndex++)
+            {
+                ref ShelterEntity shelter = ref entities[shelterIndex];
+                if (!shelter.isAlive)
+                {
+                    continue;
+                }
+
+                if (TryGetOverlap(enemy.currentPosition, shelter.position, enemy.enemy.hitRadius + shelter.shelter.hitRadius, enemy.facingDirection, out Vector3 pushDirection, out float overlap))
                 {
                     enemy.currentPosition += pushDirection * overlap;
                 }

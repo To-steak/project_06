@@ -14,7 +14,6 @@ namespace Project06.Core
         private static readonly Color ENEMY_DETECTION_RADIUS_COLOR = new Color(1f, 0.9f, 0.2f, 1f);
         private static readonly Color ENEMY_LOSE_RADIUS_COLOR = new Color(0.7f, 0.4f, 1f, 1f);
         private static readonly Color ENEMY_STOP_DISTANCE_COLOR = new Color(0.3f, 1f, 0.4f, 1f);
-        private static readonly Color ENEMY_WANDER_RADIUS_COLOR = new Color(1f, 1f, 1f, 0.4f);
         private static readonly Color ENEMY_PATH_COLOR = new Color(0.2f, 0.8f, 1f, 1f);
         private static readonly Color ENEMY_MELEE_RANGE_COLOR = new Color(1f, 0f, 1f, 1f);
         private static readonly Color ENEMY_RANGED_RANGE_COLOR = new Color(1f, 0.5f, 0.1f, 1f);
@@ -23,9 +22,9 @@ namespace Project06.Core
         // 피격 범위(hitRadius) 기즈모 색. 적과 플레이어가 같이 쓴다.
         private static readonly Color HIT_RADIUS_COLOR = new Color(1f, 1f, 1f, 1f);
 
-        // 디버그용으로 살아 있는 플레이어와 사망 중이 아닌 적의 피격 범위를 그린다.
+        // 디버그용으로 살아 있는 플레이어, 쉘터와 사망 중이 아닌 적의 피격 범위를 그린다.
         // 적은 자기 위치를 중심으로 판정 원을 XZ 평면에 그리고, 남은 NavMesh 경로를 선으로 그린다.
-        // 추격·공격 중이 아니면 감지 원과 생성 위치 중심의 배회 원을, 추격·공격 중이면 해제 원, 정지 원, 공격별 사거리 원을 그린다.
+        // 감지 원은 항상 그린다. 추격·공격 중이면 정지 원과 공격별 사거리 원을 그리고, 목표가 플레이어면 해제 원도 그린다.
         private void OnDrawGizmos()
         {
             if (_world == null)
@@ -44,6 +43,16 @@ namespace Project06.Core
                 }
             }
 
+            ShelterEntity[] shelters = _world.shelters.entities;
+            for (int shelterIndex = 0; shelterIndex < shelters.Length; shelterIndex++)
+            {
+                ref ShelterEntity shelter = ref shelters[shelterIndex];
+                if (shelter.isAlive && !shelter.isDestroyed)
+                {
+                    Handles.DrawWireDisc(shelter.position, Vector3.up, shelter.shelter.hitRadius);
+                }
+            }
+
             EnemyEntity[] enemies = _world.enemies.entities;
             for (int index = 0; index < enemies.Length; index++)
             {
@@ -56,21 +65,20 @@ namespace Project06.Core
                 Vector3 position = enemy.currentPosition;
                 Handles.color = HIT_RADIUS_COLOR;
                 Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.hitRadius);
+                Handles.color = ENEMY_DETECTION_RADIUS_COLOR;
+                Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.detectionRadius);
                 if (enemy.state == EnemyState.Chase || enemy.state == EnemyState.Attack)
                 {
-                    Handles.color = ENEMY_LOSE_RADIUS_COLOR;
-                    Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.loseRadius);
+                    if (enemy.targetKind == EnemyTargetKind.Player)
+                    {
+                        Handles.color = ENEMY_LOSE_RADIUS_COLOR;
+                        Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.loseRadius);
+                    }
+
                     Handles.color = ENEMY_STOP_DISTANCE_COLOR;
                     Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.stopDistance);
                     DrawAttackRanges(in enemy);
                     DrawMeleeHit(in enemy);
-                }
-                else
-                {
-                    Handles.color = ENEMY_DETECTION_RADIUS_COLOR;
-                    Handles.DrawWireDisc(position, Vector3.up, enemy.enemy.detectionRadius);
-                    Handles.color = ENEMY_WANDER_RADIUS_COLOR;
-                    Handles.DrawWireDisc(enemy.spawnPosition, Vector3.up, enemy.enemy.wanderRadius);
                 }
 
                 Handles.color = ENEMY_PATH_COLOR;

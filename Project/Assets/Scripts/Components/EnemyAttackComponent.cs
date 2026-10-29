@@ -5,9 +5,9 @@ namespace Project06.Components
     [Serializable]
     public struct EnemyAttackComponent
     {
-        // 공격 종류. 근접은 타격 구간 동안 판정 모양에 닿은 플레이어에게 데미지를 주고, 원거리는 플레이어 쪽으로 투사체를 쏜다.
+        // 공격 종류. 근접은 타격 구간 동안 판정 모양에 닿은 플레이어나 쉘터에게 데미지를 주고, 원거리는 목표 쪽으로 투사체를 쏜다.
         public EnemyAttackKind kind;
-        // XZ 평면의 사거리(m). 추격 중 플레이어가 이 안에 있으면 공격을 시작한다. 맞는지는 근접은 판정 모양이, 원거리는 투사체가 정한다.
+        // XZ 평면의 사거리(m). 추격 중 목표가 이 안에 있으면 공격을 시작한다. 쉘터는 피격 원의 경계부터 잰다. 맞는지는 근접은 판정 모양이, 원거리는 투사체가 정한다.
         public float range;
         // 한 번의 데미지. 원거리는 투사체 한 발의 데미지다.
         public float damage;
