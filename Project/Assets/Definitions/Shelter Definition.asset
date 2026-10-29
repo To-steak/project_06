@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Shelter Definition
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.ShelterDefinition
   shelter:
-    maxHealth: 500
+    maxHealth: 15
     hitRadius: 3

@@ -92,7 +92,7 @@ namespace Project06.Core
             commandBuffer.reloadCommand = default;
             CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
             PlayerMoveSystem.Tick(_world.players);
-            EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.shelters, _world.random);
+            EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.shelters);
             EnemyAttackSystem.Tick(_world.enemies, _world.players, _world.shelters, _world.enemyProjectileSpawnRequests, _world.enemyAttackStartedRecords);
             EnemySeparationSystem.Tick(_world.enemies, _world.players, _world.shelters);
             ProjectileHitSystem.Tick(_world.projectiles, _world.enemies, _world.random, _world.enemyHitStunnedRecords);

@@ -13,7 +13,7 @@ namespace Project06.Systems
         /// <summary>
         /// 살아 있는 적마다 가장 가까운 살아 있는 플레이어, 파괴되지 않은 쉘터와의 XZ 거리로 상태와 목표를 정하고, NavMesh 경로를 따라 한 틱만큼 옮긴다.
         /// 감지 반지름 안에 플레이어가 들어오면 그 플레이어를 달려서 추격하고, 플레이어가 해제 반지름 밖으로 나가면 놓친 뒤 대기 시간(loseWaitTicks)만큼 서 있다가 쉘터로 걸어간다.
-        /// 쉘터가 없으면 생성 위치 주변을 걷고 서기를 반복하고, 플레이어를 놓치면 Idle로 돌아가 감속해 멈춘다.
+        /// 쉘터가 없으면 제자리에 서서 플레이어가 감지 반지름에 들어오기를 기다린다.
         /// 쉘터까지의 거리는 쉘터 피격 원의 경계부터 잰다.
         /// Dead인 적은 움직이지 않고 사망 시간을 한 틱 줄이며, 사망 시간이 끝나면 소멸시킨다. HitStun인 적은 움직이지 않고 경직 시간을 한 틱 줄이며, 끝나면 원래 목표를 다시 쫓는다.
         /// Attack인 적은 EnemyAttackSystem이 다루므로 건너뛴다.
@@ -22,8 +22,7 @@ namespace Project06.Systems
         /// <param name="enemies">옮기고 소멸시킬 적 저장소.</param>
         /// <param name="players">쫓을 플레이어 저장소. 읽기만 한다.</param>
         /// <param name="shelters">향할 쉘터 저장소. 읽기만 한다.</param>
-        /// <param name="random">배회 목적지와 대기 시간을 정할 난수 생성기.</param>
-        public static void Tick(EnemyStorage enemies, PlayerStorage players, ShelterStorage shelters, System.Random random)
+        public static void Tick(EnemyStorage enemies, PlayerStorage players, ShelterStorage shelters)
         {
             EnemyEntity[] entities = enemies.entities;
             for (int index = 0; index < entities.Length; index++)
@@ -53,7 +52,7 @@ namespace Project06.Systems
 
                 bool hasPlayer = TryFindNearestPlayer(players, enemy.currentPosition, out Vector3 playerPosition, out float playerSqrDistance);
                 bool hasShelter = TryFindNearestShelter(shelters, enemy.currentPosition, out int shelterIndex, out Vector3 shelterPosition, out float shelterSqrDistance);
-                UpdateState(ref enemy, hasPlayer, playerSqrDistance, hasShelter, enemies.navigationPath, random);
+                UpdateState(ref enemy, hasPlayer, playerSqrDistance, hasShelter);
 
                 bool isTargetShelter = enemy.targetKind == EnemyTargetKind.Shelter;
                 Vector3 targetPosition = isTargetShelter ? shelterPosition : playerPosition;
@@ -180,45 +179,28 @@ namespace Project06.Systems
         }
 
         // 플레이어가 감지 반지름 안에 들어오면 플레이어를, 아니면 쉘터를 쫓기 시작한다. Idle이면 대기 시간이 끝난 뒤에 쉘터로 향한다.
-        // 쫓던 플레이어가 해제 반지름 밖으로 나가면 놓친 뒤 대기 시간만큼 Idle로 서 있다가 쉘터로 바꾼다. 쫓을 쉘터도 없으면 Idle과 Wander를 반복한다.
-        private static void UpdateState(ref EnemyEntity enemy, bool hasPlayer, float playerSqrDistance, bool hasShelter, NavMeshPath navigationPath, System.Random random)
+        // 쫓던 플레이어가 해제 반지름 밖으로 나가면 놓친 뒤 대기 시간만큼 Idle로 서 있다가 쉘터로 바꾼다. 쫓을 쉘터가 없으면 Idle로 서 있는다.
+        private static void UpdateState(ref EnemyEntity enemy, bool hasPlayer, float playerSqrDistance, bool hasShelter)
         {
             float detectionRadius = enemy.enemy.detectionRadius;
             bool isPlayerDetected = hasPlayer && playerSqrDistance <= detectionRadius * detectionRadius;
             switch (enemy.state)
             {
                 case EnemyState.Idle:
-                case EnemyState.Wander:
                     if (isPlayerDetected)
                     {
                         StartChase(ref enemy, EnemyTargetKind.Player);
                         break;
                     }
 
-                    if (enemy.state == EnemyState.Idle)
+                    if (enemy.idleRemainingTicks > 0)
                     {
                         enemy.idleRemainingTicks--;
-                        if (enemy.idleRemainingTicks > 0)
-                        {
-                            break;
-                        }
-
-                        if (hasShelter)
-                        {
-                            StartChase(ref enemy, EnemyTargetKind.Shelter);
-                        }
-                        else
-                        {
-                            StartWander(ref enemy, navigationPath, random);
-                        }
                     }
-                    else if (hasShelter)
+
+                    if (enemy.idleRemainingTicks <= 0 && hasShelter)
                     {
                         StartChase(ref enemy, EnemyTargetKind.Shelter);
-                    }
-                    else if (enemy.pathCornerIndex >= enemy.pathCornerCount)
-                    {
-                        StartIdle(ref enemy, random);
                     }
                     break;
 
@@ -231,7 +213,7 @@ namespace Project06.Systems
                         }
                         else if (!hasShelter)
                         {
-                            StartIdle(ref enemy, random);
+                            StartIdle(ref enemy, 0);
                         }
                         break;
                     }
@@ -242,15 +224,7 @@ namespace Project06.Systems
                         break;
                     }
 
-                    if (hasShelter)
-                    {
-                        enemy.state = EnemyState.Idle;
-                        enemy.idleRemainingTicks = enemy.enemy.loseWaitTicks;
-                    }
-                    else
-                    {
-                        StartIdle(ref enemy, random);
-                    }
+                    StartIdle(ref enemy, enemy.enemy.loseWaitTicks);
                     break;
             }
         }
@@ -263,32 +237,11 @@ namespace Project06.Systems
             enemy.pathUpdateRemainingTicks = 0;
         }
 
-        // Idle로 바꾸고 최소~최대 대기 시간 사이에서 무작위로 서 있을 시간을 정한다.
-        private static void StartIdle(ref EnemyEntity enemy, System.Random random)
+        // Idle로 바꾸고 쉘터로 향하기 전에 서 있을 시간을 정한다. 목표 속력이 0이 되어 남은 경로를 따라 감속해 멈춘다.
+        private static void StartIdle(ref EnemyEntity enemy, int waitTicks)
         {
-            int minTicks = enemy.enemy.wanderWaitMinTicks;
-            int maxTicks = Mathf.Max(minTicks, enemy.enemy.wanderWaitMaxTicks);
             enemy.state = EnemyState.Idle;
-            enemy.idleRemainingTicks = random.Next(minTicks, maxTicks + 1);
-        }
-
-        // 생성 위치를 중심으로 한 배회 반지름 안에서 무작위 지점을 골라 NavMesh 위로 옮긴 뒤 그곳까지의 경로로 Wander를 시작한다.
-        // NavMesh 위 지점이나 경로를 찾지 못하면 Idle로 한 번 더 기다렸다가 다시 고른다.
-        private static void StartWander(ref EnemyEntity enemy, NavMeshPath navigationPath, System.Random random)
-        {
-            float radius = enemy.enemy.wanderRadius;
-            float angle = (float)(random.NextDouble() * 2.0 * Mathf.PI);
-            float distance = radius * Mathf.Sqrt((float)random.NextDouble());
-            Vector3 destination = enemy.spawnPosition + new Vector3(Mathf.Cos(angle) * distance, 0f, Mathf.Sin(angle) * distance);
-
-            if (!NavMesh.SamplePosition(destination, out NavMeshHit hit, Mathf.Max(radius, Mathf.Epsilon), NavMesh.AllAreas)
-                || !TrySetPath(ref enemy, hit.position, navigationPath))
-            {
-                StartIdle(ref enemy, random);
-                return;
-            }
-
-            enemy.state = EnemyState.Wander;
+            enemy.idleRemainingTicks = waitTicks;
         }
 
         // 경로 갱신까지 남은 시간을 한 틱 줄이고, 간격이 지났으면 다음 간격을 걸고 true를 돌려준다. 경로를 찾지 못하면 다음 계산까지 경로 없이 둔다.
@@ -337,15 +290,11 @@ namespace Project06.Systems
             return true;
         }
 
-        // 상태에 맞는 속력(배회와 쉘터로 향할 때는 걷기, 플레이어 추격은 달리기, 그 밖에는 0)으로 다음 코너 쪽 목표 속도를 정해 가속한 뒤, 그 속력만큼 경로를 따라 옮긴다.
+        // 상태에 맞는 속력(쉘터로 향할 때는 걷기, 플레이어 추격은 달리기, 그 밖에는 0)으로 다음 코너 쪽 목표 속도를 정해 가속한 뒤, 그 속력만큼 경로를 따라 옮긴다.
         private static void Move(ref EnemyEntity enemy, bool isInStopDistance)
         {
             float targetSpeed = 0f;
-            if (enemy.state == EnemyState.Wander)
-            {
-                targetSpeed = enemy.enemy.walkSpeed;
-            }
-            else if (enemy.state == EnemyState.Chase && !isInStopDistance)
+            if (enemy.state == EnemyState.Chase && !isInStopDistance)
             {
                 targetSpeed = enemy.targetKind == EnemyTargetKind.Shelter ? enemy.enemy.walkSpeed : enemy.enemy.runSpeed;
             }

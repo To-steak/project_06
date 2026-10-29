@@ -132,7 +132,6 @@ namespace Project06.Systems
                 enemy.spawner = request.spawner;
                 enemy.previousPosition = request.position;
                 enemy.currentPosition = request.position;
-                enemy.spawnPosition = request.position;
                 enemy.facingDirection = request.facingDirection;
                 enemy.velocity = Vector3.zero;
                 enemy.enemy = request.enemy;
