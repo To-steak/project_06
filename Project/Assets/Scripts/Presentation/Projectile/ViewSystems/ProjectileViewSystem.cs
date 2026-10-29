@@ -1,6 +1,6 @@
 using Project06.Entities;
+using Project06.Presentation.Pooling;
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace Project06.Presentation.Projectile.ViewSystems
 {
@@ -17,7 +17,7 @@ namespace Project06.Presentation.Projectile.ViewSystems
         /// <param name="context">View 실행 상태.</param>
         public static void Initialize(GameObject[] projectilePrefabs, int capacity, ViewContext context)
         {
-            context.projectilePools = new ObjectPool<GameObject>[projectilePrefabs.Length];
+            context.projectilePools = new ViewPool<GameObject>[projectilePrefabs.Length];
             for (int weaponIndex = 0; weaponIndex < projectilePrefabs.Length; weaponIndex++)
             {
                 GameObject prefab = projectilePrefabs[weaponIndex];
@@ -26,14 +26,7 @@ namespace Project06.Presentation.Projectile.ViewSystems
                     continue;
                 }
 
-                context.projectilePools[weaponIndex] = new ObjectPool<GameObject>(
-                    () => Object.Instantiate(prefab),
-                    view => view.SetActive(true),
-                    view => view.SetActive(false),
-                    view => Object.Destroy(view),
-                    false,
-                    DEFAULT_POOL_CAPACITY,
-                    capacity);
+                context.projectilePools[weaponIndex] = new ViewPool<GameObject>(prefab, DEFAULT_POOL_CAPACITY);
             }
 
             context.projectileViews = new GameObject[capacity];
@@ -70,7 +63,7 @@ namespace Project06.Presentation.Projectile.ViewSystems
                 bool isNewView = view == null;
                 if (isNewView)
                 {
-                    ObjectPool<GameObject> pool = GetPool(projectile.weaponIndex, context);
+                    ViewPool<GameObject> pool = GetPool(projectile.weaponIndex, context);
                     if (pool == null)
                     {
                         continue;
@@ -105,7 +98,7 @@ namespace Project06.Presentation.Projectile.ViewSystems
             }
         }
 
-        private static ObjectPool<GameObject> GetPool(int weaponIndex, ViewContext context)
+        private static ViewPool<GameObject> GetPool(int weaponIndex, ViewContext context)
         {
             if (weaponIndex < 0 || weaponIndex >= context.projectilePools.Length)
             {
