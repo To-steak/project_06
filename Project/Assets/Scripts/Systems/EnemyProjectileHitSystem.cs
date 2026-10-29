@@ -6,7 +6,7 @@ namespace Project06.Systems
     public static class EnemyProjectileHitSystem
     {
         /// <summary>
-        /// 살아 있는 적 투사체마다 이번 틱에 날아갈 선분이 살아 있는 플레이어의 피격 원(XZ 평면)과 만나는지 검사한다. EnemyProjectileMoveSystem보다 먼저 호출한다.
+        /// 살아 있는 적 투사체마다 이번 틱에 날아갈 선분이 살아 있고 사망 중이 아닌 플레이어의 피격 원(XZ 평면)과 만나는지 검사한다. EnemyProjectileMoveSystem보다 먼저 호출한다.
         /// 가장 먼저 만나는 플레이어에게 데미지를 주고 투사체를 소멸시킨다. 높이(Y)는 판정에 쓰지 않는다.
         /// </summary>
         /// <param name="enemyProjectiles">검사할 적 투사체 저장소.</param>
@@ -35,7 +35,7 @@ namespace Project06.Systems
                 for (int playerIndex = 0; playerIndex < players.Length; playerIndex++)
                 {
                     ref PlayerEntity player = ref players[playerIndex];
-                    if (!player.isAlive)
+                    if (!player.isAlive || player.isDead)
                     {
                         continue;
                     }

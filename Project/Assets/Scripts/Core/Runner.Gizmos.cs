@@ -38,7 +38,7 @@ namespace Project06.Core
             for (int playerIndex = 0; playerIndex < players.Length; playerIndex++)
             {
                 ref PlayerEntity player = ref players[playerIndex];
-                if (player.isAlive)
+                if (player.isAlive && !player.isDead)
                 {
                     Handles.DrawWireDisc(player.currentPosition, Vector3.up, player.player.hitRadius);
                 }

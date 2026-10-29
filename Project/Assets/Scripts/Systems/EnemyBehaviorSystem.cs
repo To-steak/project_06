@@ -87,7 +87,7 @@ namespace Project06.Systems
             enemy.pathUpdateRemainingTicks = 0;
         }
 
-        // XZ 평면에서 position에 가장 가까운 살아 있는 플레이어를 찾는다. 없으면 false를 돌려준다. EnemyAttackSystem도 쓴다.
+        // XZ 평면에서 position에 가장 가까운, 살아 있고 사망 중이 아닌 플레이어를 찾는다. 없으면 false를 돌려준다. EnemyAttackSystem도 쓴다.
         internal static bool TryFindNearestPlayer(PlayerStorage players, Vector3 position, out Vector3 targetPosition, out float targetSqrDistance)
         {
             return TryFindNearestPlayer(players, position, out _, out targetPosition, out targetSqrDistance);
@@ -104,7 +104,7 @@ namespace Project06.Systems
             for (int playerIndex = 0; playerIndex < entities.Length; playerIndex++)
             {
                 ref PlayerEntity player = ref entities[playerIndex];
-                if (!player.isAlive)
+                if (!player.isAlive || player.isDead)
                 {
                     continue;
                 }

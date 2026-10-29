@@ -168,7 +168,7 @@ namespace Project06.Systems
             enemy.pathUpdateRemainingTicks = 0;
         }
 
-        // 판정 모양과 피격 원이 겹치는 첫 살아 있는 플레이어에게 데미지를 준다. 맞혔으면 true를 돌려준다.
+        // 판정 모양과 피격 원이 겹치는, 살아 있고 사망 중이 아닌 첫 플레이어에게 데미지를 준다. 맞혔으면 true를 돌려준다.
         private static bool TryHitMelee(in EnemyEntity enemy, in EnemyAttackComponent attack, PlayerStorage players)
         {
             float hitRadius = GetMeleeHitSegment(in enemy, in attack.meleeHit, out Vector3 start, out Vector3 end);
@@ -176,7 +176,7 @@ namespace Project06.Systems
             for (int playerIndex = 0; playerIndex < entities.Length; playerIndex++)
             {
                 ref PlayerEntity player = ref entities[playerIndex];
-                if (!player.isAlive)
+                if (!player.isAlive || player.isDead)
                 {
                     continue;
                 }

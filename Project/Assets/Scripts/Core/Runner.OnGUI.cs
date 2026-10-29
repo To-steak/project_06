@@ -40,7 +40,11 @@ namespace Project06.Core
                 : "재장전 안 함";
 
             GUILayout.BeginArea(new Rect(DEBUG_GUI_MARGIN, DEBUG_GUI_MARGIN, DEBUG_GUI_WIDTH, DEBUG_GUI_HEIGHT), GUI.skin.box);
-            GUILayout.Label($"체력: {player.health} / {player.player.maxHealth}");
+            GUILayout.Label(player.isGettingUp
+                ? $"일어나는 중 · 조작까지 {player.getUpRemainingTicks} 틱"
+                : player.isDead
+                    ? $"사망 · 부활까지 {player.respawnRemainingTicks} 틱"
+                    : $"체력: {player.health} / {player.player.maxHealth}");
             GUILayout.Label($"무기: {weaponName} ({caliberName})");
             GUILayout.Label($"탄창: {player.magazineAmmo} / {player.weapon.magazineCapacity}");
             GUILayout.Label($"예비 탄약: {reserveAmmo}");
