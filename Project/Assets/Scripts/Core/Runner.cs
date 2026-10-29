@@ -12,6 +12,8 @@ using Project06.Presentation.EnemyProjectile.ViewSystems;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Player.ViewSystems;
 using Project06.Presentation.Projectile.ViewSystems;
+using Project06.Presentation.Sky.Views;
+using Project06.Presentation.Sky.ViewSystems;
 using Project06.Presentation.Weapon.Views;
 using Project06.Presentation.Weapon.ViewSystems;
 using Project06.Requests;
@@ -72,11 +74,13 @@ namespace Project06.Core
             // 씬에 배치한 엔티티는 생성 요청만 넣고, 첫 틱의 SpawnSystem이 만든다.
             EnqueuePlayerSpawn();
             EnqueueShelterSpawn();
+            EnqueueDayNightSpawn();
             List<EnemyDefinition> enemyDefinitions = EnqueueEnemySpawnerSpawns();
 
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
             _viewContext.cameraView = FindFirstObjectByType<CameraView>();
             InitializeCamera();
+            InitializeSky();
             CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
             WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
             ProjectileViewSystem.Initialize(projectilePrefabs, _world.projectiles.entities.Length, _viewContext);
@@ -87,6 +91,7 @@ namespace Project06.Core
 
         private void FixedUpdate()
         {
+            DayNightSystem.Tick(_world.dayNights, _world.enemySpawners, _world.enemies);
             CommandBuffer commandBuffer = _world.commandBuffer;
             PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.fireCommand, _world.players);
             commandBuffer.reloadCommand = default;
@@ -102,10 +107,11 @@ namespace Project06.Core
             PlayerDeathSystem.Tick(_world.players);
             ShelterDestroySystem.Tick(_world.shelters);
             PlayerFireSystem.Tick(_world.players, _world.projectileSpawnRequests, _world.playerFiredRecords);
-            EnemySpawnerSystem.Tick(_world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
+            EnemySpawnerSystem.Tick(_world.dayNights, _world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
             SpawnSystem.Tick(
                 _world.playerSpawnRequests, _world.players,
                 _world.shelterSpawnRequests, _world.shelters,
+                _world.dayNightSpawnRequests, _world.dayNights,
                 _world.enemySpawnerSpawnRequests, _world.enemySpawners,
                 _world.enemySpawnRequests, _world.enemies,
                 _world.projectileSpawnRequests, _world.projectiles,
@@ -140,6 +146,12 @@ namespace Project06.Core
                 PlayerViewSystem.Present(in player, _world.playerFiredRecords, interpolation, _viewContext);
                 WeaponViewSystem.Present(in player, _world.playerFiredRecords, _viewContext);
                 CameraViewSystem.Present(in player, _playerActions.General.Look.ReadValue<Vector2>(), _viewContext);
+            }
+
+            int dayNightIndex = FindAliveDayNightIndex();
+            if (dayNightIndex >= 0)
+            {
+                SkyViewSystem.Present(in _world.dayNights.entities[dayNightIndex], interpolation, _viewContext);
             }
 
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
@@ -195,6 +207,26 @@ namespace Project06.Core
             {
                 position = shelterAuthoring.transform.position,
                 shelter = _definitionCatalog.shelter.shelter,
+            });
+        }
+
+        // DayNightDefinition 수치로 낮밤 생성을 요청한다. DayNightDefinition이 없으면 요청하지 않으며, 그러면 적 스포너가 항상 적을 낸다.
+        private void EnqueueDayNightSpawn()
+        {
+            if (_definitionCatalog == null)
+            {
+                return;
+            }
+
+            if (_definitionCatalog.dayNight == null)
+            {
+                Debug.LogError("DefinitionCatalog의 dayNight가 비어 있다.", _definitionCatalog);
+                return;
+            }
+
+            _world.dayNightSpawnRequests.Enqueue(new DayNightSpawnRequest
+            {
+                dayNight = _definitionCatalog.dayNight.dayNight,
             });
         }
 
@@ -318,6 +350,29 @@ namespace Project06.Core
             CameraViewSystem.Initialize(Camera.main, playerDefinition.aimCameraDeadZone, playerDefinition.aimCameraMaxDistance, playerDefinition.aimCameraDistance, playerDefinition.aimCameraSmoothTime, _viewContext);
         }
 
+        // SkyDefinition의 조명 수치로 하늘 View를 준비한다. SkyDefinition이 없으면 해와 달만 돌리고 조명은 바꾸지 않는다.
+        private void InitializeSky()
+        {
+            SkyView skyView = FindFirstObjectByType<SkyView>();
+            SkyDefinition skyDefinition = _definitionCatalog != null ? _definitionCatalog.sky : null;
+            if (skyDefinition == null)
+            {
+                if (_definitionCatalog != null)
+                {
+                    Debug.LogError("DefinitionCatalog의 sky가 비어 있다.", _definitionCatalog);
+                }
+
+                SkyViewSystem.Initialize(skyView, 0, null, null, default, null, null, null, null, null, _viewContext);
+                return;
+            }
+
+            SkyViewSystem.Initialize(
+                skyView, skyDefinition.twilightTicks,
+                skyDefinition.sunColor, skyDefinition.sunIntensity, skyDefinition.moonColor, skyDefinition.moonIntensity,
+                skyDefinition.ambientSkyColor, skyDefinition.ambientEquatorColor, skyDefinition.ambientGroundColor, skyDefinition.fogColor,
+                _viewContext);
+        }
+
         // 살아 있는 첫 플레이어의 슬롯 인덱스를 구한다. 없으면 -1을 돌려준다.
         private int FindAlivePlayerIndex()
         {
@@ -325,6 +380,21 @@ namespace Project06.Core
             for (int index = 0; index < players.Length; index++)
             {
                 if (players[index].isAlive)
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        // 살아 있는 첫 낮밤의 슬롯 인덱스를 구한다. 없으면 -1을 돌려준다.
+        private int FindAliveDayNightIndex()
+        {
+            DayNightEntity[] dayNights = _world.dayNights.entities;
+            for (int index = 0; index < dayNights.Length; index++)
+            {
+                if (dayNights[index].isAlive)
                 {
                     return index;
                 }

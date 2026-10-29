@@ -20,10 +20,14 @@ namespace Project06.Core
         public EnemySpawnerStorage enemySpawners = new EnemySpawnerStorage(MAX_ENEMY_SPAWNER_COUNT);
         // 쉘터 엔티티 저장소
         public ShelterStorage shelters = new ShelterStorage(MAX_SHELTER_COUNT);
+        // 낮밤 엔티티 저장소
+        public DayNightStorage dayNights = new DayNightStorage(MAX_DAY_NIGHT_COUNT);
         // 틱 마지막에 SpawnSystem이 처리할 플레이어 생성 요청
         public Queue<PlayerSpawnRequest> playerSpawnRequests = new Queue<PlayerSpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 쉘터 생성 요청
         public Queue<ShelterSpawnRequest> shelterSpawnRequests = new Queue<ShelterSpawnRequest>();
+        // 틱 마지막에 SpawnSystem이 처리할 낮밤 생성 요청
+        public Queue<DayNightSpawnRequest> dayNightSpawnRequests = new Queue<DayNightSpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 적 스포너 생성 요청
         public Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests = new Queue<EnemySpawnerSpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 적 생성 요청
@@ -55,6 +59,8 @@ namespace Project06.Core
         public const int MAX_ENEMY_SPAWNER_COUNT = 64;
         // 동시에 존재할 수 있는 쉘터의 최대 수
         public const int MAX_SHELTER_COUNT = 1;
+        // 동시에 존재할 수 있는 낮밤의 최대 수
+        public const int MAX_DAY_NIGHT_COUNT = 1;
         // 난수 생성기의 시드
         public const int RANDOM_SEED = 0;
     }

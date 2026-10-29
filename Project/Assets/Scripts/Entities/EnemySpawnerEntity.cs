@@ -21,7 +21,7 @@ namespace Project06.Entities
         public EnemyComponent enemy;
         // 다음 적을 낼 때까지 남은 틱
         public int spawnRemainingTicks;
-        // 지금까지 낸 적의 수
+        // 이번 밤에 낸 적의 수. 밤이 시작될 때 0으로 되돌린다.
         public int spawnedCount;
     }
 }

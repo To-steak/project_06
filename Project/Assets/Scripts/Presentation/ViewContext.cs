@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Project06.Presentation.Camera.Views;
 using Project06.Presentation.Enemy.Views;
 using Project06.Presentation.Player.Views;
+using Project06.Presentation.Sky.Views;
 using Project06.Presentation.Weapon.Views;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -73,5 +74,31 @@ namespace Project06.Presentation
         public Vector3 cameraAimOffset;
         // cameraAimOffset을 부드럽게 따라가게 할 때 쓰는 변화 속도
         public Vector3 cameraAimOffsetVelocity;
+        // 씬에 배치된 하늘 View. 없으면 해와 달을 움직이지 않는다.
+        public SkyView skyView;
+        // 해와 달이 뜨고 지는 수평 방향. 판 시작 시 씬에 놓인 해의 Y 회전이다.
+        public Quaternion skyYawRotation;
+        // 하늘 View의 해에 붙은 라이트. 없으면 해 빛을 바꾸지 않는다.
+        public Light skySunLight;
+        // 하늘 View의 달에 붙은 라이트. 없으면 달 빛을 바꾸지 않는다.
+        public Light skyMoonLight;
+        // 낮과 밤 사이 노을 구간의 길이(틱)
+        public int skyTwilightTicks;
+        // 어두운 정도(한낮 0, 노을 0.5, 한밤 1)에 따른 해 빛 색. null이면 바꾸지 않는다.
+        public Gradient skySunColor;
+        // 어두운 정도에 따른 해 빛 세기. null이면 바꾸지 않는다.
+        public AnimationCurve skySunIntensity;
+        // 달 빛 색
+        public Color skyMoonColor;
+        // 어두운 정도에 따른 달 빛 세기. null이면 달 빛 색과 세기를 바꾸지 않는다.
+        public AnimationCurve skyMoonIntensity;
+        // 어두운 정도에 따른 위쪽 환경광 색. null이면 바꾸지 않는다.
+        public Gradient skyAmbientSkyColor;
+        // 어두운 정도에 따른 옆쪽 환경광 색. null이면 바꾸지 않는다.
+        public Gradient skyAmbientEquatorColor;
+        // 어두운 정도에 따른 아래쪽 환경광 색. null이면 바꾸지 않는다.
+        public Gradient skyAmbientGroundColor;
+        // 어두운 정도에 따른 안개 색. null이면 바꾸지 않는다.
+        public Gradient skyFogColor;
     }
 }
