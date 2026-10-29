@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1943a30d95fb75e49adfce71782c38e9, type: 3}
+  m_Name: Boss Red Slime Definition
+  m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.EnemyDefinition
+  enemy:
+    maxHealth: 100
+    hitRadius: 0.5
+    walkSpeed: 1
+    runSpeed: 2
+    acceleration: 10
+    detectionRadius: 3
+    loseRadius: 5
+    loseWaitTicks: 50
+    stopDistance: 1
+    pathUpdateIntervalTicks: 20
+    wanderRadius: 3
+    wanderWaitMinTicks: 20
+    wanderWaitMaxTicks: 60
+    deathDurationTicks: 75
+    hitStunChance: 0.05
+    hitStunTicks: 42
+    attacks:
+    - kind: 0
+      range: 1
+      damage: 10
+      windupTicks: 17
+      recoveryTicks: 50
+      cooldownTicks: 200
+      meleeHit:
+        shape: 0
+        offset: 0.5
+        radius: 1
+        length: 0
+        activeTicks: 8
+      projectile:
+        speed: 0
+        distance: 0
+        height: 0
+    - kind: 0
+      range: 2
+      damage: 10
+      windupTicks: 22
+      recoveryTicks: 50
+      cooldownTicks: 300
+      meleeHit:
+        shape: 0
+        offset: 1
+        radius: 1
+        length: 0
+        activeTicks: 12
+      projectile:
+        speed: 0
+        distance: 0
+        height: 0
+  enemyPrefab: {fileID: 6168152276632316411, guid: 87d48c6f4369d5440a58e0b0f781a3b8, type: 3}
+  attackTriggerNames:
+  - Attack01
+  - Attack02
+  projectilePrefab: {fileID: 0}

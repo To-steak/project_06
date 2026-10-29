@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: Day Night Definition
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.DayNightDefinition
   dayNight:
-    dayTicks: 3000
-    nightTicks: 3000
+    dayTicks: 7500
+    nightTicks: 7500
+    finalDay: 30

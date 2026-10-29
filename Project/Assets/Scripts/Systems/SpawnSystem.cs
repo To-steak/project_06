@@ -19,6 +19,8 @@ namespace Project06.Systems
         /// <param name="dayNights">낮밤을 넣을 저장소.</param>
         /// <param name="enemySpawnerSpawnRequests">적 스포너 생성 요청 큐.</param>
         /// <param name="enemySpawners">적 스포너를 넣을 저장소.</param>
+        /// <param name="bossSpawnerSpawnRequests">보스 스포너 생성 요청 큐.</param>
+        /// <param name="bossSpawners">보스 스포너를 넣을 저장소.</param>
         /// <param name="enemySpawnRequests">적 생성 요청 큐.</param>
         /// <param name="enemies">적을 넣을 저장소.</param>
         /// <param name="projectileSpawnRequests">투사체 생성 요청 큐.</param>
@@ -30,6 +32,7 @@ namespace Project06.Systems
             Queue<ShelterSpawnRequest> shelterSpawnRequests, ShelterStorage shelters,
             Queue<DayNightSpawnRequest> dayNightSpawnRequests, DayNightStorage dayNights,
             Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests, EnemySpawnerStorage enemySpawners,
+            Queue<BossSpawnerSpawnRequest> bossSpawnerSpawnRequests, BossSpawnerStorage bossSpawners,
             Queue<EnemySpawnRequest> enemySpawnRequests, EnemyStorage enemies,
             Queue<ProjectileSpawnRequest> projectileSpawnRequests, ProjectileStorage projectiles,
             Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests, EnemyProjectileStorage enemyProjectiles)
@@ -38,6 +41,7 @@ namespace Project06.Systems
             SpawnShelters(shelterSpawnRequests, shelters);
             SpawnDayNights(dayNightSpawnRequests, dayNights);
             SpawnEnemySpawners(enemySpawnerSpawnRequests, enemySpawners);
+            SpawnBossSpawners(bossSpawnerSpawnRequests, bossSpawners);
             SpawnEnemies(enemySpawnRequests, enemies);
             SpawnProjectiles(projectileSpawnRequests, projectiles);
             SpawnEnemyProjectiles(enemyProjectileSpawnRequests, enemyProjectiles);
@@ -139,6 +143,29 @@ namespace Project06.Systems
             }
         }
 
+        private static void SpawnBossSpawners(Queue<BossSpawnerSpawnRequest> bossSpawnerSpawnRequests, BossSpawnerStorage bossSpawners)
+        {
+            while (bossSpawnerSpawnRequests.Count > 0)
+            {
+                BossSpawnerSpawnRequest request = bossSpawnerSpawnRequests.Dequeue();
+                if (!TryTakeFreeIndex(bossSpawners.freeIndices, out int index))
+                {
+                    continue;
+                }
+
+                ref BossSpawnerEntity bossSpawner = ref bossSpawners.entities[index];
+                bossSpawner.isAlive = true;
+                bossSpawner.generation++;
+                bossSpawner.position = request.position;
+                bossSpawner.facingDirection = request.facingDirection;
+                bossSpawner.spawner = request.spawner;
+                bossSpawner.enemyTypeIndex = request.enemyTypeIndex;
+                bossSpawner.enemy = request.enemy;
+                bossSpawner.spawnRemainingTicks = request.spawner.firstSpawnDelayTicks;
+                bossSpawner.hasSpawned = false;
+            }
+        }
+
         private static void SpawnEnemies(Queue<EnemySpawnRequest> enemySpawnRequests, EnemyStorage enemies)
         {
             while (enemySpawnRequests.Count > 0)
@@ -154,6 +181,7 @@ namespace Project06.Systems
                 enemy.generation++;
                 enemy.enemyTypeIndex = request.enemyTypeIndex;
                 enemy.spawner = request.spawner;
+                enemy.isBoss = request.isBoss;
                 enemy.previousPosition = request.position;
                 enemy.currentPosition = request.position;
                 enemy.facingDirection = request.facingDirection;

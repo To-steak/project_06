@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Project06.Authoring;
 using Project06.Commands;
+using Project06.Components;
 using Project06.Definitions;
 using Project06.Entities;
 using Project06.Presentation;
@@ -75,7 +76,9 @@ namespace Project06.Core
             EnqueuePlayerSpawn();
             EnqueueShelterSpawn();
             EnqueueDayNightSpawn();
-            List<EnemyDefinition> enemyDefinitions = EnqueueEnemySpawnerSpawns();
+            List<EnemyDefinition> enemyDefinitions = new List<EnemyDefinition>();
+            EnqueueEnemySpawnerSpawns(enemyDefinitions);
+            EnqueueBossSpawnerSpawns(enemyDefinitions);
 
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
             _viewContext.cameraView = FindFirstObjectByType<CameraView>();
@@ -91,6 +94,12 @@ namespace Project06.Core
 
         private void FixedUpdate()
         {
+            // 승패가 나면 시뮬레이션을 멈춘다.
+            if (_world.gameResult != GameResult.Playing)
+            {
+                return;
+            }
+
             DayNightSystem.Tick(_world.dayNights, _world.enemySpawners, _world.enemies);
             CommandBuffer commandBuffer = _world.commandBuffer;
             PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.fireCommand, _world.players);
@@ -106,13 +115,16 @@ namespace Project06.Core
             EnemyProjectileMoveSystem.Tick(_world.enemyProjectiles);
             PlayerDeathSystem.Tick(_world.players);
             ShelterDestroySystem.Tick(_world.shelters);
+            GameResultSystem.Tick(_world.enemies, _world.shelters, ref _world.gameResult);
             PlayerFireSystem.Tick(_world.players, _world.projectileSpawnRequests, _world.playerFiredRecords);
             EnemySpawnerSystem.Tick(_world.dayNights, _world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
+            BossSpawnerSystem.Tick(_world.dayNights, _world.bossSpawners, _world.enemySpawnRequests);
             SpawnSystem.Tick(
                 _world.playerSpawnRequests, _world.players,
                 _world.shelterSpawnRequests, _world.shelters,
                 _world.dayNightSpawnRequests, _world.dayNights,
                 _world.enemySpawnerSpawnRequests, _world.enemySpawners,
+                _world.bossSpawnerSpawnRequests, _world.bossSpawners,
                 _world.enemySpawnRequests, _world.enemies,
                 _world.projectileSpawnRequests, _world.projectiles,
                 _world.enemyProjectileSpawnRequests, _world.enemyProjectiles);
@@ -273,10 +285,9 @@ namespace Project06.Core
         }
 
         // 씬의 EnemySpawnerAuthoring마다 그 Authoring이 가리키는 EnemyDefinition의 적을 내는 스포너 생성을 요청한다. definition이 비어 있는 스포너는 건너뛴다.
-        // 가리킨 EnemyDefinition을 중복 없이 모아 돌려준다. 적 종류 인덱스는 이 목록의 인덱스다.
-        private List<EnemyDefinition> EnqueueEnemySpawnerSpawns()
+        // 가리킨 EnemyDefinition을 enemyDefinitions에 중복 없이 더한다. 적 종류 인덱스는 이 목록의 인덱스다.
+        private void EnqueueEnemySpawnerSpawns(List<EnemyDefinition> enemyDefinitions)
         {
-            List<EnemyDefinition> enemyDefinitions = new List<EnemyDefinition>();
             EnemySpawnerAuthoring[] spawnerAuthorings = FindObjectsByType<EnemySpawnerAuthoring>(FindObjectsSortMode.None);
             for (int authoringIndex = 0; authoringIndex < spawnerAuthorings.Length; authoringIndex++)
             {
@@ -288,14 +299,7 @@ namespace Project06.Core
                     continue;
                 }
 
-                int enemyTypeIndex = enemyDefinitions.IndexOf(definition);
-                if (enemyTypeIndex < 0)
-                {
-                    enemyTypeIndex = enemyDefinitions.Count;
-                    enemyDefinitions.Add(definition);
-                    ValidateEnemyAttacks(definition);
-                }
-
+                int enemyTypeIndex = GetEnemyTypeIndex(enemyDefinitions, definition);
                 Transform spawnerTransform = spawnerAuthoring.transform;
                 Vector3 facingDirection = spawnerTransform.forward;
                 facingDirection.y = 0f;
@@ -308,8 +312,50 @@ namespace Project06.Core
                     enemy = definition.enemy,
                 });
             }
+        }
 
-            return enemyDefinitions;
+        // 씬의 BossSpawnerAuthoring마다 그 Authoring이 가리키는 EnemyDefinition의 보스를 내는 스포너 생성을 요청한다. definition이 비어 있는 스포너는 건너뛴다.
+        // 가리킨 EnemyDefinition을 enemyDefinitions에 중복 없이 더한다. 적 종류 인덱스는 이 목록의 인덱스다.
+        private void EnqueueBossSpawnerSpawns(List<EnemyDefinition> enemyDefinitions)
+        {
+            BossSpawnerAuthoring[] bossSpawnerAuthorings = FindObjectsByType<BossSpawnerAuthoring>(FindObjectsSortMode.None);
+            for (int authoringIndex = 0; authoringIndex < bossSpawnerAuthorings.Length; authoringIndex++)
+            {
+                BossSpawnerAuthoring bossSpawnerAuthoring = bossSpawnerAuthorings[authoringIndex];
+                EnemyDefinition definition = bossSpawnerAuthoring.definition;
+                if (definition == null)
+                {
+                    Debug.LogError($"BossSpawnerAuthoring '{bossSpawnerAuthoring.name}'의 definition이 비어 있다.", bossSpawnerAuthoring);
+                    continue;
+                }
+
+                int enemyTypeIndex = GetEnemyTypeIndex(enemyDefinitions, definition);
+                Transform spawnerTransform = bossSpawnerAuthoring.transform;
+                Vector3 facingDirection = spawnerTransform.forward;
+                facingDirection.y = 0f;
+                _world.bossSpawnerSpawnRequests.Enqueue(new BossSpawnerSpawnRequest
+                {
+                    position = spawnerTransform.position,
+                    facingDirection = facingDirection.sqrMagnitude > 0f ? facingDirection.normalized : Vector3.forward,
+                    spawner = bossSpawnerAuthoring.spawner,
+                    enemyTypeIndex = enemyTypeIndex,
+                    enemy = definition.enemy,
+                });
+            }
+        }
+
+        // enemyDefinitions에서 definition의 인덱스를 찾는다. 없으면 공격 목록을 검사한 뒤 끝에 더하고 그 인덱스를 돌려준다.
+        private static int GetEnemyTypeIndex(List<EnemyDefinition> enemyDefinitions, EnemyDefinition definition)
+        {
+            int enemyTypeIndex = enemyDefinitions.IndexOf(definition);
+            if (enemyTypeIndex < 0)
+            {
+                enemyTypeIndex = enemyDefinitions.Count;
+                enemyDefinitions.Add(definition);
+                ValidateEnemyAttacks(definition);
+            }
+
+            return enemyTypeIndex;
         }
 
         // 적 종류 순서대로 적 프리팹, 공격 Trigger 이름 목록, 적 투사체 프리팹을 모은다.
