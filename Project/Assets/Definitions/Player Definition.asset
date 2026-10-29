@@ -23,5 +23,6 @@ MonoBehaviour:
     acceleration: 10
   startWeapon: {fileID: 11400000, guid: 3340221d9fe28c24c80727dac7bd13a4, type: 2}
   aimCameraDeadZone: 0.5
-  aimCameraMaxDistance: 1
+  aimCameraMaxDistance: 2
+  aimCameraDistance: 4
   aimCameraSmoothTime: 0.15
