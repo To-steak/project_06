@@ -11,7 +11,7 @@ namespace Project06.Presentation
 {
     public class ViewContext
     {
-        // 씬에 배치된 플레이어 View
+        // 판 시작 시 플레이어 프리팹으로 만든 플레이어 View. 프리팹이 없으면 null이다.
         public PlayerView playerView;
         // 무기별 총 프리팹. DefinitionCatalog.weapons와 같은 순서이며, 프리팹이 없는 무기는 null이다.
         public GameObject[] weaponPrefabs;

@@ -73,16 +73,18 @@ namespace Project06.Core
             _viewContext = new ViewContext();
 
             // 씬에 배치한 엔티티는 생성 요청만 넣고, 첫 틱의 SpawnSystem이 만든다.
-            EnqueuePlayerSpawn();
+            PlayerAuthoring playerAuthoring = FindFirstObjectByType<PlayerAuthoring>();
+            PlayerDefinition playerDefinition = playerAuthoring != null ? playerAuthoring.definition : null;
+            EnqueuePlayerSpawn(playerAuthoring);
             EnqueueShelterSpawn();
             EnqueueDayNightSpawn();
             List<EnemyDefinition> enemyDefinitions = new List<EnemyDefinition>();
             EnqueueEnemySpawnerSpawns(enemyDefinitions);
             EnqueueBossSpawnerSpawns(enemyDefinitions);
 
-            _viewContext.playerView = FindFirstObjectByType<PlayerView>();
+            InitializePlayerView(playerAuthoring);
             _viewContext.cameraView = FindFirstObjectByType<CameraView>();
-            InitializeCamera();
+            InitializeCamera(playerDefinition);
             InitializeSky();
             CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
             WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
@@ -114,6 +116,7 @@ namespace Project06.Core
             ProjectileMoveSystem.Tick(_world.projectiles);
             EnemyProjectileHitSystem.Tick(_world.enemyProjectiles, _world.players, _world.shelters);
             EnemyProjectileMoveSystem.Tick(_world.enemyProjectiles);
+            PlayerSanitySystem.Tick(_world.players, _world.shelters);
             PlayerDeathSystem.Tick(_world.players);
             ShelterDestroySystem.Tick(_world.shelters);
             GameResultSystem.Tick(_world.enemies, _world.shelters, ref _world.gameResult);
@@ -177,50 +180,82 @@ namespace Project06.Core
             _world.enemyHitStunnedRecords.Clear();
         }
 
-        // 씬의 PlayerAuthoring 위치에 PlayerDefinition 수치로 플레이어 생성을 요청한다. PlayerAuthoring이나 Catalog가 없으면 요청하지 않는다.
-        private void EnqueuePlayerSpawn()
+        // 씬의 PlayerAuthoring 위치에 그 Authoring이 가리키는 PlayerDefinition 수치로 플레이어 생성을 요청한다.
+        // PlayerAuthoring이나 PlayerDefinition이 없거나, 무기와 구경을 찾을 Catalog가 없으면 요청하지 않는다.
+        private void EnqueuePlayerSpawn(PlayerAuthoring playerAuthoring)
         {
-            PlayerAuthoring playerAuthoring = FindFirstObjectByType<PlayerAuthoring>();
             if (playerAuthoring == null || _definitionCatalog == null)
             {
                 return;
             }
 
-            Vector3 startFacingDirection = playerAuthoring.transform.forward;
-            startFacingDirection.y = 0f;
+            PlayerDefinition playerDefinition = playerAuthoring.definition;
+            if (playerDefinition == null)
+            {
+                Debug.LogError("PlayerAuthoring의 definition이 비어 있다.", playerAuthoring);
+                return;
+            }
+
             PlayerSpawnRequest request = new PlayerSpawnRequest
             {
                 position = playerAuthoring.transform.position,
-                facingDirection = startFacingDirection.sqrMagnitude > 0f ? startFacingDirection.normalized : Vector3.forward,
-                player = _definitionCatalog.player.player,
-                movement = _definitionCatalog.player.movement,
+                facingDirection = GetStartFacingDirection(playerAuthoring),
+                player = playerDefinition.player,
+                movement = playerDefinition.movement,
                 weaponIndex = -1,
                 caliberIndex = -1,
                 reserveAmmo = CreateStartReserveAmmo(),
             };
-            EquipStartWeapon(ref request);
+            EquipStartWeapon(ref request, playerDefinition.startWeapon);
             _world.playerSpawnRequests.Enqueue(request);
         }
 
-        // 씬의 ShelterAuthoring 위치에 ShelterDefinition 수치로 쉘터 생성을 요청한다. ShelterAuthoring이나 ShelterDefinition이 없으면 요청하지 않는다.
-        private void EnqueueShelterSpawn()
+        // PlayerAuthoring 위치와 방향에 PlayerDefinition의 프리팹으로 플레이어 View를 만든다. PlayerAuthoring이나 프리팹이 없으면 만들지 않는다.
+        private void InitializePlayerView(PlayerAuthoring playerAuthoring)
         {
-            ShelterAuthoring shelterAuthoring = FindFirstObjectByType<ShelterAuthoring>();
-            if (shelterAuthoring == null || _definitionCatalog == null)
+            if (playerAuthoring == null || playerAuthoring.definition == null)
             {
                 return;
             }
 
-            if (_definitionCatalog.shelter == null)
+            GameObject playerPrefab = playerAuthoring.definition.playerPrefab;
+            if (playerPrefab == null)
             {
-                Debug.LogError("DefinitionCatalog의 shelter가 비어 있다.", _definitionCatalog);
+                Debug.LogError($"{playerAuthoring.definition.name}의 playerPrefab이 비어 있다.", playerAuthoring.definition);
+                return;
+            }
+
+            Quaternion rotation = Quaternion.LookRotation(GetStartFacingDirection(playerAuthoring), Vector3.up);
+            PlayerViewSystem.Initialize(playerPrefab, playerAuthoring.transform.position, rotation, _viewContext);
+        }
+
+        // PlayerAuthoring이 바라보는 방향을 XZ 평면에 눕혀 길이 1로 만든다. 바로 위나 아래를 보면 Z+를 쓴다.
+        private static Vector3 GetStartFacingDirection(PlayerAuthoring playerAuthoring)
+        {
+            Vector3 startFacingDirection = playerAuthoring.transform.forward;
+            startFacingDirection.y = 0f;
+            return startFacingDirection.sqrMagnitude > 0f ? startFacingDirection.normalized : Vector3.forward;
+        }
+
+        // 씬의 ShelterAuthoring 위치에 그 Authoring이 가리키는 ShelterDefinition 수치로 쉘터 생성을 요청한다. ShelterAuthoring이나 ShelterDefinition이 없으면 요청하지 않는다.
+        private void EnqueueShelterSpawn()
+        {
+            ShelterAuthoring shelterAuthoring = FindFirstObjectByType<ShelterAuthoring>();
+            if (shelterAuthoring == null)
+            {
+                return;
+            }
+
+            if (shelterAuthoring.definition == null)
+            {
+                Debug.LogError("ShelterAuthoring의 definition이 비어 있다.", shelterAuthoring);
                 return;
             }
 
             _world.shelterSpawnRequests.Enqueue(new ShelterSpawnRequest
             {
                 position = shelterAuthoring.transform.position,
-                shelter = _definitionCatalog.shelter.shelter,
+                shelter = shelterAuthoring.definition.shelter,
             });
         }
 
@@ -245,9 +280,8 @@ namespace Project06.Core
         }
 
         // PlayerDefinition의 시작 무기를 Catalog에서 찾아 탄창을 가득 채운 채 생성 요청에 담는다. 찾지 못하면 무기 없이 둔다.
-        private void EquipStartWeapon(ref PlayerSpawnRequest request)
+        private void EquipStartWeapon(ref PlayerSpawnRequest request, WeaponDefinition startWeapon)
         {
-            WeaponDefinition startWeapon = _definitionCatalog.player.startWeapon;
             WeaponDefinition[] weapons = _definitionCatalog.weapons;
             int weaponIndex = weapons != null && startWeapon != null ? Array.IndexOf(weapons, startWeapon) : -1;
             if (weaponIndex < 0)
@@ -385,16 +419,15 @@ namespace Project06.Core
             }
         }
 
-        // PlayerDefinition의 조준 카메라 수치로 카메라 View를 준비한다. Catalog가 없으면 카메라를 옮기지 않는다.
-        private void InitializeCamera()
+        // PlayerDefinition의 조준 카메라 수치로 카메라 View를 준비한다. PlayerDefinition이 없으면 카메라를 옮기지 않는다. InitializePlayerView 다음에 호출한다.
+        private void InitializeCamera(PlayerDefinition playerDefinition)
         {
-            if (_definitionCatalog == null)
+            if (playerDefinition == null)
             {
                 CameraViewSystem.Initialize(Camera.main, 0f, 0f, 0f, 0f, _viewContext);
                 return;
             }
 
-            PlayerDefinition playerDefinition = _definitionCatalog.player;
             CameraViewSystem.Initialize(Camera.main, playerDefinition.aimCameraDeadZone, playerDefinition.aimCameraMaxDistance, playerDefinition.aimCameraDistance, playerDefinition.aimCameraSmoothTime, _viewContext);
         }
 

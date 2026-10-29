@@ -14,4 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.ShelterDefinition
   shelter:
     maxHealth: 500
-    hitRadius: 3
+    hitRadius: 2
+    mentalitySafeRadius: 4
+    mentalityLossPerSecondPerMeter: 1
+    mentalityRecoveryPerSecond: 10

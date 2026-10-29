@@ -26,6 +26,25 @@ namespace Project06.Presentation.Player.ViewSystems
         private const string IS_DEAD_PARAMETER = "IsDead";
 
         /// <summary>
+        /// 플레이어 프리팹으로 플레이어 View를 하나 만들어 둔다. 판 시작 시 한 번 호출하며, 카메라가 첫 프레임부터 따라가도록 시작 위치와 방향에 놓는다.
+        /// </summary>
+        /// <param name="playerPrefab">플레이어 프리팹. 루트에 PlayerView가 있어야 한다.</param>
+        /// <param name="position">플레이어가 생성될 월드 위치.</param>
+        /// <param name="rotation">플레이어가 생성될 때의 회전.</param>
+        /// <param name="context">View 실행 상태.</param>
+        public static void Initialize(GameObject playerPrefab, Vector3 position, Quaternion rotation, ViewContext context)
+        {
+            if (playerPrefab.GetComponent<PlayerView>() == null)
+            {
+                Debug.LogError($"플레이어 프리팹 '{playerPrefab.name}'의 루트에 PlayerView가 없다. 플레이어를 표시하지 않는다.", playerPrefab);
+                return;
+            }
+
+            GameObject instance = Object.Instantiate(playerPrefab, position, rotation);
+            context.playerView = instance.GetComponent<PlayerView>();
+        }
+
+        /// <summary>
         /// 플레이어 위치를 직전 틱과 현재 틱 사이로 보간하고 바라보는 방향으로 회전해 View에 반영한 뒤, 바라보는 방향 기준 이동량과 재장전·사망 여부를 Animator에 넘긴다.
         /// 이번 프레임에 발사 기록이 있으면 발사 애니메이션을 한 번 재생한다.
         /// </summary>

@@ -9,14 +9,15 @@ namespace Project06.Presentation.Camera.ViewSystems
     public static class CameraViewSystem
     {
         /// <summary>
-        /// 조준 카메라 수치와 메인 카메라를 받아 두고, 플레이어 View 기준 카메라 피벗의 기본 위치와 씬에 설정된 Camera Distance를 기록한다. 판 시작 시 한 번 호출한다.
+        /// 조준 카메라 수치와 메인 카메라를 받아 두고, 플레이어 View 기준 카메라 피벗의 기본 위치와 씬에 설정된 Camera Distance를 기록한다.
+        /// Cinemachine 카메라가 플레이어 View의 카메라 피벗을 따라가게 한다. 판 시작 시 플레이어 View를 만든 다음 한 번 호출한다.
         /// </summary>
         /// <param name="mainCamera">씬의 메인 카메라. 없으면 카메라를 옮기지 않는다.</param>
         /// <param name="aimCameraDeadZone">조준 중 카메라를 옮기지 않는 화면 중앙 영역의 크기(0~1).</param>
         /// <param name="aimCameraMaxDistance">조준 중 커서를 화면 가장자리에 두었을 때 카메라가 옮겨 가는 수평 거리(m).</param>
         /// <param name="aimCameraDistance">조준 중 Camera Distance(m). 0 이하면 바꾸지 않는다.</param>
         /// <param name="aimCameraSmoothTime">카메라가 목표 위치와 거리를 따라가는 데 걸리는 대략적인 시간(초).</param>
-        /// <param name="context">View 실행 상태. cameraView를 먼저 채워 두어야 Camera Distance를 바꾼다.</param>
+        /// <param name="context">View 실행 상태. cameraView와 playerView를 먼저 채워 두어야 카메라가 플레이어를 따라가고 Camera Distance를 바꾼다.</param>
         public static void Initialize(UnityEngine.Camera mainCamera, float aimCameraDeadZone, float aimCameraMaxDistance, float aimCameraDistance, float aimCameraSmoothTime, ViewContext context)
         {
             context.mainCamera = mainCamera;
@@ -38,6 +39,13 @@ namespace Project06.Presentation.Camera.ViewSystems
             context.cameraPivotLocalPosition = playerView != null && playerView.cameraPivot != null
                 ? playerView.transform.InverseTransformPoint(playerView.cameraPivot.position)
                 : Vector3.zero;
+
+            // 플레이어 View는 판 시작 시 코드가 만들므로 씬에서 연결해 둘 수 없다. 여기서 따라갈 대상으로 넣고, 이전 위치에서 끌려오지 않도록 바로 맞춘다.
+            if (cameraView != null && cameraView.cinemachineCamera != null && playerView != null && playerView.cameraPivot != null)
+            {
+                cameraView.cinemachineCamera.Target.TrackingTarget = playerView.cameraPivot;
+                cameraView.cinemachineCamera.PreviousStateIsValid = false;
+            }
         }
 
         /// <summary>
