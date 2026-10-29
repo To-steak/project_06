@@ -1,7 +1,7 @@
 {
     "name": "Project06.Editor",
     "rootNamespace": "Project06.Editor",
-    "references": ["Project06.Entity", "Project06.Definitions", "Project06.Authoring"],
+    "references": ["Project06.Entity", "Project06.Systems", "Project06.Definitions", "Project06.Authoring", "Project06.Presentation", "Project06.UserInterface", "Project06.Core", "UnityEngine.UI"],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

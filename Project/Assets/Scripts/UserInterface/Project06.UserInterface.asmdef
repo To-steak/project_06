@@ -1,0 +1,14 @@
+{
+    "name": "Project06.UserInterface",
+    "rootNamespace": "Project06.UserInterface",
+    "references": ["Project06.Entity", "UnityEngine.UI", "Unity.TextMeshPro", "DOTween.Modules"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
