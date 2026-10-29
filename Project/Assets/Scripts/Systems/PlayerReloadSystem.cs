@@ -12,25 +12,24 @@ namespace Project06.Systems
         /// CommandSystem보다 먼저 호출해야 같은 틱에 바뀐 재장전 여부로 달리기·조준·발사를 정한다.
         /// </summary>
         /// <param name="reloadCommand">이번 틱에 적용할 재장전 명령.</param>
-        /// <param name="aimCommand">이번 틱의 조준 명령. 빈 탄창 자동 재장전 판단에 쓴다.</param>
         /// <param name="fireCommand">이번 틱의 발사 명령. 빈 탄창 자동 재장전 판단에 쓴다.</param>
-        /// <param name="players">재장전할 플레이어 저장소. 살아 있는 플레이어 모두에게 같은 명령을 적용한다.</param>
-        public static void Tick(in ReloadCommand reloadCommand, in AimCommand aimCommand, in FireCommand fireCommand, PlayerStorage players)
+        /// <param name="players">재장전할 플레이어 저장소. 살아 있고 사망 중이 아닌 플레이어 모두에게 같은 명령을 적용한다.</param>
+        public static void Tick(in ReloadCommand reloadCommand, in FireCommand fireCommand, PlayerStorage players)
         {
             PlayerEntity[] entities = players.entities;
             for (int index = 0; index < entities.Length; index++)
             {
                 ref PlayerEntity player = ref entities[index];
-                if (!player.isAlive || player.weaponIndex < 0)
+                if (!player.isAlive || player.isDead || player.weaponIndex < 0)
                 {
                     continue;
                 }
 
-                Reload(in reloadCommand, in aimCommand, in fireCommand, ref player);
+                Reload(in reloadCommand, in fireCommand, ref player);
             }
         }
 
-        private static void Reload(in ReloadCommand reloadCommand, in AimCommand aimCommand, in FireCommand fireCommand, ref PlayerEntity player)
+        private static void Reload(in ReloadCommand reloadCommand, in FireCommand fireCommand, ref PlayerEntity player)
         {
             if (player.isReloading)
             {
@@ -50,7 +49,7 @@ namespace Project06.Systems
             }
             else
             {
-                bool isFiringWithEmptyMagazine = fireCommand.fire && aimCommand.aim && player.magazineAmmo <= 0;
+                bool isFiringWithEmptyMagazine = fireCommand.fire && player.magazineAmmo <= 0;
                 if ((reloadCommand.reload || isFiringWithEmptyMagazine) && CanReload(in player))
                 {
                     player.isReloading = true;

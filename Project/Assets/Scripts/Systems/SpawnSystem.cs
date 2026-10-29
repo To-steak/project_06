@@ -54,6 +54,8 @@ namespace Project06.Systems
                     previousPosition = request.position,
                     currentPosition = request.position,
                     facingDirection = request.facingDirection,
+                    spawnPosition = request.position,
+                    spawnFacingDirection = request.facingDirection,
                     player = request.player,
                     health = request.player.maxHealth,
                     movement = request.movement,

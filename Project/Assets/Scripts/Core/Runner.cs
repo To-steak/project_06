@@ -85,7 +85,7 @@ namespace Project06.Core
         private void FixedUpdate()
         {
             CommandBuffer commandBuffer = _world.commandBuffer;
-            PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
+            PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.fireCommand, _world.players);
             commandBuffer.reloadCommand = default;
             CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
             PlayerMoveSystem.Tick(_world.players);
@@ -96,6 +96,7 @@ namespace Project06.Core
             ProjectileMoveSystem.Tick(_world.projectiles);
             EnemyProjectileHitSystem.Tick(_world.enemyProjectiles, _world.players);
             EnemyProjectileMoveSystem.Tick(_world.enemyProjectiles);
+            PlayerDeathSystem.Tick(_world.players);
             PlayerFireSystem.Tick(_world.players, _world.projectileSpawnRequests, _world.playerFiredRecords);
             EnemySpawnerSystem.Tick(_world.enemySpawners, _world.enemies, _world.enemySpawnRequests, _world.random);
             SpawnSystem.Tick(
@@ -133,7 +134,7 @@ namespace Project06.Core
                 ref PlayerEntity player = ref _world.players.entities[playerIndex];
                 PlayerViewSystem.Present(in player, _world.playerFiredRecords, interpolation, _viewContext);
                 WeaponViewSystem.Present(in player, _world.playerFiredRecords, _viewContext);
-                CameraViewSystem.Present(in player, _viewContext);
+                CameraViewSystem.Present(in player, _playerActions.General.Look.ReadValue<Vector2>(), _viewContext);
             }
 
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
@@ -282,12 +283,12 @@ namespace Project06.Core
         {
             if (_definitionCatalog == null)
             {
-                CameraViewSystem.Initialize(0f, 0f, 0f, _viewContext);
+                CameraViewSystem.Initialize(Camera.main, 0f, 0f, 0f, _viewContext);
                 return;
             }
 
             PlayerDefinition playerDefinition = _definitionCatalog.player;
-            CameraViewSystem.Initialize(playerDefinition.aimCameraWeight, playerDefinition.aimCameraMaxDistance, playerDefinition.aimCameraSmoothTime, _viewContext);
+            CameraViewSystem.Initialize(Camera.main, playerDefinition.aimCameraDeadZone, playerDefinition.aimCameraMaxDistance, playerDefinition.aimCameraSmoothTime, _viewContext);
         }
 
         // 살아 있는 첫 플레이어의 슬롯 인덱스를 구한다. 없으면 -1을 돌려준다.

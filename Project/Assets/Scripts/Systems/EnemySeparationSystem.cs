@@ -52,14 +52,14 @@ namespace Project06.Systems
             return enemy.isAlive && enemy.state != EnemyState.Dead;
         }
 
-        // 살아 있는 플레이어마다 피격 원이 겹치면 적을 플레이어 반대쪽으로 겹친 만큼 옮긴다.
+        // 살아 있고 사망 중이 아닌 플레이어마다 피격 원이 겹치면 적을 플레이어 반대쪽으로 겹친 만큼 옮긴다.
         private static void PushFromPlayers(ref EnemyEntity enemy, PlayerStorage players)
         {
             PlayerEntity[] entities = players.entities;
             for (int playerIndex = 0; playerIndex < entities.Length; playerIndex++)
             {
                 ref PlayerEntity player = ref entities[playerIndex];
-                if (!player.isAlive)
+                if (!player.isAlive || player.isDead)
                 {
                     continue;
                 }

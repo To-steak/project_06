@@ -49,9 +49,12 @@ namespace Project06.Presentation
         public int[] enemyProjectileViewGenerations;
         // 적 투사체 저장소 슬롯별로 표시 중인 View를 꺼낸 풀의 인덱스
         public int[] enemyProjectileViewPoolIndices;
-        // 조준 중 카메라가 플레이어에서 조준점 쪽으로 옮겨 가는 비율(0~1)
-        public float aimCameraWeight;
-        // 조준 중 카메라가 플레이어에서 옮겨 갈 수 있는 최대 수평 거리(m)
+        // 씬의 메인 카메라. 커서의 화면 방향을 월드 수평 방향으로 바꿀 때 쓴다.
+        // Project06.Presentation.Camera 네임스페이스와 이름이 겹치므로 전체 이름으로 쓴다.
+        public UnityEngine.Camera mainCamera;
+        // 조준 중 카메라를 옮기지 않는 화면 중앙 영역의 크기(0~1). 화면 중앙에서 가장자리까지를 1로 본다.
+        public float aimCameraDeadZone;
+        // 조준 중 커서를 화면 가장자리에 두었을 때 카메라가 옮겨 가는 수평 거리(m)
         public float aimCameraMaxDistance;
         // 카메라가 목표 위치를 따라가는 데 걸리는 대략적인 시간(초)
         public float aimCameraSmoothTime;

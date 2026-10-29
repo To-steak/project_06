@@ -17,7 +17,7 @@ namespace Project06.Entities
         public Vector3 moveDirection;
         // XZ 평면에서 바라보는 방향. 길이는 1이다.
         public Vector3 facingDirection;
-        // 달리고 있는지 여부. 달리기 입력을 누르고 이동 입력이 있을 때 true이며, 발사 중이거나 재장전 중이면 false다.
+        // 달리고 있는지 여부. 달리기 입력을 누르고 이동 입력이 있을 때 true이며, 재장전 중이면 false다.
         public bool isRunning;
         // XZ 평면의 현재 속도(m/s)
         public Vector3 velocity;
@@ -25,13 +25,25 @@ namespace Project06.Entities
         public PlayerComponent player;
         // 남은 체력
         public float health;
+        // 사망 중인지 여부. 쓰러진 순간부터 부활해 다 일어날 때까지 true다. 이 동안 슬롯은 살아 있지만 입력을 받지 않고, 적의 추격·공격·밀어내기 대상이 아니며 맞지 않는다.
+        public bool isDead;
+        // 사망 중 부활해 일어나는 중인지 여부. 쓰러져 있는 동안은 false다.
+        public bool isGettingUp;
+        // 쓰러져 있는 동안 부활까지 남은 틱
+        public int respawnRemainingTicks;
+        // 일어나는 동안 다시 조작할 수 있을 때까지 남은 틱
+        public int getUpRemainingTicks;
+        // 부활할 월드 위치. 처음 생성된 위치다.
+        public Vector3 spawnPosition;
+        // 부활할 때 바라볼 XZ 평면의 방향. 처음 생성될 때의 방향이며 길이는 1이다.
+        public Vector3 spawnFacingDirection;
         // 이동 수치
         public PlayerMovementComponent movement;
         // 조준하고 있는지 여부. 조준 입력을 누르고 있어도 달리거나 재장전 중이면 false다.
         public bool isAiming;
         // 마지막으로 구한 조준점의 월드 위치. 마우스가 가리키는 지점을 총구 높이의 수평면에 투영한 위치다.
         public Vector3 aimPosition;
-        // 조준 입력과 발사 입력을 함께 누르고 있는지 여부. 재장전 중이면 false다.
+        // 발사 입력을 누르고 있는지 여부. 재장전 중이면 false다.
         public bool isFiring;
         // 재장전 중인지 여부
         public bool isReloading;

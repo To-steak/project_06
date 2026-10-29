@@ -15,7 +15,7 @@ namespace Project06.Systems
             for (int index = 0; index < entities.Length; index++)
             {
                 ref PlayerEntity player = ref entities[index];
-                if (!player.isAlive)
+                if (!player.isAlive || player.isDead)
                 {
                     continue;
                 }

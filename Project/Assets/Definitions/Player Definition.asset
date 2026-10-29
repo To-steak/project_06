@@ -15,11 +15,13 @@ MonoBehaviour:
   player:
     maxHealth: 100
     hitRadius: 0.25
+    respawnDelayTicks: 200
+    getUpTicks: 75
   movement:
     moveSpeed: 3
     runSpeed: 5
     acceleration: 10
   startWeapon: {fileID: 11400000, guid: 3340221d9fe28c24c80727dac7bd13a4, type: 2}
-  aimCameraWeight: 0.3
-  aimCameraMaxDistance: 3
+  aimCameraDeadZone: 0.5
+  aimCameraMaxDistance: 1
   aimCameraSmoothTime: 0.15
