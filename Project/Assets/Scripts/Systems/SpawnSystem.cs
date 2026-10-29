@@ -70,6 +70,7 @@ namespace Project06.Systems
                     spawnFacingDirection = request.facingDirection,
                     player = request.player,
                     health = request.player.maxHealth,
+                    mentality = request.player.maxMentality,
                     movement = request.movement,
                     weaponIndex = request.weaponIndex,
                     weapon = request.weapon,

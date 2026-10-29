@@ -25,6 +25,8 @@ namespace Project06.Entities
         public PlayerComponent player;
         // 남은 체력
         public float health;
+        // 남은 정신력. 0이면 체력이 줄어든다.
+        public float mentality;
         // 사망 중인지 여부. 쓰러진 순간부터 부활해 다 일어날 때까지 true다. 이 동안 슬롯은 살아 있지만 입력을 받지 않고, 적의 추격·공격·밀어내기 대상이 아니며 맞지 않는다.
         public bool isDead;
         // 사망 중 부활해 일어나는 중인지 여부. 쓰러져 있는 동안은 false다.

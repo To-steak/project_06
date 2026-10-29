@@ -5,10 +5,6 @@ namespace Project06.Definitions
     [CreateAssetMenu(fileName = "DefinitionCatalog", menuName = "Project06/Definitions/Catalog")]
     public class DefinitionCatalog : ScriptableObject
     {
-        // 플레이어 Definition
-        public PlayerDefinition player;
-        // 쉘터 Definition
-        public ShelterDefinition shelter;
         // 낮밤 Definition
         public DayNightDefinition dayNight;
         // 하늘 조명 Definition

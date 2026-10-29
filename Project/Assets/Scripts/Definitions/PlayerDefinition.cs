@@ -10,6 +10,8 @@ namespace Project06.Definitions
         public PlayerComponent player;
         // 플레이어 생성 시 엔티티에 복사할 이동 수치
         public PlayerMovementComponent movement;
+        // 플레이어를 표시할 프리팹. 루트에 PlayerView가 있어야 하며, 피벗이 발밑이고 앞쪽(Z+)이 바라보는 방향을 향한다.
+        public GameObject playerPrefab;
         // 플레이어 생성 시 장착할 무기. DefinitionCatalog.weapons에 들어 있어야 한다.
         public WeaponDefinition startWeapon;
         // 조준 중 카메라를 옮기지 않는 화면 중앙 영역의 크기(0~1). 화면 중앙에서 가장자리까지를 1로 본 커서 거리가 이 안이면 카메라를 옮기지 않는다.

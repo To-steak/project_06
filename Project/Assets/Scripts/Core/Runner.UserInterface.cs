@@ -3,6 +3,7 @@ using Project06.Systems;
 using Project06.UserInterface.Ammo.Presenters;
 using Project06.UserInterface.DayNight.Presenters;
 using Project06.UserInterface.Health.Presenters;
+using Project06.UserInterface.Mentality.Presenters;
 
 namespace Project06.Core
 {
@@ -11,6 +12,7 @@ namespace Project06.Core
     {
         // 씬에 없으면 null이며, 그 Presenter에는 값을 넘기지 않는다.
         private HealthPresenter _healthPresenter;
+        private MentalityPresenter _mentalityPresenter;
         private AmmoPresenter _ammoPresenter;
         private DayNightPresenter _dayNightPresenter;
 
@@ -18,6 +20,7 @@ namespace Project06.Core
         private void InitializeUserInterface()
         {
             _healthPresenter = FindFirstObjectByType<HealthPresenter>();
+            _mentalityPresenter = FindFirstObjectByType<MentalityPresenter>();
             _ammoPresenter = FindFirstObjectByType<AmmoPresenter>();
             _dayNightPresenter = FindFirstObjectByType<DayNightPresenter>();
         }
@@ -31,6 +34,11 @@ namespace Project06.Core
                 if (_healthPresenter != null)
                 {
                     _healthPresenter.Present(player.health, player.player.maxHealth);
+                }
+
+                if (_mentalityPresenter != null)
+                {
+                    _mentalityPresenter.Present(player.mentality, player.player.maxMentality);
                 }
 
                 if (_ammoPresenter != null)
