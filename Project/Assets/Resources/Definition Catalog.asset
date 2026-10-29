@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Definition Catalog
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.DefinitionCatalog
   player: {fileID: 11400000, guid: fd89d1d51c8e3b948986e7ba59d60883, type: 2}
+  shelter: {fileID: 11400000, guid: 17304f6470db0d948a1ab8e9e36bdebe, type: 2}
   weapons:
   - {fileID: 11400000, guid: 3340221d9fe28c24c80727dac7bd13a4, type: 2}
   calibers:
@@ -20,4 +21,3 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0edc930d209cbb14682685c8286e5317, type: 2}
   - {fileID: 11400000, guid: d48dfe747973f7f43a490fa630ca5939, type: 2}
   - {fileID: 11400000, guid: 70eced35194251d4ab16d5dba4b67dd8, type: 2}
-  enemy: {fileID: 11400000, guid: c894ee2e82e2df34baa7c47ff9667ca4, type: 2}

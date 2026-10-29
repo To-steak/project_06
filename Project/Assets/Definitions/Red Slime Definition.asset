@@ -20,6 +20,7 @@ MonoBehaviour:
     acceleration: 10
     detectionRadius: 3
     loseRadius: 5
+    loseWaitTicks: 50
     stopDistance: 1
     pathUpdateIntervalTicks: 20
     wanderRadius: 3

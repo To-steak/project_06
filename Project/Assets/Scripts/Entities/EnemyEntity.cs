@@ -29,6 +29,8 @@ namespace Project06.Entities
         public float health;
         // AI 상태
         public EnemyState state;
+        // Chase·Attack에서 쫓거나 공격하는 목표의 종류
+        public EnemyTargetKind targetKind;
         // Idle에서 배회를 다시 시작할 때까지 남은 틱
         public int idleRemainingTicks;
         // Dead에서 소멸할 때까지 남은 틱
