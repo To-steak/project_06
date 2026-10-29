@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using Project06.Presentation.Camera.Views;
 using Project06.Presentation.Enemy.Views;
 using Project06.Presentation.Player.Views;
+using Project06.Presentation.Pooling;
 using Project06.Presentation.Sky.Views;
 using Project06.Presentation.Weapon.Views;
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace Project06.Presentation
 {
@@ -26,7 +26,7 @@ namespace Project06.Presentation
         // 장전음을 마지막으로 처리한 장전 경과 틱. 장전 중이 아니면 -1이다.
         public int presentedReloadElapsedTicks = -1;
         // 무기별 투사체 View 풀. DefinitionCatalog.weapons와 같은 순서이며, 프리팹이 없는 무기는 null이다.
-        public ObjectPool<GameObject>[] projectilePools;
+        public ViewPool<GameObject>[] projectilePools;
         // 투사체 저장소 슬롯별로 표시 중인 View. 표시 중이 아니면 null이다.
         public GameObject[] projectileViews;
         // 투사체 저장소 슬롯별로 표시 중인 View가 가리키는 엔티티의 generation
@@ -34,7 +34,7 @@ namespace Project06.Presentation
         // 투사체 저장소 슬롯별로 표시 중인 View를 꺼낸 풀의 인덱스
         public int[] projectileViewPoolIndices;
         // 종류별 적 View 풀. 적 종류 인덱스와 같은 순서이며, 프리팹이 없는 종류는 null이다.
-        public ObjectPool<EnemyView>[] enemyPools;
+        public ViewPool<EnemyView>[] enemyPools;
         // 적 저장소 슬롯별로 표시 중인 View. 표시 중이 아니면 null이다.
         public EnemyView[] enemyViews;
         // 적 저장소 슬롯별로 표시 중인 View가 가리키는 엔티티의 generation
@@ -44,7 +44,7 @@ namespace Project06.Presentation
         // 종류별 공격 Trigger 해시. 적 종류 인덱스와 같은 순서이며, 안쪽은 공격 목록과 같은 순서다. 0이면 Trigger가 없다.
         public int[][] enemyAttackTriggerHashes;
         // 적 종류별 적 투사체 View 풀. 적 종류 인덱스와 같은 순서이며, 투사체 프리팹이 없는 종류는 null이다.
-        public ObjectPool<GameObject>[] enemyProjectilePools;
+        public ViewPool<GameObject>[] enemyProjectilePools;
         // 적 투사체 저장소 슬롯별로 표시 중인 View. 표시 중이 아니면 null이다.
         public GameObject[] enemyProjectileViews;
         // 적 투사체 저장소 슬롯별로 표시 중인 View가 가리키는 엔티티의 generation

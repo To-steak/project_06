@@ -1,6 +1,6 @@
 using Project06.Entities;
+using Project06.Presentation.Pooling;
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace Project06.Presentation.EnemyProjectile.ViewSystems
 {
@@ -17,7 +17,7 @@ namespace Project06.Presentation.EnemyProjectile.ViewSystems
         /// <param name="context">View 실행 상태.</param>
         public static void Initialize(GameObject[] projectilePrefabs, int capacity, ViewContext context)
         {
-            context.enemyProjectilePools = new ObjectPool<GameObject>[projectilePrefabs.Length];
+            context.enemyProjectilePools = new ViewPool<GameObject>[projectilePrefabs.Length];
             for (int enemyTypeIndex = 0; enemyTypeIndex < projectilePrefabs.Length; enemyTypeIndex++)
             {
                 GameObject prefab = projectilePrefabs[enemyTypeIndex];
@@ -26,14 +26,7 @@ namespace Project06.Presentation.EnemyProjectile.ViewSystems
                     continue;
                 }
 
-                context.enemyProjectilePools[enemyTypeIndex] = new ObjectPool<GameObject>(
-                    () => Object.Instantiate(prefab),
-                    view => view.SetActive(true),
-                    view => view.SetActive(false),
-                    view => Object.Destroy(view),
-                    false,
-                    DEFAULT_POOL_CAPACITY,
-                    capacity);
+                context.enemyProjectilePools[enemyTypeIndex] = new ViewPool<GameObject>(prefab, DEFAULT_POOL_CAPACITY);
             }
 
             context.enemyProjectileViews = new GameObject[capacity];
@@ -70,7 +63,7 @@ namespace Project06.Presentation.EnemyProjectile.ViewSystems
                 bool isNewView = view == null;
                 if (isNewView)
                 {
-                    ObjectPool<GameObject> pool = GetPool(enemyProjectile.enemyTypeIndex, context);
+                    ViewPool<GameObject> pool = GetPool(enemyProjectile.enemyTypeIndex, context);
                     if (pool == null)
                     {
                         continue;
@@ -105,7 +98,7 @@ namespace Project06.Presentation.EnemyProjectile.ViewSystems
             }
         }
 
-        private static ObjectPool<GameObject> GetPool(int enemyTypeIndex, ViewContext context)
+        private static ViewPool<GameObject> GetPool(int enemyTypeIndex, ViewContext context)
         {
             if (enemyTypeIndex < 0 || enemyTypeIndex >= context.enemyProjectilePools.Length)
             {
