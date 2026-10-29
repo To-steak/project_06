@@ -17,6 +17,8 @@ namespace Project06.Definitions
         public float aimCameraDeadZone;
         // 조준 중 커서를 화면 가장자리에 두었을 때 카메라가 플레이어에서 커서 쪽으로 옮겨 가는 수평 거리(m)
         public float aimCameraMaxDistance;
+        // 조준 중 Cinemachine Position Composer의 Camera Distance(m). 조준하지 않을 때는 씬에 설정한 값으로 돌아간다. 0 이하면 바꾸지 않는다.
+        public float aimCameraDistance;
         // 카메라가 목표 위치를 따라가는 데 걸리는 대략적인 시간(초)
         public float aimCameraSmoothTime;
     }

@@ -1,7 +1,7 @@
 {
     "name": "Project06.Presentation",
     "rootNamespace": "Project06.Presentation",
-    "references": ["Project06.Entity"],
+    "references": ["Project06.Entity", "Unity.Cinemachine"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

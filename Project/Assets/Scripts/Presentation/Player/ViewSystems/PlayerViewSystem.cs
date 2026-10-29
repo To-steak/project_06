@@ -10,7 +10,6 @@ namespace Project06.Presentation.Player.ViewSystems
     {
         private static readonly int MOVE_X_PARAMETER_HASH = Animator.StringToHash(MOVE_X_PARAMETER);
         private static readonly int MOVE_Z_PARAMETER_HASH = Animator.StringToHash(MOVE_Z_PARAMETER);
-        private static readonly int IS_AIMING_PARAMETER_HASH = Animator.StringToHash(IS_AIMING_PARAMETER);
         private static readonly int FIRE_PARAMETER_HASH = Animator.StringToHash(FIRE_PARAMETER);
         private static readonly int IS_RELOADING_PARAMETER_HASH = Animator.StringToHash(IS_RELOADING_PARAMETER);
         private static readonly int IS_DEAD_PARAMETER_HASH = Animator.StringToHash(IS_DEAD_PARAMETER);
@@ -19,8 +18,6 @@ namespace Project06.Presentation.Player.ViewSystems
         // 길이는 걷기 속도에서 1, 달리기 속도에서 2가 되도록 정규화한다.
         private const string MOVE_X_PARAMETER = "MoveX";
         private const string MOVE_Z_PARAMETER = "MoveZ";
-        // 조준 중인지 여부(Bool)
-        private const string IS_AIMING_PARAMETER = "IsAiming";
         // 발사한 프레임에 켜는 Trigger
         private const string FIRE_PARAMETER = "Fire";
         // 재장전 중인지 여부(Bool). 재장전이 끝나거나 취소되면 false가 된다.
@@ -29,7 +26,7 @@ namespace Project06.Presentation.Player.ViewSystems
         private const string IS_DEAD_PARAMETER = "IsDead";
 
         /// <summary>
-        /// 플레이어 위치를 직전 틱과 현재 틱 사이로 보간하고 바라보는 방향으로 회전해 View에 반영한 뒤, 바라보는 방향 기준 이동량과 조준·재장전·사망 여부를 Animator에 넘긴다.
+        /// 플레이어 위치를 직전 틱과 현재 틱 사이로 보간하고 바라보는 방향으로 회전해 View에 반영한 뒤, 바라보는 방향 기준 이동량과 재장전·사망 여부를 Animator에 넘긴다.
         /// 이번 프레임에 발사 기록이 있으면 발사 애니메이션을 한 번 재생한다.
         /// </summary>
         /// <param name="player">표시할 플레이어.</param>
@@ -56,7 +53,6 @@ namespace Project06.Presentation.Player.ViewSystems
                 Vector3 localBlendPosition = playerView.transform.InverseTransformDirection(blendPosition);
                 playerView.animator.SetFloat(MOVE_X_PARAMETER_HASH, localBlendPosition.x);
                 playerView.animator.SetFloat(MOVE_Z_PARAMETER_HASH, localBlendPosition.z);
-                playerView.animator.SetBool(IS_AIMING_PARAMETER_HASH, player.isAiming);
                 playerView.animator.SetBool(IS_RELOADING_PARAMETER_HASH, player.isReloading);
                 playerView.animator.SetBool(IS_DEAD_PARAMETER_HASH, player.isDead && !player.isGettingUp);
                 if (playerFiredRecords.Count > 0)

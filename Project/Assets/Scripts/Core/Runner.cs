@@ -5,6 +5,7 @@ using Project06.Commands;
 using Project06.Definitions;
 using Project06.Entities;
 using Project06.Presentation;
+using Project06.Presentation.Camera.Views;
 using Project06.Presentation.Camera.ViewSystems;
 using Project06.Presentation.Enemy.ViewSystems;
 using Project06.Presentation.EnemyProjectile.ViewSystems;
@@ -73,6 +74,7 @@ namespace Project06.Core
             List<EnemyDefinition> enemyDefinitions = EnqueueEnemySpawnerSpawns();
 
             _viewContext.playerView = FindFirstObjectByType<PlayerView>();
+            _viewContext.cameraView = FindFirstObjectByType<CameraView>();
             InitializeCamera();
             CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
             WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
@@ -283,12 +285,12 @@ namespace Project06.Core
         {
             if (_definitionCatalog == null)
             {
-                CameraViewSystem.Initialize(Camera.main, 0f, 0f, 0f, _viewContext);
+                CameraViewSystem.Initialize(Camera.main, 0f, 0f, 0f, 0f, _viewContext);
                 return;
             }
 
             PlayerDefinition playerDefinition = _definitionCatalog.player;
-            CameraViewSystem.Initialize(Camera.main, playerDefinition.aimCameraDeadZone, playerDefinition.aimCameraMaxDistance, playerDefinition.aimCameraSmoothTime, _viewContext);
+            CameraViewSystem.Initialize(Camera.main, playerDefinition.aimCameraDeadZone, playerDefinition.aimCameraMaxDistance, playerDefinition.aimCameraDistance, playerDefinition.aimCameraSmoothTime, _viewContext);
         }
 
         // 살아 있는 첫 플레이어의 슬롯 인덱스를 구한다. 없으면 -1을 돌려준다.

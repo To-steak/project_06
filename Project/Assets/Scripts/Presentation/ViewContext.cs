@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Project06.Presentation.Camera.Views;
 using Project06.Presentation.Enemy.Views;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Weapon.Views;
@@ -52,6 +53,14 @@ namespace Project06.Presentation
         // 씬의 메인 카메라. 커서의 화면 방향을 월드 수평 방향으로 바꿀 때 쓴다.
         // Project06.Presentation.Camera 네임스페이스와 이름이 겹치므로 전체 이름으로 쓴다.
         public UnityEngine.Camera mainCamera;
+        // 씬에 배치된 카메라 View. 없으면 Camera Distance를 바꾸지 않는다.
+        public CameraView cameraView;
+        // 조준 중 Camera Distance(m). 0 이하면 바꾸지 않는다.
+        public float aimCameraDistance;
+        // 판 시작 시 씬에 설정되어 있던 Camera Distance(m). 조준하지 않을 때 이 값으로 돌아간다.
+        public float defaultCameraDistance;
+        // Camera Distance를 부드럽게 따라가게 할 때 쓰는 변화 속도
+        public float cameraDistanceVelocity;
         // 조준 중 카메라를 옮기지 않는 화면 중앙 영역의 크기(0~1). 화면 중앙에서 가장자리까지를 1로 본다.
         public float aimCameraDeadZone;
         // 조준 중 커서를 화면 가장자리에 두었을 때 카메라가 옮겨 가는 수평 거리(m)
