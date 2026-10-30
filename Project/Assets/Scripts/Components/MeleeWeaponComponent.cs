@@ -23,5 +23,9 @@ namespace Project06.Components
         public float enemyDamage;
         // 건물(쉘터 등 플레이어의 구조물)을 때렸을 때 회복시키는 체력. 최대 체력을 넘지 않는다.
         public float buildingRepair;
+        // 나무를 때렸을 때 깎는 체력. 0 이하면 나무를 맞히지 않는다.
+        public float treeDamage;
+        // 바위를 때렸을 때 깎는 체력. 0 이하면 바위를 맞히지 않는다.
+        public float rockDamage;
     }
 }

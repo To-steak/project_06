@@ -73,5 +73,9 @@ namespace Project06.Entities
         public int magazineAmmo;
         // 구경별 예비 탄약 수. DefinitionCatalog.calibers와 같은 순서다.
         public int[] reserveAmmo;
+        // 가진 나무 수. 최대 개수는 없다.
+        public int wood;
+        // 가진 돌 수. 최대 개수는 없다.
+        public int stone;
     }
 }

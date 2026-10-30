@@ -29,7 +29,9 @@ MonoBehaviour:
       hitLength: 1
       hitWidth: 1
       enemyDamage: 10
-      buildingRepair: 10
+      buildingRepair: 40
+      treeDamage: 10
+      rockDamage: 10
   caliber: {fileID: 0}
   weaponPrefab: {fileID: 5065193397554805155, guid: f46626654e72b7e43a46bd5dfe9da929, type: 3}
   projectilePrefab: {fileID: 0}

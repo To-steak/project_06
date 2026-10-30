@@ -4,6 +4,7 @@ using Project06.UserInterface.Ammo.Presenters;
 using Project06.UserInterface.DayNight.Presenters;
 using Project06.UserInterface.Health.Presenters;
 using Project06.UserInterface.Mentality.Presenters;
+using Project06.UserInterface.Resource.Presenters;
 
 namespace Project06.Core
 {
@@ -15,6 +16,7 @@ namespace Project06.Core
         private MentalityPresenter _mentalityPresenter;
         private AmmoPresenter _ammoPresenter;
         private DayNightPresenter _dayNightPresenter;
+        private ResourcePresenter _resourcePresenter;
 
         // 씬에 배치한 UI Presenter를 찾는다. 판 시작 시 한 번 호출한다.
         private void InitializeUserInterface()
@@ -23,6 +25,7 @@ namespace Project06.Core
             _mentalityPresenter = FindFirstObjectByType<MentalityPresenter>();
             _ammoPresenter = FindFirstObjectByType<AmmoPresenter>();
             _dayNightPresenter = FindFirstObjectByType<DayNightPresenter>();
+            _resourcePresenter = FindFirstObjectByType<ResourcePresenter>();
         }
 
         // 표시할 플레이어와 낮밤의 값을 UI Presenter에 넘긴다. 인덱스가 음수면 그 엔티티에 해당하는 Presenter는 건너뛴다.
@@ -44,6 +47,11 @@ namespace Project06.Core
                 if (_ammoPresenter != null)
                 {
                     _ammoPresenter.Present(player.magazineAmmo, GetReserveAmmo(in player));
+                }
+
+                if (_resourcePresenter != null)
+                {
+                    _resourcePresenter.Present(player.wood, player.stone);
                 }
             }
 

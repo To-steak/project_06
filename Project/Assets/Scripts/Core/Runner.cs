@@ -13,6 +13,8 @@ using Project06.Presentation.EnemyProjectile.ViewSystems;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Player.ViewSystems;
 using Project06.Presentation.Projectile.ViewSystems;
+using Project06.Presentation.ResourceNode.Views;
+using Project06.Presentation.ResourceNode.ViewSystems;
 using Project06.Presentation.Sky.Views;
 using Project06.Presentation.Sky.ViewSystems;
 using Project06.Presentation.Weapon.Views;
@@ -78,6 +80,7 @@ namespace Project06.Core
             EnqueuePlayerSpawn(playerAuthoring);
             EnqueueShelterSpawn();
             EnqueueDayNightSpawn();
+            ResourceNodeView[] resourceNodeViews = EnqueueResourceNodeSpawns();
             List<EnemyDefinition> enemyDefinitions = new List<EnemyDefinition>();
             EnqueueEnemySpawnerSpawns(enemyDefinitions);
             EnqueueBossSpawnerSpawns(enemyDefinitions);
@@ -92,6 +95,7 @@ namespace Project06.Core
             CollectEnemyViewData(enemyDefinitions, out GameObject[] enemyPrefabs, out string[][] enemyAttackTriggerNames, out GameObject[] enemyProjectilePrefabs);
             EnemyViewSystem.Initialize(enemyPrefabs, enemyAttackTriggerNames, _world.enemies.entities.Length, _viewContext);
             EnemyProjectileViewSystem.Initialize(enemyProjectilePrefabs, _world.enemyProjectiles.entities.Length, _viewContext);
+            ResourceNodeViewSystem.Initialize(resourceNodeViews, _viewContext);
             InitializeUserInterface();
         }
 
@@ -103,12 +107,12 @@ namespace Project06.Core
                 return;
             }
 
-            DayNightSystem.Tick(_world.dayNights, _world.enemySpawners, _world.enemies);
+            DayNightSystem.Tick(_world.dayNights, _world.enemySpawners, _world.enemies, _world.resourceNodes);
             CommandBuffer commandBuffer = _world.commandBuffer;
             PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.fireCommand, _world.players);
             commandBuffer.reloadCommand = default;
             CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
-            PlayerMeleeSystem.Tick(_world.players, _world.enemies, _world.shelters, _world.random, _world.playerMeleeStartedRecords, _world.enemyHitStunnedRecords);
+            PlayerMeleeSystem.Tick(_world.players, _world.enemies, _world.shelters, _world.resourceNodes, _world.random, _world.playerMeleeStartedRecords, _world.enemyHitStunnedRecords);
             PlayerMoveSystem.Tick(_world.players);
             EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.shelters);
             EnemyAttackSystem.Tick(_world.enemies, _world.players, _world.shelters, _world.enemyProjectileSpawnRequests, _world.enemyAttackStartedRecords);
@@ -128,6 +132,7 @@ namespace Project06.Core
                 _world.playerSpawnRequests, _world.players,
                 _world.shelterSpawnRequests, _world.shelters,
                 _world.dayNightSpawnRequests, _world.dayNights,
+                _world.resourceNodeSpawnRequests, _world.resourceNodes,
                 _world.enemySpawnerSpawnRequests, _world.enemySpawners,
                 _world.bossSpawnerSpawnRequests, _world.bossSpawners,
                 _world.enemySpawnRequests, _world.enemies,
@@ -174,6 +179,7 @@ namespace Project06.Core
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
             EnemyViewSystem.Present(_world.enemies, _world.enemyAttackStartedRecords, _world.enemyHitStunnedRecords, interpolation, _viewContext);
             EnemyProjectileViewSystem.Present(_world.enemyProjectiles, interpolation, _viewContext);
+            ResourceNodeViewSystem.Present(_world.resourceNodes, _viewContext);
             PresentUserInterface(playerIndex, dayNightIndex);
 
             _world.playerFiredRecords.Clear();
@@ -279,6 +285,38 @@ namespace Project06.Core
             {
                 dayNight = _definitionCatalog.dayNight.dayNight,
             });
+        }
+
+        // 씬의 ResourceNodeAuthoring마다 그 Authoring이 가리키는 ResourceNodeDefinition 수치로 자원 노드 생성을 요청한다. definition이 비어 있는 Authoring은 건너뛴다.
+        // Authoring 순서대로 같은 오브젝트의 ResourceNodeView를 모아 돌려준다. View가 없으면 그 칸은 null이며, 그 자원 노드는 다 캐도 사라지지 않는다.
+        private ResourceNodeView[] EnqueueResourceNodeSpawns()
+        {
+            ResourceNodeAuthoring[] resourceNodeAuthorings = FindObjectsByType<ResourceNodeAuthoring>(FindObjectsSortMode.None);
+            ResourceNodeView[] resourceNodeViews = new ResourceNodeView[resourceNodeAuthorings.Length];
+            for (int authoringIndex = 0; authoringIndex < resourceNodeAuthorings.Length; authoringIndex++)
+            {
+                ResourceNodeAuthoring resourceNodeAuthoring = resourceNodeAuthorings[authoringIndex];
+                resourceNodeViews[authoringIndex] = resourceNodeAuthoring.GetComponent<ResourceNodeView>();
+                if (resourceNodeViews[authoringIndex] == null)
+                {
+                    Debug.LogError($"ResourceNodeAuthoring '{resourceNodeAuthoring.name}'에 ResourceNodeView가 없다. 이 자원 노드는 다 캐도 사라지지 않는다.", resourceNodeAuthoring);
+                }
+
+                if (resourceNodeAuthoring.definition == null)
+                {
+                    Debug.LogError($"ResourceNodeAuthoring '{resourceNodeAuthoring.name}'의 definition이 비어 있다.", resourceNodeAuthoring);
+                    continue;
+                }
+
+                _world.resourceNodeSpawnRequests.Enqueue(new ResourceNodeSpawnRequest
+                {
+                    position = resourceNodeAuthoring.transform.position,
+                    authoringIndex = authoringIndex,
+                    node = resourceNodeAuthoring.definition.node,
+                });
+            }
+
+            return resourceNodeViews;
         }
 
         // PlayerDefinition의 시작 무기를 Catalog에서 찾아 탄창을 가득 채운 채 생성 요청에 담는다. 찾지 못하면 무기 없이 둔다. 근접 무기는 구경 없이 둔다.

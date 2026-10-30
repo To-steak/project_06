@@ -17,6 +17,8 @@ namespace Project06.Systems
         /// <param name="shelters">쉘터를 넣을 저장소.</param>
         /// <param name="dayNightSpawnRequests">낮밤 생성 요청 큐.</param>
         /// <param name="dayNights">낮밤을 넣을 저장소.</param>
+        /// <param name="resourceNodeSpawnRequests">자원 노드 생성 요청 큐.</param>
+        /// <param name="resourceNodes">자원 노드를 넣을 저장소.</param>
         /// <param name="enemySpawnerSpawnRequests">적 스포너 생성 요청 큐.</param>
         /// <param name="enemySpawners">적 스포너를 넣을 저장소.</param>
         /// <param name="bossSpawnerSpawnRequests">보스 스포너 생성 요청 큐.</param>
@@ -31,6 +33,7 @@ namespace Project06.Systems
             Queue<PlayerSpawnRequest> playerSpawnRequests, PlayerStorage players,
             Queue<ShelterSpawnRequest> shelterSpawnRequests, ShelterStorage shelters,
             Queue<DayNightSpawnRequest> dayNightSpawnRequests, DayNightStorage dayNights,
+            Queue<ResourceNodeSpawnRequest> resourceNodeSpawnRequests, ResourceNodeStorage resourceNodes,
             Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests, EnemySpawnerStorage enemySpawners,
             Queue<BossSpawnerSpawnRequest> bossSpawnerSpawnRequests, BossSpawnerStorage bossSpawners,
             Queue<EnemySpawnRequest> enemySpawnRequests, EnemyStorage enemies,
@@ -40,6 +43,7 @@ namespace Project06.Systems
             SpawnPlayers(playerSpawnRequests, players);
             SpawnShelters(shelterSpawnRequests, shelters);
             SpawnDayNights(dayNightSpawnRequests, dayNights);
+            SpawnResourceNodes(resourceNodeSpawnRequests, resourceNodes);
             SpawnEnemySpawners(enemySpawnerSpawnRequests, enemySpawners);
             SpawnBossSpawners(bossSpawnerSpawnRequests, bossSpawners);
             SpawnEnemies(enemySpawnRequests, enemies);
@@ -118,6 +122,29 @@ namespace Project06.Systems
                 dayNight.isNight = false;
                 dayNight.remainingTicks = Mathf.Max(1, request.dayNight.dayTicks);
                 dayNight.dayCount = 1;
+            }
+        }
+
+        private static void SpawnResourceNodes(Queue<ResourceNodeSpawnRequest> resourceNodeSpawnRequests, ResourceNodeStorage resourceNodes)
+        {
+            while (resourceNodeSpawnRequests.Count > 0)
+            {
+                ResourceNodeSpawnRequest request = resourceNodeSpawnRequests.Dequeue();
+                if (!TryTakeFreeIndex(resourceNodes.freeIndices, out int index))
+                {
+                    continue;
+                }
+
+                ref ResourceNodeEntity resourceNode = ref resourceNodes.entities[index];
+                resourceNode.isAlive = true;
+                resourceNode.generation++;
+                resourceNode.authoringIndex = request.authoringIndex;
+                resourceNode.position = request.position;
+                resourceNode.node = request.node;
+                resourceNode.health = request.node.maxHealth;
+                resourceNode.harvestedShareCount = 0;
+                resourceNode.isDepleted = false;
+                resourceNode.regrowRemainingDays = 0;
             }
         }
 

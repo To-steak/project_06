@@ -21,15 +21,17 @@ MonoBehaviour:
     magazineCapacity: 0
     reloadTicks: 0
     melee:
-      windupTicks: 17
-      activeTicks: 12
-      recoveryTicks: 19
+      windupTicks: 14
+      activeTicks: 2
+      recoveryTicks: 24
       cooldownTicks: 100
       hitOffset: 0.5
       hitLength: 1
       hitWidth: 1
       enemyDamage: 10
       buildingRepair: 10
+      treeDamage: 40
+      rockDamage: 10
   caliber: {fileID: 0}
   weaponPrefab: {fileID: 8161205137942913203, guid: 6728bcc0c02867647bed939183e17c99, type: 3}
   projectilePrefab: {fileID: 0}

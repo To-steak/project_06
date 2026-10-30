@@ -3,6 +3,7 @@ using Project06.Presentation.Camera.Views;
 using Project06.Presentation.Enemy.Views;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Pooling;
+using Project06.Presentation.ResourceNode.Views;
 using Project06.Presentation.Sky.Views;
 using Project06.Presentation.Weapon.Views;
 using UnityEngine;
@@ -55,6 +56,8 @@ namespace Project06.Presentation
         public int[] enemyProjectileViewGenerations;
         // 적 투사체 저장소 슬롯별로 표시 중인 View를 꺼낸 풀의 인덱스
         public int[] enemyProjectileViewPoolIndices;
+        // 씬에 놓인 자원 노드 View. ResourceNodeAuthoring 순서이며, View가 없는 칸은 null이다.
+        public ResourceNodeView[] resourceNodeViews;
         // 씬의 메인 카메라. 커서의 화면 방향을 월드 수평 방향으로 바꿀 때 쓴다.
         // Project06.Presentation.Camera 네임스페이스와 이름이 겹치므로 전체 이름으로 쓴다.
         public UnityEngine.Camera mainCamera;

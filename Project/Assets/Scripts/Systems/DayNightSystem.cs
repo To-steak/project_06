@@ -10,13 +10,15 @@ namespace Project06.Systems
         /// 살아 있는 낮밤마다 지금 시간대의 남은 시간을 한 틱 줄이고, 끝나면 낮과 밤을 바꾼다.
         /// 밤이 되면 살아 있는 스포너마다 대기 시간을 첫 적 대기 시간으로, 낸 적의 수를 0으로 되돌린다. 대기 시간은 밤이 시작된 틱부터 센다.
         /// 낮이 되면 살아 있는 적을 모두 Dead로 바꾼다. 이미 날아가는 적 투사체는 그대로 둔다.
+        /// 낮이 되면 다 캔 자원 노드마다 재생까지 남은 날을 하루 줄이고, 0이 된 자원 노드를 그 자리에 체력이 가득 찬 채 되살린다.
         /// 마지막 날의 밤은 끝나지 않는다. 한밤(밤의 절반)까지 흐른 뒤 그대로 멈춘다.
         /// FixedUpdate 맨 앞에 호출한다.
         /// </summary>
         /// <param name="dayNights">낮밤 저장소.</param>
         /// <param name="spawners">밤이 될 때 대기 시간을 되돌릴 적 스포너 저장소.</param>
         /// <param name="enemies">낮이 될 때 사망시킬 적 저장소.</param>
-        public static void Tick(DayNightStorage dayNights, EnemySpawnerStorage spawners, EnemyStorage enemies)
+        /// <param name="resourceNodes">낮이 될 때 재생시킬 자원 노드 저장소.</param>
+        public static void Tick(DayNightStorage dayNights, EnemySpawnerStorage spawners, EnemyStorage enemies, ResourceNodeStorage resourceNodes)
         {
             DayNightEntity[] entities = dayNights.entities;
             for (int index = 0; index < entities.Length; index++)
@@ -49,6 +51,7 @@ namespace Project06.Systems
                     dayNight.remainingTicks = Mathf.Max(1, dayNight.dayNight.dayTicks);
                     dayNight.dayCount++;
                     KillAllEnemies(enemies);
+                    RegrowResourceNodes(resourceNodes);
                 }
             }
         }
@@ -82,6 +85,30 @@ namespace Project06.Systems
                     spawner.spawnRemainingTicks = spawner.spawner.firstSpawnDelayTicks;
                     spawner.spawnedCount = 0;
                 }
+            }
+        }
+
+        // 다 캔 자원 노드마다 재생까지 남은 날을 하루 줄이고, 0이 되면 체력과 준 몫을 처음으로 되돌린다. 재생하지 않는 자원 노드는 건너뛴다.
+        private static void RegrowResourceNodes(ResourceNodeStorage resourceNodes)
+        {
+            ResourceNodeEntity[] entities = resourceNodes.entities;
+            for (int index = 0; index < entities.Length; index++)
+            {
+                ref ResourceNodeEntity resourceNode = ref entities[index];
+                if (!resourceNode.isAlive || !resourceNode.isDepleted || resourceNode.regrowRemainingDays <= 0)
+                {
+                    continue;
+                }
+
+                resourceNode.regrowRemainingDays--;
+                if (resourceNode.regrowRemainingDays > 0)
+                {
+                    continue;
+                }
+
+                resourceNode.health = resourceNode.node.maxHealth;
+                resourceNode.harvestedShareCount = 0;
+                resourceNode.isDepleted = false;
             }
         }
 
