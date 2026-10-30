@@ -1,4 +1,5 @@
 using Project06.Commands;
+using Project06.Components;
 using Project06.Entities;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ namespace Project06.Systems
         /// 이동 명령을 플레이어의 이동 방향과 달리기 여부에, 바라보기 명령을 바라보는 방향에, 조준·발사 명령을 조준·발사 상태에 반영한다.
         /// 바라보는 방향은 총구의 앞쪽 직선이 조준점을 지나도록 정하고, 조준점은 플레이어에 기록한다.
         /// 조준 여부와 관계없이 발사 입력으로 발사하고, 발사 중에도 달릴 수 있으며, 달리면 조준이 풀린다.
-        /// 재장전 중에는 달리기·조준·발사를 모두 막는다.
+        /// 재장전 중에는 달리기·조준·발사를 모두 막는다. 근접 공격 중에는 바라보는 방향을 바꾸지 않는다.
         /// </summary>
         /// <param name="moveCommand">이번 틱에 적용할 이동 명령.</param>
         /// <param name="lookCommand">이번 틱에 적용할 바라보기 명령.</param>
@@ -45,7 +46,10 @@ namespace Project06.Systems
             if (lookCommand.hasTarget)
             {
                 player.aimPosition = lookCommand.targetPosition;
-                FaceMuzzleLineToTarget(in lookCommand, ref player);
+                if (player.meleePhase == PlayerMeleePhase.None)
+                {
+                    FaceMuzzleLineToTarget(in lookCommand, ref player);
+                }
             }
 
             player.muzzlePosition = fireCommand.origin;

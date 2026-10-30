@@ -1,4 +1,5 @@
 using Project06.Commands;
+using Project06.Components;
 using Project06.Entities;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace Project06.Systems
         /// <summary>
         /// 재장전 입력이나 빈 탄창으로 발사하려는 입력이 있으면 재장전을 시작하고, 재장전 중이면 취소 입력을 처리하거나 남은 시간을 한 틱 줄인다.
         /// 재장전이 끝나는 틱에만 탄창을 채운다. 탄창에 남아 있던 탄은 예비 탄약으로 돌려보낸 뒤 탄창 용량만큼 다시 꺼낸다.
+        /// 원거리 무기를 든 플레이어만 처리한다.
         /// CommandSystem보다 먼저 호출해야 같은 틱에 바뀐 재장전 여부로 달리기·조준·발사를 정한다.
         /// </summary>
         /// <param name="reloadCommand">이번 틱에 적용할 재장전 명령.</param>
@@ -20,7 +22,7 @@ namespace Project06.Systems
             for (int index = 0; index < entities.Length; index++)
             {
                 ref PlayerEntity player = ref entities[index];
-                if (!player.isAlive || player.isDead || player.weaponIndex < 0)
+                if (!player.isAlive || player.isDead || player.weaponIndex < 0 || player.weapon.kind != WeaponKind.Ranged)
                 {
                     continue;
                 }

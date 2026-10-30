@@ -45,8 +45,16 @@ namespace Project06.Entities
         public bool isAiming;
         // 마지막으로 구한 조준점의 월드 위치. 마우스가 가리키는 지점을 총구 높이의 수평면에 투영한 위치다.
         public Vector3 aimPosition;
-        // 발사 입력을 누르고 있는지 여부. 재장전 중이면 false다.
+        // 발사 입력을 누르고 있는지 여부. 재장전 중이면 false다. 근접 무기는 이 입력으로 휘두른다.
         public bool isFiring;
+        // 근접 공격 단계. None이면 근접 공격 중이 아니다. 근접 공격 중에는 움직이지 못하고 바라보는 방향이 고정된다.
+        public PlayerMeleePhase meleePhase;
+        // 지금 근접 공격 단계가 끝날 때까지 남은 틱
+        public int meleeRemainingTicks;
+        // 이번 근접 공격으로 이미 맞혔는지 여부
+        public bool hasMeleeHit;
+        // 다음 근접 공격을 시작할 수 있을 때까지 남은 틱
+        public int meleeCooldownTicks;
         // 재장전 중인지 여부
         public bool isReloading;
         // 재장전이 끝날 때까지 남은 틱
@@ -65,5 +73,9 @@ namespace Project06.Entities
         public int magazineAmmo;
         // 구경별 예비 탄약 수. DefinitionCatalog.calibers와 같은 순서다.
         public int[] reserveAmmo;
+        // 가진 나무 수. 최대 개수는 없다.
+        public int wood;
+        // 가진 돌 수. 최대 개수는 없다.
+        public int stone;
     }
 }

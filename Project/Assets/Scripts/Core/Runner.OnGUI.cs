@@ -73,6 +73,7 @@ namespace Project06.Core
             GUILayout.Label($"예비 탄약: {reserveAmmo}");
             GUILayout.Label(reloadText);
             GUILayout.Label($"조준 {player.isAiming} · 발사 {player.isFiring} · 달리기 {player.isRunning}");
+            GUILayout.Label($"나무 {player.wood} · 돌 {player.stone}");
             GUILayout.Label(GetShelterText());
             GUILayout.Label(GetDayNightText());
             GUILayout.EndVertical();

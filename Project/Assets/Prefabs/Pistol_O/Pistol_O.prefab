@@ -442,7 +442,7 @@ GameObject:
   - component: {fileID: 2804505130210681716}
   - component: {fileID: 8832239670666213257}
   m_Layer: 0
-  m_Name: Muzzle
+  m_Name: Muzzle Flash
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5516,7 +5516,8 @@ GameObject:
   - component: {fileID: 689298534181311293}
   - component: {fileID: 411002527735963575}
   - component: {fileID: 6759057787153155682}
-  - component: {fileID: 1951760969452922917}
+  - component: {fileID: 2974497202056797244}
+  - component: {fileID: 8410862278178443949}
   m_Layer: 0
   m_Name: Pistol_O
   m_TagString: Untagged
@@ -5659,7 +5660,7 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1951760969452922917
+--- !u!114 &2974497202056797244
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5668,21 +5669,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 7479669588817133862}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b17cb5e96a2bfec4c8b6cbd686c99f01, type: 3}
+  m_Script: {fileID: 11500000, guid: 5018da3738cd0204395afe8aa380db30, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.Weapon.Views.WeaponView
-  grip: {fileID: 5585059295698091673}
+  m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.Weapon.Views.GunView
   animator: {fileID: 411002527735963575}
   muzzle: {fileID: 2543288511545279144}
   muzzleFlash: {fileID: 2804505130210681716}
   shellEjection: {fileID: 9075952905052343276}
   shellEjectionDelayTicks: 5
-  fireAudioSource: {fileID: 6759057787153155682}
+  audioSource: {fileID: 6759057787153155682}
   fireClips:
   - {fileID: 8300000, guid: 99348524f0ef5b3469b6d1976f17370c, type: 3}
   - {fileID: 8300000, guid: 0910b552636052c42a5d5fb6d168dc27, type: 3}
   - {fileID: 8300000, guid: 8115c336b0fa59f41b1cb0af599a2271, type: 3}
-  reloadAudioSource: {fileID: 6759057787153155682}
   reloadClips:
   - {fileID: 8300000, guid: 3de7713f7dd4a144fb85bdf1efdc1ead, type: 3}
   - {fileID: 8300000, guid: 6e95c1f9872c66348afdabf419de6f7a, type: 3}
@@ -5690,6 +5689,19 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 8a6916b0948e95a458df68134a4ec9ae, type: 3}
   - {fileID: 8300000, guid: 0691163014aba1549afecc26fec14ab4, type: 3}
   reloadClipTicks: 000000000f0000001e0000003200000046000000
+--- !u!114 &8410862278178443949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7479669588817133862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 426b7105fff5bb648a0ac5fe8ff95c23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.Weapon.Views.MeleeView
+  grip: {fileID: 5585059295698091673}
 --- !u!1 &7498844227037480573
 GameObject:
   m_ObjectHideFlags: 0
@@ -5794,7 +5806,7 @@ GameObject:
   - component: {fileID: 9075952905052343276}
   - component: {fileID: 5583194512018174106}
   m_Layer: 0
-  m_Name: Eject
+  m_Name: Shell Eject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

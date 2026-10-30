@@ -58,27 +58,33 @@ namespace Project06.Systems
                     continue;
                 }
 
-                ref EnemyEntity hitEnemy = ref enemies[hitEnemyIndex];
-                hitEnemy.health -= projectile.damage;
-                if (hitEnemy.health <= 0f)
-                {
-                    hitEnemy.state = EnemyState.Dead;
-                    hitEnemy.deathRemainingTicks = hitEnemy.enemy.deathDurationTicks;
-                    hitEnemy.velocity = Vector3.zero;
-                }
-                else if (random.NextDouble() < hitEnemy.enemy.hitStunChance)
-                {
-                    hitEnemy.state = EnemyState.HitStun;
-                    hitEnemy.hitStunRemainingTicks = hitEnemy.enemy.hitStunTicks;
-                    hitEnemy.velocity = Vector3.zero;
-                    enemyHitStunnedRecords.Add(new EnemyHitStunnedRecord
-                    {
-                        enemy = new EntityIdentifier { index = hitEnemyIndex, generation = hitEnemy.generation },
-                    });
-                }
+                DamageEnemy(ref enemies[hitEnemyIndex], hitEnemyIndex, projectile.damage, random, enemyHitStunnedRecords);
 
                 projectile.isAlive = false;
                 projectiles.freeIndices.Add(index);
+            }
+        }
+
+        // 적에게 데미지를 준다. 체력이 0 이하가 되면 Dead로 바꾸고, 살아남으면 경직 확률에 따라 HitStun으로 바꾼다.
+        // PlayerMeleeSystem도 쓴다.
+        internal static void DamageEnemy(ref EnemyEntity enemy, int enemyIndex, float damage, System.Random random, List<EnemyHitStunnedRecord> enemyHitStunnedRecords)
+        {
+            enemy.health -= damage;
+            if (enemy.health <= 0f)
+            {
+                enemy.state = EnemyState.Dead;
+                enemy.deathRemainingTicks = enemy.enemy.deathDurationTicks;
+                enemy.velocity = Vector3.zero;
+            }
+            else if (random.NextDouble() < enemy.enemy.hitStunChance)
+            {
+                enemy.state = EnemyState.HitStun;
+                enemy.hitStunRemainingTicks = enemy.enemy.hitStunTicks;
+                enemy.velocity = Vector3.zero;
+                enemyHitStunnedRecords.Add(new EnemyHitStunnedRecord
+                {
+                    enemy = new EntityIdentifier { index = enemyIndex, generation = enemy.generation },
+                });
             }
         }
 

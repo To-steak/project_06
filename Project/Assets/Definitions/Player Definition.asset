@@ -24,7 +24,7 @@ MonoBehaviour:
     runSpeed: 2
     acceleration: 10
   playerPrefab: {fileID: 5659979137459974790, guid: 0be39f993789e3042a63eea079434690, type: 3}
-  startWeapon: {fileID: 11400000, guid: 3340221d9fe28c24c80727dac7bd13a4, type: 2}
+  startWeapon: {fileID: 11400000, guid: bfe5ec3f75e53c04a9ed4e789b790802, type: 2}
   aimCameraDeadZone: 0.5
   aimCameraMaxDistance: 2
   aimCameraDistance: 4.5

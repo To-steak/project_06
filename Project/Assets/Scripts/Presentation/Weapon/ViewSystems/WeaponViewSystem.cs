@@ -18,9 +18,9 @@ namespace Project06.Presentation.Weapon.ViewSystems
         private const string IS_SLIDE_LOCKED_PARAMETER = "IsSlideLocked";
 
         /// <summary>
-        /// 무기별 총 프리팹과 총 View 목록을 준비한다. 판 시작 시 한 번 호출한다.
+        /// 무기별 무기 프리팹과 무기 View 목록을 준비한다. 판 시작 시 한 번 호출한다.
         /// </summary>
-        /// <param name="weaponPrefabs">무기별 총 프리팹. DefinitionCatalog.weapons와 같은 순서이며 null이 섞여 있어도 된다.</param>
+        /// <param name="weaponPrefabs">무기별 무기 프리팹. DefinitionCatalog.weapons와 같은 순서이며 null이 섞여 있어도 된다.</param>
         /// <param name="context">View 실행 상태.</param>
         public static void Initialize(GameObject[] weaponPrefabs, ViewContext context)
         {
@@ -28,17 +28,21 @@ namespace Project06.Presentation.Weapon.ViewSystems
             context.weaponViews = new WeaponView[weaponPrefabs.Length];
             context.equippedWeaponIndex = -1;
             context.equippedWeaponView = null;
+            context.equippedGunView = null;
+            context.equippedMeleeWeaponView = null;
         }
 
         /// <summary>
-        /// 플레이어가 장착한 무기가 바뀌었으면 손의 총을 바꾸고, 총 Animator에 슬라이드 멈춤 여부를 넘기며, 장전 중이면 장전 진행 틱에 맞춰 장전음을 재생한다.
+        /// 플레이어가 장착한 무기가 바뀌었으면 손의 무기를 바꾼다. 무기 View는 무기마다 처음 장착할 때 한 번만 생성하고, 이후에는 켜고 끄기만 한다.
+        /// 장착한 무기에 총 View가 있으면 총 Animator에 슬라이드 멈춤 여부를 넘기며, 장전 중이면 장전 진행 틱에 맞춰 장전음을 재생한다.
         /// 이번 프레임에 발사 기록이 있으면 총 Animator의 발사 애니메이션, 총구 섬광, 발사음을 한 번 재생하고, 쏜 발 수만큼 탄피를 지연 시간 뒤에 내보낸다.
-        /// 총 View는 무기마다 처음 장착할 때 한 번만 생성하고, 이후에는 켜고 끄기만 한다.
+        /// 장착한 무기에 근접 무기 View가 있으면, 휘두른 기록마다 휘두르는 소리를 재생한다. 나무·바위를 맞힌 공격은 휘두른 기록을 남기지 않으며, 그 타격음은 ResourceNodeViewSystem이 재생한다.
         /// </summary>
-        /// <param name="player">총을 든 플레이어.</param>
+        /// <param name="player">무기를 든 플레이어.</param>
         /// <param name="playerFiredRecords">이번 프레임에 쌓인 플레이어 발사 기록.</param>
+        /// <param name="playerMeleeSwungRecords">이번 프레임에 쌓인 근접 공격 휘두름 기록.</param>
         /// <param name="context">View 실행 상태.</param>
-        public static void Present(in PlayerEntity player, List<PlayerFiredRecord> playerFiredRecords, ViewContext context)
+        public static void Present(in PlayerEntity player, List<PlayerFiredRecord> playerFiredRecords, List<PlayerMeleeSwungRecord> playerMeleeSwungRecords, ViewContext context)
         {
             if (context.playerView == null || !player.isAlive)
             {
@@ -47,65 +51,115 @@ namespace Project06.Presentation.Weapon.ViewSystems
 
             if (player.weaponIndex != context.equippedWeaponIndex)
             {
-                if (context.equippedWeaponView != null)
-                {
-                    context.equippedWeaponView.gameObject.SetActive(false);
-                }
-
-                context.equippedWeaponIndex = player.weaponIndex;
-                context.pendingShellEjectionTimes.Clear();
-                context.equippedWeaponView = GetOrCreateWeaponView(player.weaponIndex, context.playerView, context);
-                if (context.equippedWeaponView != null)
-                {
-                    context.equippedWeaponView.gameObject.SetActive(true);
-                }
+                Equip(player.weaponIndex, context);
             }
 
-            WeaponView weaponView = context.equippedWeaponView;
-            if (weaponView == null)
+            MeleeWeaponView meleeWeaponView = context.equippedMeleeWeaponView;
+            if (meleeWeaponView != null)
+            {
+                PlaySwingSounds(playerMeleeSwungRecords, meleeWeaponView, context);
+            }
+
+            GunView gunView = context.equippedGunView;
+            if (gunView == null)
             {
                 return;
             }
 
             bool isSlideLocked = player.magazineAmmo <= 0;
             bool hasFired = playerFiredRecords.Count > 0;
-            if (weaponView.animator != null)
+            if (gunView.animator != null)
             {
-                weaponView.animator.SetBool(IS_SLIDE_LOCKED_PARAMETER_HASH, isSlideLocked);
+                gunView.animator.SetBool(IS_SLIDE_LOCKED_PARAMETER_HASH, isSlideLocked);
                 if (hasFired && !isSlideLocked)
                 {
-                    weaponView.animator.SetTrigger(FIRE_PARAMETER_HASH);
+                    gunView.animator.SetTrigger(FIRE_PARAMETER_HASH);
                 }
             }
 
-            PlayReloadSounds(in player, weaponView, context);
-            ScheduleShellEjections(playerFiredRecords.Count, weaponView, context);
-            EjectDueShells(weaponView, context);
+            PlayReloadSounds(in player, gunView, context);
+            ScheduleShellEjections(playerFiredRecords.Count, gunView, context);
+            EjectDueShells(gunView, context);
 
             if (!hasFired)
             {
                 return;
             }
 
-            if (weaponView.muzzleFlash != null)
+            if (gunView.muzzleFlash != null)
             {
                 // 이전 화염이 아직 재생 중이면 Play가 무시되므로, 지우고 처음부터 다시 재생한다.
-                weaponView.muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                weaponView.muzzleFlash.Play(true);
+                gunView.muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                gunView.muzzleFlash.Play(true);
             }
 
-            PlayFireSound(weaponView);
+            PlayFireSound(gunView);
         }
 
-        // 이번 프레임에 쏜 발 수만큼 탄피 배출 시각을 예약한다. 발사 후 shellEjectionDelayTicks만큼 지난 시각이다.
-        private static void ScheduleShellEjections(int firedCount, WeaponView weaponView, ViewContext context)
+        // 손의 무기를 weaponIndex의 무기로 바꾸고, 그 무기의 총 View와 근접 무기 View를 찾아 둔다. 이전 무기의 탄피 예약과 장전음 기록은 지운다.
+        private static void Equip(int weaponIndex, ViewContext context)
         {
-            if (weaponView.shellEjection == null)
+            if (context.equippedWeaponView != null)
+            {
+                context.equippedWeaponView.gameObject.SetActive(false);
+            }
+
+            context.equippedWeaponIndex = weaponIndex;
+            context.pendingShellEjectionTimes.Clear();
+            context.presentedReloadElapsedTicks = -1;
+            context.equippedWeaponView = GetOrCreateWeaponView(weaponIndex, context.playerView, context);
+            context.equippedGunView = null;
+            context.equippedMeleeWeaponView = null;
+            if (context.equippedWeaponView != null)
+            {
+                context.equippedWeaponView.gameObject.SetActive(true);
+                context.equippedGunView = context.equippedWeaponView.GetComponent<GunView>();
+                context.equippedMeleeWeaponView = context.equippedWeaponView.GetComponent<MeleeWeaponView>();
+            }
+        }
+
+        // 손에 든 무기의 휘두른 기록마다 휘두르는 소리를 재생한다.
+        private static void PlaySwingSounds(List<PlayerMeleeSwungRecord> playerMeleeSwungRecords, MeleeWeaponView meleeWeaponView, ViewContext context)
+        {
+            AudioSource audioSource = meleeWeaponView.audioSource;
+            if (audioSource == null)
             {
                 return;
             }
 
-            float ejectionTime = Time.time + weaponView.shellEjectionDelayTicks * Time.fixedDeltaTime;
+            for (int recordIndex = 0; recordIndex < playerMeleeSwungRecords.Count; recordIndex++)
+            {
+                if (playerMeleeSwungRecords[recordIndex].weaponIndex == context.equippedWeaponIndex)
+                {
+                    PlayRandomClip(audioSource, meleeWeaponView.swingClips);
+                }
+            }
+        }
+
+        // 소리 목록에서 하나를 무작위로 골라 겹쳐 재생한다. 목록이 비어 있으면 재생하지 않는다.
+        private static void PlayRandomClip(AudioSource audioSource, AudioClip[] clips)
+        {
+            if (clips == null || clips.Length == 0)
+            {
+                return;
+            }
+
+            AudioClip clip = clips[Random.Range(0, clips.Length)];
+            if (clip != null)
+            {
+                audioSource.PlayOneShot(clip);
+            }
+        }
+
+        // 이번 프레임에 쏜 발 수만큼 탄피 배출 시각을 예약한다. 발사 후 shellEjectionDelayTicks만큼 지난 시각이다.
+        private static void ScheduleShellEjections(int firedCount, GunView gunView, ViewContext context)
+        {
+            if (gunView.shellEjection == null)
+            {
+                return;
+            }
+
+            float ejectionTime = Time.time + gunView.shellEjectionDelayTicks * Time.fixedDeltaTime;
             for (int shotIndex = 0; shotIndex < firedCount; shotIndex++)
             {
                 context.pendingShellEjectionTimes.Add(ejectionTime);
@@ -113,7 +167,7 @@ namespace Project06.Presentation.Weapon.ViewSystems
         }
 
         // 배출 시각이 지난 탄피를 한 개씩 내보낸다.
-        private static void EjectDueShells(WeaponView weaponView, ViewContext context)
+        private static void EjectDueShells(GunView gunView, ViewContext context)
         {
             List<float> ejectionTimes = context.pendingShellEjectionTimes;
             for (int ejectionIndex = ejectionTimes.Count - 1; ejectionIndex >= 0; ejectionIndex--)
@@ -124,16 +178,16 @@ namespace Project06.Presentation.Weapon.ViewSystems
                 }
 
                 ejectionTimes.RemoveAt(ejectionIndex);
-                if (weaponView.shellEjection != null)
+                if (gunView.shellEjection != null)
                 {
-                    weaponView.shellEjection.Emit(1);
+                    gunView.shellEjection.Emit(1);
                 }
             }
         }
 
         // 지난 프레임 이후 장전 경과 틱이 지나친 장전음을 재생한다. 한 프레임에 여러 틱이 지나도 빠뜨리지 않는다.
         // 장전이 끝나거나 취소되면 기록을 지워, 다음 장전에서 처음부터 다시 재생한다.
-        private static void PlayReloadSounds(in PlayerEntity player, WeaponView weaponView, ViewContext context)
+        private static void PlayReloadSounds(in PlayerEntity player, GunView gunView, ViewContext context)
         {
             if (!player.isReloading)
             {
@@ -151,9 +205,9 @@ namespace Project06.Presentation.Weapon.ViewSystems
 
             context.presentedReloadElapsedTicks = elapsedTicks;
 
-            AudioSource audioSource = weaponView.reloadAudioSource;
-            AudioClip[] clips = weaponView.reloadClips;
-            int[] clipTicks = weaponView.reloadClipTicks;
+            AudioSource audioSource = gunView.audioSource;
+            AudioClip[] clips = gunView.reloadClips;
+            int[] clipTicks = gunView.reloadClipTicks;
             if (audioSource == null || clips == null || clipTicks == null)
             {
                 return;
@@ -171,15 +225,15 @@ namespace Project06.Presentation.Weapon.ViewSystems
         }
 
         // 발사음 중 하나를 무작위로 골라 겹쳐 재생한다. 연사로 이전 소리가 끝나기 전에 쏴도 끊기지 않는다.
-        private static void PlayFireSound(WeaponView weaponView)
+        private static void PlayFireSound(GunView gunView)
         {
-            AudioSource audioSource = weaponView.fireAudioSource;
+            AudioSource audioSource = gunView.audioSource;
             if (audioSource == null)
             {
                 return;
             }
 
-            AudioClip[] clips = weaponView.fireClips;
+            AudioClip[] clips = gunView.fireClips;
             AudioClip clip = clips != null && clips.Length > 0 ? clips[Random.Range(0, clips.Length)] : audioSource.clip;
             if (clip != null)
             {
@@ -187,7 +241,7 @@ namespace Project06.Presentation.Weapon.ViewSystems
             }
         }
 
-        // 무기의 총 View를 돌려준다. 아직 없으면 손 소켓 아래에 생성해 보관한다. 만들 수 없으면 null을 돌려준다.
+        // 무기의 무기 View를 돌려준다. 아직 없으면 손 소켓 아래에 생성해 보관한다. 만들 수 없으면 null을 돌려준다.
         private static WeaponView GetOrCreateWeaponView(int weaponIndex, PlayerView playerView, ViewContext context)
         {
             if (weaponIndex < 0 || weaponIndex >= context.weaponViews.Length)
@@ -217,24 +271,29 @@ namespace Project06.Presentation.Weapon.ViewSystems
             }
 
             AlignGripToSocket(weaponView);
-            SetShellCollisionPlane(weaponView, playerView);
+            GunView gunView = instance.GetComponent<GunView>();
+            if (gunView != null)
+            {
+                SetShellCollisionPlane(gunView, playerView);
+            }
+
             context.weaponViews[weaponIndex] = weaponView;
             return weaponView;
         }
 
         // 탄피가 부딪힐 바닥 평면을 플레이어 루트로 지정한다. 플레이어 루트는 늘 발밑에 있고 수평으로만 돌아서 위쪽이 하늘을 향한다.
-        private static void SetShellCollisionPlane(WeaponView weaponView, PlayerView playerView)
+        private static void SetShellCollisionPlane(GunView gunView, PlayerView playerView)
         {
-            if (weaponView.shellEjection == null)
+            if (gunView.shellEjection == null)
             {
                 return;
             }
 
-            ParticleSystem.CollisionModule collision = weaponView.shellEjection.collision;
+            ParticleSystem.CollisionModule collision = gunView.shellEjection.collision;
             collision.SetPlane(0, playerView.transform);
         }
 
-        // 소켓 바로 아래에 붙은 총의 로컬 위치·회전을 바꿔, grip이 소켓과 같은 위치·회전에 오게 한다.
+        // 소켓 바로 아래에 붙은 무기의 로컬 위치·회전을 바꿔, grip이 소켓과 같은 위치·회전에 오게 한다.
         private static void AlignGripToSocket(WeaponView weaponView)
         {
             Transform grip = weaponView.grip;

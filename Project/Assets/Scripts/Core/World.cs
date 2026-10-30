@@ -25,12 +25,16 @@ namespace Project06.Core
         public ShelterStorage shelters = new ShelterStorage(MAX_SHELTER_COUNT);
         // 낮밤 엔티티 저장소
         public DayNightStorage dayNights = new DayNightStorage(MAX_DAY_NIGHT_COUNT);
+        // 나무·바위 같은 자원 노드 엔티티 저장소
+        public ResourceNodeStorage resourceNodes = new ResourceNodeStorage(MAX_RESOURCE_NODE_COUNT);
         // 틱 마지막에 SpawnSystem이 처리할 플레이어 생성 요청
         public Queue<PlayerSpawnRequest> playerSpawnRequests = new Queue<PlayerSpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 쉘터 생성 요청
         public Queue<ShelterSpawnRequest> shelterSpawnRequests = new Queue<ShelterSpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 낮밤 생성 요청
         public Queue<DayNightSpawnRequest> dayNightSpawnRequests = new Queue<DayNightSpawnRequest>();
+        // 틱 마지막에 SpawnSystem이 처리할 자원 노드 생성 요청
+        public Queue<ResourceNodeSpawnRequest> resourceNodeSpawnRequests = new Queue<ResourceNodeSpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 적 스포너 생성 요청
         public Queue<EnemySpawnerSpawnRequest> enemySpawnerSpawnRequests = new Queue<EnemySpawnerSpawnRequest>();
         // 틱 마지막에 SpawnSystem이 처리할 보스 스포너 생성 요청
@@ -43,6 +47,12 @@ namespace Project06.Core
         public Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests = new Queue<EnemyProjectileSpawnRequest>();
         // 플레이어가 발사한 기록. LateUpdate 마지막에 비운다.
         public List<PlayerFiredRecord> playerFiredRecords = new List<PlayerFiredRecord>();
+        // 플레이어가 근접 공격을 시작한 기록. LateUpdate 마지막에 비운다.
+        public List<PlayerMeleeStartedRecord> playerMeleeStartedRecords = new List<PlayerMeleeStartedRecord>();
+        // 플레이어의 근접 공격이 자원 노드를 맞히지 않고 휘둘러진 기록. 적·쉘터를 맞힌 틱이나, 아무것도 맞히지 못하고 타격 구간이 끝난 틱에 남는다. LateUpdate 마지막에 비운다.
+        public List<PlayerMeleeSwungRecord> playerMeleeSwungRecords = new List<PlayerMeleeSwungRecord>();
+        // 플레이어의 근접 공격에 자원 노드가 맞은 기록. LateUpdate 마지막에 비운다.
+        public List<ResourceNodeHitRecord> resourceNodeHitRecords = new List<ResourceNodeHitRecord>();
         // 적이 공격을 시작한 기록. LateUpdate 마지막에 비운다.
         public List<EnemyAttackStartedRecord> enemyAttackStartedRecords = new List<EnemyAttackStartedRecord>();
         // 적이 경직에 걸린 기록. LateUpdate 마지막에 비운다.
@@ -70,6 +80,8 @@ namespace Project06.Core
         public const int MAX_SHELTER_COUNT = 1;
         // 동시에 존재할 수 있는 낮밤의 최대 수
         public const int MAX_DAY_NIGHT_COUNT = 1;
+        // 동시에 존재할 수 있는 자원 노드의 최대 수
+        public const int MAX_RESOURCE_NODE_COUNT = 256;
         // 난수 생성기의 시드
         public const int RANDOM_SEED = 0;
     }

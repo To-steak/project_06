@@ -1,3 +1,4 @@
+using Project06.Components;
 using Project06.Entities;
 using UnityEngine;
 
@@ -7,7 +8,7 @@ namespace Project06.Systems
     {
         /// <summary>
         /// 체력이 0 이하가 된 플레이어를 사망 상태로 바꾸고, 사망 중인 플레이어는 쓰러짐 → 일어남 단계를 진행한다.
-        /// 사망하면 제자리에 쓰러져 멈추고 달리기·조준·발사·재장전이 모두 풀린다.
+        /// 사망하면 제자리에 쓰러져 멈추고 달리기·조준·발사·재장전·근접 공격이 모두 풀린다.
         /// 부활 시간이 끝나면 처음 생성된 위치와 방향으로 옮겨 체력과 정신력을 가득 채우고 일어나기 시작하며, 일어나는 시간이 끝나면 다시 조작할 수 있다. 탄약은 그대로 둔다.
         /// 플레이어가 데미지를 받는 EnemyAttackSystem, EnemyProjectileHitSystem, PlayerSanitySystem 다음, PlayerFireSystem 앞에 호출한다.
         /// </summary>
@@ -51,6 +52,8 @@ namespace Project06.Systems
             player.isFiring = false;
             player.isReloading = false;
             player.reloadRemainingTicks = 0;
+            player.meleePhase = PlayerMeleePhase.None;
+            player.meleeRemainingTicks = 0;
         }
 
         // 쓰러진 채 부활까지 남은 시간을 한 틱 줄이고, 끝나면 시작 위치로 옮겨 체력과 정신력을 채우고 일어나기 시작한다.
