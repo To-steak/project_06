@@ -152,6 +152,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.ResourceNode.Views.ResourceNodeView
   hitClips:
   - {fileID: 8300000, guid: 98144bc9ec2fc764f945af036b8c2e29, type: 3}
+  depletedClips:
+  - {fileID: 8300000, guid: d5d8de6da039c7a448fec92a582ad1e5, type: 3}
 --- !u!1 &7216220214966691008
 GameObject:
   m_ObjectHideFlags: 0

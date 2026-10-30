@@ -274,6 +274,7 @@ namespace Project06.Systems
                 resourceNodeHitRecords.Add(new ResourceNodeHitRecord
                 {
                     node = new EntityIdentifier { index = hitResourceNodeIndex, generation = hitResourceNode.generation },
+                    isDepleted = hitResourceNode.isDepleted,
                 });
                 return true;
             }

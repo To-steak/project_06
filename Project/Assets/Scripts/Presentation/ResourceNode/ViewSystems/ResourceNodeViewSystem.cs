@@ -20,7 +20,7 @@ namespace Project06.Presentation.ResourceNode.ViewSystems
         }
 
         /// <summary>
-        /// 이번 프레임에 맞은 자원 노드마다 그 위치에서 타격음을 재생한다. 효과음 풀로 재생하므로 마지막 타격에 오브젝트가 꺼져도 소리는 끝까지 난다.
+        /// 이번 프레임에 맞은 자원 노드마다 그 위치에서 타격음을, 그 타격으로 다 캤으면 타격음 대신 파괴 소리를 재생한다. 효과음 풀로 재생하므로 오브젝트가 꺼져도 소리는 끝까지 난다.
         /// 다 캔 자원 노드의 오브젝트는 끄고, 재생했거나 아직 캐는 중인 자원 노드의 오브젝트는 켠다.
         /// </summary>
         /// <param name="resourceNodes">표시할 자원 노드 저장소.</param>
@@ -48,26 +48,31 @@ namespace Project06.Presentation.ResourceNode.ViewSystems
             }
         }
 
-        // 맞은 자원 노드가 아직 그 엔티티이면 그 View의 타격음 중 하나를 골라 자원 노드 위치에서 재생한다.
+        // 맞은 자원 노드가 아직 그 엔티티이면 그 View의 타격음이나 파괴 소리 중 하나를 골라 자원 노드 위치에서 재생한다.
         private static void PlayHitSounds(ResourceNodeEntity[] entities, List<ResourceNodeHitRecord> resourceNodeHitRecords, ViewContext context)
         {
             for (int recordIndex = 0; recordIndex < resourceNodeHitRecords.Count; recordIndex++)
             {
-                EntityIdentifier identifier = resourceNodeHitRecords[recordIndex].node;
-                ref ResourceNodeEntity resourceNode = ref entities[identifier.index];
-                if (!resourceNode.isAlive || resourceNode.generation != identifier.generation)
+                ResourceNodeHitRecord record = resourceNodeHitRecords[recordIndex];
+                ref ResourceNodeEntity resourceNode = ref entities[record.node.index];
+                if (!resourceNode.isAlive || resourceNode.generation != record.node.generation)
                 {
                     continue;
                 }
 
                 ResourceNodeView view = GetView(in resourceNode, context);
-                if (view == null || view.hitClips == null || view.hitClips.Length == 0)
+                if (view == null)
                 {
                     continue;
                 }
 
-                AudioClip clip = view.hitClips[Random.Range(0, view.hitClips.Length)];
-                SoundEffectViewSystem.Play(clip, resourceNode.position, context);
+                AudioClip[] clips = record.isDepleted ? view.depletedClips : view.hitClips;
+                if (clips == null || clips.Length == 0)
+                {
+                    continue;
+                }
+
+                SoundEffectViewSystem.Play(clips[Random.Range(0, clips.Length)], resourceNode.position, context);
             }
         }
 
