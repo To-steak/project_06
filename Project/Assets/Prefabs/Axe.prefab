@@ -283,7 +283,8 @@ MonoBehaviour:
   swingClips:
   - {fileID: 8300000, guid: ec98f1471dd006b4eb6289c1b4158dd6, type: 3}
   treeHitClips:
-  - {fileID: 8300000, guid: d5d8de6da039c7a448fec92a582ad1e5, type: 3}
+  - {fileID: 8300000, guid: 98144bc9ec2fc764f945af036b8c2e29, type: 3}
   rockHitClips:
-  - {fileID: 8300000, guid: 95c5622f849eb404fa935bad8adbbe29, type: 3}
-  - {fileID: 8300000, guid: ff10a73183be4e8479629e9c969e7bda, type: 3}
+  - {fileID: 8300000, guid: 35bee9eb867f8394194463c84617567f, type: 3}
+  - {fileID: 8300000, guid: b83da81023e4a634a84528019c6823af, type: 3}
+  - {fileID: 8300000, guid: 86394a60ce61e754d8f4338b75c128a3, type: 3}
