@@ -6,6 +6,7 @@ using Project06.Components;
 using Project06.Definitions;
 using Project06.Entities;
 using Project06.Presentation;
+using Project06.Presentation.Audio.ViewSystems;
 using Project06.Presentation.Camera.Views;
 using Project06.Presentation.Camera.ViewSystems;
 using Project06.Presentation.Enemy.ViewSystems;
@@ -96,6 +97,7 @@ namespace Project06.Core
             EnemyViewSystem.Initialize(enemyPrefabs, enemyAttackTriggerNames, _world.enemies.entities.Length, _viewContext);
             EnemyProjectileViewSystem.Initialize(enemyProjectilePrefabs, _world.enemyProjectiles.entities.Length, _viewContext);
             ResourceNodeViewSystem.Initialize(resourceNodeViews, _viewContext);
+            InitializeSoundEffects();
             InitializeUserInterface();
         }
 
@@ -168,7 +170,7 @@ namespace Project06.Core
             {
                 ref PlayerEntity player = ref _world.players.entities[playerIndex];
                 PlayerViewSystem.Present(in player, _world.playerFiredRecords, _world.playerMeleeStartedRecords, interpolation, _viewContext);
-                WeaponViewSystem.Present(in player, _world.playerFiredRecords, _world.playerMeleeSwungRecords, _world.resourceNodeHitRecords, _viewContext);
+                WeaponViewSystem.Present(in player, _world.playerFiredRecords, _world.playerMeleeSwungRecords, _viewContext);
                 CameraViewSystem.Present(in player, _playerActions.General.Look.ReadValue<Vector2>(), _viewContext);
             }
 
@@ -181,7 +183,8 @@ namespace Project06.Core
             ProjectileViewSystem.Present(_world.projectiles, interpolation, _viewContext);
             EnemyViewSystem.Present(_world.enemies, _world.enemyAttackStartedRecords, _world.enemyHitStunnedRecords, interpolation, _viewContext);
             EnemyProjectileViewSystem.Present(_world.enemyProjectiles, interpolation, _viewContext);
-            ResourceNodeViewSystem.Present(_world.resourceNodes, _viewContext);
+            ResourceNodeViewSystem.Present(_world.resourceNodes, _world.resourceNodeHitRecords, _viewContext);
+            SoundEffectViewSystem.Present(_viewContext);
             PresentUserInterface(playerIndex, dayNightIndex);
 
             _world.playerFiredRecords.Clear();
@@ -502,6 +505,18 @@ namespace Project06.Core
                 skyDefinition.sunColor, skyDefinition.sunIntensity, skyDefinition.moonColor, skyDefinition.moonIntensity,
                 skyDefinition.ambientSkyColor, skyDefinition.ambientEquatorColor, skyDefinition.ambientGroundColor, skyDefinition.fogColor,
                 _viewContext);
+        }
+
+        // DefinitionCatalog의 효과음 프리팹으로 효과음 풀을 만든다. 프리팹이 없으면 월드 위치 효과음을 재생하지 않는다.
+        private void InitializeSoundEffects()
+        {
+            AudioSource soundEffectPrefab = _definitionCatalog != null ? _definitionCatalog.soundEffectPrefab : null;
+            if (_definitionCatalog != null && soundEffectPrefab == null)
+            {
+                Debug.LogError("DefinitionCatalog의 soundEffectPrefab이 비어 있다. 자원 노드 타격음을 재생하지 않는다.", _definitionCatalog);
+            }
+
+            SoundEffectViewSystem.Initialize(soundEffectPrefab, _viewContext);
         }
 
         // 살아 있는 첫 플레이어의 슬롯 인덱스를 구한다. 없으면 -1을 돌려준다.

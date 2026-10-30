@@ -271,7 +271,10 @@ namespace Project06.Systems
             {
                 ref ResourceNodeEntity hitResourceNode = ref resourceNodes[hitResourceNodeIndex];
                 Harvest(ref player, ref hitResourceNode, GetResourceNodeDamage(in melee, hitResourceNode.node.kind));
-                resourceNodeHitRecords.Add(new ResourceNodeHitRecord { weaponIndex = player.weaponIndex, kind = hitResourceNode.node.kind });
+                resourceNodeHitRecords.Add(new ResourceNodeHitRecord
+                {
+                    node = new EntityIdentifier { index = hitResourceNodeIndex, generation = hitResourceNode.generation },
+                });
                 return true;
             }
 

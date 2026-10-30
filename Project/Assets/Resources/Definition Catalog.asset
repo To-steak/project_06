@@ -24,3 +24,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0edc930d209cbb14682685c8286e5317, type: 2}
   - {fileID: 11400000, guid: d48dfe747973f7f43a490fa630ca5939, type: 2}
   - {fileID: 11400000, guid: 70eced35194251d4ab16d5dba4b67dd8, type: 2}
+  soundEffectPrefab: {fileID: 6210903377597872951, guid: 5f7fc088cccaeec4d9255dcee0e8b390, type: 3}

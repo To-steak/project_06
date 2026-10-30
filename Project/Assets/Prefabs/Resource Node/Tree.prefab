@@ -150,6 +150,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9f4a46e81af0134590685f58392eb54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Project06.Presentation::Project06.Presentation.ResourceNode.Views.ResourceNodeView
+  hitClips:
+  - {fileID: 8300000, guid: 98144bc9ec2fc764f945af036b8c2e29, type: 3}
 --- !u!1 &7216220214966691008
 GameObject:
   m_ObjectHideFlags: 0

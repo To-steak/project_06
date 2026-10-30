@@ -60,6 +60,10 @@ namespace Project06.Presentation
         public int[] enemyProjectileViewPoolIndices;
         // 씬에 놓인 자원 노드 View. ResourceNodeAuthoring 순서이며, View가 없는 칸은 null이다.
         public ResourceNodeView[] resourceNodeViews;
+        // 월드 위치에서 효과음을 재생할 AudioSource 풀. 효과음 프리팹이 없으면 null이다.
+        public ViewPool<AudioSource> soundEffectPool;
+        // 풀에서 꺼내 재생 중인 효과음 AudioSource. 재생이 끝나면 풀에 반납한다.
+        public List<AudioSource> playingSoundEffects;
         // 씬의 메인 카메라. 커서의 화면 방향을 월드 수평 방향으로 바꿀 때 쓴다.
         // Project06.Presentation.Camera 네임스페이스와 이름이 겹치므로 전체 이름으로 쓴다.
         public UnityEngine.Camera mainCamera;
