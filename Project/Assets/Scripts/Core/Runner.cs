@@ -112,7 +112,9 @@ namespace Project06.Core
             PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.fireCommand, _world.players);
             commandBuffer.reloadCommand = default;
             CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
-            PlayerMeleeSystem.Tick(_world.players, _world.enemies, _world.shelters, _world.resourceNodes, _world.random, _world.playerMeleeStartedRecords, _world.enemyHitStunnedRecords);
+            PlayerMeleeSystem.Tick(
+                _world.players, _world.enemies, _world.shelters, _world.resourceNodes, _world.random,
+                _world.playerMeleeStartedRecords, _world.playerMeleeSwungRecords, _world.enemyHitStunnedRecords, _world.resourceNodeHitRecords);
             PlayerMoveSystem.Tick(_world.players);
             EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.shelters);
             EnemyAttackSystem.Tick(_world.enemies, _world.players, _world.shelters, _world.enemyProjectileSpawnRequests, _world.enemyAttackStartedRecords);
@@ -166,7 +168,7 @@ namespace Project06.Core
             {
                 ref PlayerEntity player = ref _world.players.entities[playerIndex];
                 PlayerViewSystem.Present(in player, _world.playerFiredRecords, _world.playerMeleeStartedRecords, interpolation, _viewContext);
-                WeaponViewSystem.Present(in player, _world.playerFiredRecords, _viewContext);
+                WeaponViewSystem.Present(in player, _world.playerFiredRecords, _world.playerMeleeSwungRecords, _world.resourceNodeHitRecords, _viewContext);
                 CameraViewSystem.Present(in player, _playerActions.General.Look.ReadValue<Vector2>(), _viewContext);
             }
 
@@ -184,6 +186,8 @@ namespace Project06.Core
 
             _world.playerFiredRecords.Clear();
             _world.playerMeleeStartedRecords.Clear();
+            _world.playerMeleeSwungRecords.Clear();
+            _world.resourceNodeHitRecords.Clear();
             _world.enemyAttackStartedRecords.Clear();
             _world.enemyHitStunnedRecords.Clear();
         }

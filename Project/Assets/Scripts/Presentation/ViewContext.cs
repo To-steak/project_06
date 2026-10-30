@@ -26,6 +26,8 @@ namespace Project06.Presentation
         public WeaponView equippedWeaponView;
         // 지금 손에 표시 중인 무기의 총 View. 총이 아니거나 무기가 없으면 null이다.
         public GunView equippedGunView;
+        // 지금 손에 표시 중인 무기의 근접 무기 View. 근접 무기가 아니거나 무기가 없으면 null이다.
+        public MeleeWeaponView equippedMeleeWeaponView;
         // 아직 내보내지 않은 탄피의 배출 예정 시각(Time.time 기준 초). 장착한 총이 바뀌면 비운다.
         public List<float> pendingShellEjectionTimes = new List<float>();
         // 장전음을 마지막으로 처리한 장전 경과 틱. 장전 중이 아니면 -1이다.

@@ -18,6 +18,7 @@ namespace Project06.Systems
         /// 적은 데미지를 받고(경직 확률은 투사체와 같다), 쉘터는 플레이어의 구조물이므로 체력을 회복한다.
         /// 자원 노드는 종류에 맞는 근접 데미지만큼 체력이 깎이고, 깎인 체력이 최대 체력을 그 노드의 몫 수로 나눈 만큼 넘을 때마다 플레이어가 몫당 자원을 얻는다. 체력이 0이 되면 다 캔 것이다.
         /// 지금 무기의 데미지가 0 이하인 종류의 자원 노드는 맞히지 않는다.
+        /// 공격 하나마다 소리를 낼 기록을 하나만 남긴다. 자원 노드를 맞히면 그 틱에 자원 노드 피격 기록을, 적이나 쉘터를 맞히면 그 틱에 휘두른 기록을, 아무것도 맞히지 못하면 타격 구간이 끝나는 틱에 휘두른 기록을 남긴다.
         /// CommandSystem 다음, PlayerMoveSystem 앞에 호출한다.
         /// </summary>
         /// <param name="players">근접 공격할 플레이어 저장소.</param>
@@ -26,10 +27,13 @@ namespace Project06.Systems
         /// <param name="resourceNodeStorage">캘 수 있는 자원 노드 저장소.</param>
         /// <param name="random">경직 여부를 정할 난수 생성기.</param>
         /// <param name="playerMeleeStartedRecords">이번 틱에 근접 공격을 시작한 기록 목록.</param>
+        /// <param name="playerMeleeSwungRecords">이번 틱에 근접 공격이 자원 노드를 맞히지 않고 휘둘러진 기록 목록.</param>
         /// <param name="enemyHitStunnedRecords">이번 틱에 경직에 걸린 기록 목록.</param>
+        /// <param name="resourceNodeHitRecords">이번 틱에 근접 공격이 자원 노드를 맞힌 기록 목록.</param>
         public static void Tick(
             PlayerStorage players, EnemyStorage enemyStorage, ShelterStorage shelterStorage, ResourceNodeStorage resourceNodeStorage, System.Random random,
-            List<PlayerMeleeStartedRecord> playerMeleeStartedRecords, List<EnemyHitStunnedRecord> enemyHitStunnedRecords)
+            List<PlayerMeleeStartedRecord> playerMeleeStartedRecords, List<PlayerMeleeSwungRecord> playerMeleeSwungRecords,
+            List<EnemyHitStunnedRecord> enemyHitStunnedRecords, List<ResourceNodeHitRecord> resourceNodeHitRecords)
         {
             PlayerEntity[] entities = players.entities;
             for (int index = 0; index < entities.Length; index++)
@@ -40,7 +44,9 @@ namespace Project06.Systems
                     continue;
                 }
 
-                Attack(ref player, enemyStorage, shelterStorage, resourceNodeStorage, random, playerMeleeStartedRecords, enemyHitStunnedRecords);
+                Attack(
+                    ref player, enemyStorage, shelterStorage, resourceNodeStorage, random,
+                    playerMeleeStartedRecords, playerMeleeSwungRecords, enemyHitStunnedRecords, resourceNodeHitRecords);
             }
         }
 
@@ -63,7 +69,8 @@ namespace Project06.Systems
 
         private static void Attack(
             ref PlayerEntity player, EnemyStorage enemyStorage, ShelterStorage shelterStorage, ResourceNodeStorage resourceNodeStorage, System.Random random,
-            List<PlayerMeleeStartedRecord> playerMeleeStartedRecords, List<EnemyHitStunnedRecord> enemyHitStunnedRecords)
+            List<PlayerMeleeStartedRecord> playerMeleeStartedRecords, List<PlayerMeleeSwungRecord> playerMeleeSwungRecords,
+            List<EnemyHitStunnedRecord> enemyHitStunnedRecords, List<ResourceNodeHitRecord> resourceNodeHitRecords)
         {
             if (player.meleeCooldownTicks > 0)
             {
@@ -82,7 +89,7 @@ namespace Project06.Systems
             }
 
             Stand(ref player);
-            TickAttack(ref player, enemyStorage, shelterStorage, resourceNodeStorage, random, enemyHitStunnedRecords);
+            TickAttack(ref player, enemyStorage, shelterStorage, resourceNodeStorage, random, playerMeleeSwungRecords, enemyHitStunnedRecords, resourceNodeHitRecords);
         }
 
         private static void StartAttack(ref PlayerEntity player)
@@ -107,7 +114,7 @@ namespace Project06.Systems
         // 선딜레이가 끝나면 타격 구간에 들어가 매 틱 판정한다. 후딜레이가 끝나면 공격을 끝낸다.
         private static void TickAttack(
             ref PlayerEntity player, EnemyStorage enemyStorage, ShelterStorage shelterStorage, ResourceNodeStorage resourceNodeStorage, System.Random random,
-            List<EnemyHitStunnedRecord> enemyHitStunnedRecords)
+            List<PlayerMeleeSwungRecord> playerMeleeSwungRecords, List<EnemyHitStunnedRecord> enemyHitStunnedRecords, List<ResourceNodeHitRecord> resourceNodeHitRecords)
         {
             MeleeWeaponComponent melee = player.weapon.melee;
 
@@ -127,13 +134,21 @@ namespace Project06.Systems
             {
                 if (!player.hasMeleeHit)
                 {
-                    player.hasMeleeHit = TryHit(ref player, in melee, enemyStorage, shelterStorage, resourceNodeStorage, random, enemyHitStunnedRecords);
+                    player.hasMeleeHit = TryHit(
+                        ref player, in melee, enemyStorage, shelterStorage, resourceNodeStorage, random,
+                        playerMeleeSwungRecords, enemyHitStunnedRecords, resourceNodeHitRecords);
                 }
 
                 player.meleeRemainingTicks--;
                 if (player.meleeRemainingTicks > 0)
                 {
                     return;
+                }
+
+                // 끝까지 아무것도 맞히지 못했으면 휘두르는 소리만 낸다.
+                if (!player.hasMeleeHit)
+                {
+                    playerMeleeSwungRecords.Add(new PlayerMeleeSwungRecord { weaponIndex = player.weaponIndex });
                 }
 
                 player.meleePhase = PlayerMeleePhase.Recovery;
@@ -160,7 +175,7 @@ namespace Project06.Systems
         // 판정 상자와 피격 원이 겹치는 살아 있는 적, 파괴되지 않은 쉘터, 다 캐지 않은 자원 노드 중 피격 원 경계가 플레이어에게 가장 가까운 하나를 때린다. 맞혔으면 true를 돌려준다.
         private static bool TryHit(
             ref PlayerEntity player, in MeleeWeaponComponent melee, EnemyStorage enemyStorage, ShelterStorage shelterStorage, ResourceNodeStorage resourceNodeStorage,
-            System.Random random, List<EnemyHitStunnedRecord> enemyHitStunnedRecords)
+            System.Random random, List<PlayerMeleeSwungRecord> playerMeleeSwungRecords, List<EnemyHitStunnedRecord> enemyHitStunnedRecords, List<ResourceNodeHitRecord> resourceNodeHitRecords)
         {
             GetHitBox(in player, out Vector3 center, out Vector3 forward, out float halfLength, out float halfWidth);
             int hitEnemyIndex = -1;
@@ -240,6 +255,7 @@ namespace Project06.Systems
             if (hitEnemyIndex >= 0)
             {
                 ProjectileHitSystem.DamageEnemy(ref enemies[hitEnemyIndex], hitEnemyIndex, melee.enemyDamage, random, enemyHitStunnedRecords);
+                playerMeleeSwungRecords.Add(new PlayerMeleeSwungRecord { weaponIndex = player.weaponIndex });
                 return true;
             }
 
@@ -247,6 +263,7 @@ namespace Project06.Systems
             {
                 ref ShelterEntity hitShelter = ref shelters[hitShelterIndex];
                 hitShelter.health = Mathf.Min(hitShelter.shelter.maxHealth, hitShelter.health + melee.buildingRepair);
+                playerMeleeSwungRecords.Add(new PlayerMeleeSwungRecord { weaponIndex = player.weaponIndex });
                 return true;
             }
 
@@ -254,6 +271,7 @@ namespace Project06.Systems
             {
                 ref ResourceNodeEntity hitResourceNode = ref resourceNodes[hitResourceNodeIndex];
                 Harvest(ref player, ref hitResourceNode, GetResourceNodeDamage(in melee, hitResourceNode.node.kind));
+                resourceNodeHitRecords.Add(new ResourceNodeHitRecord { weaponIndex = player.weaponIndex, kind = hitResourceNode.node.kind });
                 return true;
             }
 

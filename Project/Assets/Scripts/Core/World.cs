@@ -49,6 +49,10 @@ namespace Project06.Core
         public List<PlayerFiredRecord> playerFiredRecords = new List<PlayerFiredRecord>();
         // 플레이어가 근접 공격을 시작한 기록. LateUpdate 마지막에 비운다.
         public List<PlayerMeleeStartedRecord> playerMeleeStartedRecords = new List<PlayerMeleeStartedRecord>();
+        // 플레이어의 근접 공격이 자원 노드를 맞히지 않고 휘둘러진 기록. 적·쉘터를 맞힌 틱이나, 아무것도 맞히지 못하고 타격 구간이 끝난 틱에 남는다. LateUpdate 마지막에 비운다.
+        public List<PlayerMeleeSwungRecord> playerMeleeSwungRecords = new List<PlayerMeleeSwungRecord>();
+        // 플레이어의 근접 공격이 자원 노드를 맞힌 기록. LateUpdate 마지막에 비운다.
+        public List<ResourceNodeHitRecord> resourceNodeHitRecords = new List<ResourceNodeHitRecord>();
         // 적이 공격을 시작한 기록. LateUpdate 마지막에 비운다.
         public List<EnemyAttackStartedRecord> enemyAttackStartedRecords = new List<EnemyAttackStartedRecord>();
         // 적이 경직에 걸린 기록. LateUpdate 마지막에 비운다.

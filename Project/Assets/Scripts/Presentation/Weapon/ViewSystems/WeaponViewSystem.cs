@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Project06.Components;
 using Project06.Entities;
 using Project06.Presentation.Player.Views;
 using Project06.Presentation.Weapon.Views;
@@ -29,17 +30,23 @@ namespace Project06.Presentation.Weapon.ViewSystems
             context.equippedWeaponIndex = -1;
             context.equippedWeaponView = null;
             context.equippedGunView = null;
+            context.equippedMeleeWeaponView = null;
         }
 
         /// <summary>
         /// 플레이어가 장착한 무기가 바뀌었으면 손의 무기를 바꾼다. 무기 View는 무기마다 처음 장착할 때 한 번만 생성하고, 이후에는 켜고 끄기만 한다.
         /// 장착한 무기에 총 View가 있으면 총 Animator에 슬라이드 멈춤 여부를 넘기며, 장전 중이면 장전 진행 틱에 맞춰 장전음을 재생한다.
         /// 이번 프레임에 발사 기록이 있으면 총 Animator의 발사 애니메이션, 총구 섬광, 발사음을 한 번 재생하고, 쏜 발 수만큼 탄피를 지연 시간 뒤에 내보낸다.
+        /// 장착한 무기에 근접 무기 View가 있으면, 휘두른 기록마다 휘두르는 소리를, 자원 노드를 맞힌 기록마다 그 종류의 타격음을 재생한다. 공격 하나에는 둘 중 하나만 남는다.
         /// </summary>
         /// <param name="player">무기를 든 플레이어.</param>
         /// <param name="playerFiredRecords">이번 프레임에 쌓인 플레이어 발사 기록.</param>
+        /// <param name="playerMeleeSwungRecords">이번 프레임에 쌓인 근접 공격 휘두름 기록.</param>
+        /// <param name="resourceNodeHitRecords">이번 프레임에 쌓인 자원 노드 피격 기록.</param>
         /// <param name="context">View 실행 상태.</param>
-        public static void Present(in PlayerEntity player, List<PlayerFiredRecord> playerFiredRecords, ViewContext context)
+        public static void Present(
+            in PlayerEntity player, List<PlayerFiredRecord> playerFiredRecords, List<PlayerMeleeSwungRecord> playerMeleeSwungRecords,
+            List<ResourceNodeHitRecord> resourceNodeHitRecords, ViewContext context)
         {
             if (context.playerView == null || !player.isAlive)
             {
@@ -49,6 +56,12 @@ namespace Project06.Presentation.Weapon.ViewSystems
             if (player.weaponIndex != context.equippedWeaponIndex)
             {
                 Equip(player.weaponIndex, context);
+            }
+
+            MeleeWeaponView meleeWeaponView = context.equippedMeleeWeaponView;
+            if (meleeWeaponView != null)
+            {
+                PlayMeleeSounds(playerMeleeSwungRecords, resourceNodeHitRecords, meleeWeaponView, context);
             }
 
             GunView gunView = context.equippedGunView;
@@ -87,7 +100,7 @@ namespace Project06.Presentation.Weapon.ViewSystems
             PlayFireSound(gunView);
         }
 
-        // 손의 무기를 weaponIndex의 무기로 바꾸고, 그 무기의 총 View를 찾아 둔다. 이전 무기의 탄피 예약과 장전음 기록은 지운다.
+        // 손의 무기를 weaponIndex의 무기로 바꾸고, 그 무기의 총 View와 근접 무기 View를 찾아 둔다. 이전 무기의 탄피 예약과 장전음 기록은 지운다.
         private static void Equip(int weaponIndex, ViewContext context)
         {
             if (context.equippedWeaponView != null)
@@ -100,10 +113,55 @@ namespace Project06.Presentation.Weapon.ViewSystems
             context.presentedReloadElapsedTicks = -1;
             context.equippedWeaponView = GetOrCreateWeaponView(weaponIndex, context.playerView, context);
             context.equippedGunView = null;
+            context.equippedMeleeWeaponView = null;
             if (context.equippedWeaponView != null)
             {
                 context.equippedWeaponView.gameObject.SetActive(true);
                 context.equippedGunView = context.equippedWeaponView.GetComponent<GunView>();
+                context.equippedMeleeWeaponView = context.equippedWeaponView.GetComponent<MeleeWeaponView>();
+            }
+        }
+
+        // 손에 든 무기의 기록만 골라, 휘두른 기록마다 휘두르는 소리를, 자원 노드를 맞힌 기록마다 나무나 바위 타격음을 재생한다.
+        private static void PlayMeleeSounds(
+            List<PlayerMeleeSwungRecord> playerMeleeSwungRecords, List<ResourceNodeHitRecord> resourceNodeHitRecords, MeleeWeaponView meleeWeaponView, ViewContext context)
+        {
+            AudioSource audioSource = meleeWeaponView.audioSource;
+            if (audioSource == null)
+            {
+                return;
+            }
+
+            for (int recordIndex = 0; recordIndex < playerMeleeSwungRecords.Count; recordIndex++)
+            {
+                if (playerMeleeSwungRecords[recordIndex].weaponIndex == context.equippedWeaponIndex)
+                {
+                    PlayRandomClip(audioSource, meleeWeaponView.swingClips);
+                }
+            }
+
+            for (int recordIndex = 0; recordIndex < resourceNodeHitRecords.Count; recordIndex++)
+            {
+                ResourceNodeHitRecord record = resourceNodeHitRecords[recordIndex];
+                if (record.weaponIndex == context.equippedWeaponIndex)
+                {
+                    PlayRandomClip(audioSource, record.kind == ResourceNodeKind.Tree ? meleeWeaponView.treeHitClips : meleeWeaponView.rockHitClips);
+                }
+            }
+        }
+
+        // 소리 목록에서 하나를 무작위로 골라 겹쳐 재생한다. 목록이 비어 있으면 재생하지 않는다.
+        private static void PlayRandomClip(AudioSource audioSource, AudioClip[] clips)
+        {
+            if (clips == null || clips.Length == 0)
+            {
+                return;
+            }
+
+            AudioClip clip = clips[Random.Range(0, clips.Length)];
+            if (clip != null)
+            {
+                audioSource.PlayOneShot(clip);
             }
         }
 

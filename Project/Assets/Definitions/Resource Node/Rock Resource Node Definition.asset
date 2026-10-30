@@ -16,5 +16,6 @@ MonoBehaviour:
     kind: 1
     maxHealth: 100
     hitRadius: 0.5
+    shareCount: 10
     resourcePerShare: 10
     regrowDays: 1
