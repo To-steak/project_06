@@ -24,16 +24,26 @@ namespace Project06.Presentation.Player.ViewSystems
         private const string IS_RELOADING_PARAMETER = "IsReloading";
         // 사망해 쓰러져 있는지 여부(Bool). true가 되면 GoDown을 재생해 마지막 자세를 유지하고, 부활해 일어나기 시작하면 false가 되어 DownToUp을 재생한다.
         private const string IS_DEAD_PARAMETER = "IsDead";
+        // Trigger 이름이 비어 있는 무기의 해시. 이 값이면 Trigger를 켜지 않는다.
+        private const int NO_TRIGGER_HASH = 0;
 
         /// <summary>
-        /// 플레이어 프리팹으로 플레이어 View를 하나 만들어 둔다. 판 시작 시 한 번 호출하며, 카메라가 첫 프레임부터 따라가도록 시작 위치와 방향에 놓는다.
+        /// 무기별 근접 공격 Trigger 해시를 준비하고, 플레이어 프리팹으로 플레이어 View를 하나 만들어 둔다. 판 시작 시 한 번 호출하며, 카메라가 첫 프레임부터 따라가도록 시작 위치와 방향에 놓는다.
         /// </summary>
         /// <param name="playerPrefab">플레이어 프리팹. 루트에 PlayerView가 있어야 한다.</param>
         /// <param name="position">플레이어가 생성될 월드 위치.</param>
         /// <param name="rotation">플레이어가 생성될 때의 회전.</param>
+        /// <param name="meleeAttackTriggerNames">무기별 근접 공격 Trigger 이름. DefinitionCatalog.weapons와 같은 순서이며 null이나 빈 이름이 섞여 있어도 된다.</param>
         /// <param name="context">View 실행 상태.</param>
-        public static void Initialize(GameObject playerPrefab, Vector3 position, Quaternion rotation, ViewContext context)
+        public static void Initialize(GameObject playerPrefab, Vector3 position, Quaternion rotation, string[] meleeAttackTriggerNames, ViewContext context)
         {
+            context.meleeAttackTriggerHashes = new int[meleeAttackTriggerNames.Length];
+            for (int weaponIndex = 0; weaponIndex < meleeAttackTriggerNames.Length; weaponIndex++)
+            {
+                string triggerName = meleeAttackTriggerNames[weaponIndex];
+                context.meleeAttackTriggerHashes[weaponIndex] = string.IsNullOrEmpty(triggerName) ? NO_TRIGGER_HASH : Animator.StringToHash(triggerName);
+            }
+
             if (playerPrefab.GetComponent<PlayerView>() == null)
             {
                 Debug.LogError($"플레이어 프리팹 '{playerPrefab.name}'의 루트에 PlayerView가 없다. 플레이어를 표시하지 않는다.", playerPrefab);
@@ -46,13 +56,16 @@ namespace Project06.Presentation.Player.ViewSystems
 
         /// <summary>
         /// 플레이어 위치를 직전 틱과 현재 틱 사이로 보간하고 바라보는 방향으로 회전해 View에 반영한 뒤, 바라보는 방향 기준 이동량과 재장전·사망 여부를 Animator에 넘긴다.
-        /// 이번 프레임에 발사 기록이 있으면 발사 애니메이션을 한 번 재생한다.
+        /// 이번 프레임에 발사 기록이 있으면 발사 애니메이션을, 근접 공격 시작 기록이 있으면 그 무기의 근접 공격 Trigger를 한 번 켠다.
         /// </summary>
         /// <param name="player">표시할 플레이어.</param>
         /// <param name="playerFiredRecords">이번 프레임에 쌓인 플레이어 발사 기록.</param>
+        /// <param name="playerMeleeStartedRecords">이번 프레임에 쌓인 플레이어 근접 공격 시작 기록.</param>
         /// <param name="interpolation">직전 틱에서 현재 틱까지 진행한 비율(0~1).</param>
         /// <param name="context">View 실행 상태.</param>
-        public static void Present(in PlayerEntity player, List<PlayerFiredRecord> playerFiredRecords, float interpolation, ViewContext context)
+        public static void Present(
+            in PlayerEntity player, List<PlayerFiredRecord> playerFiredRecords, List<PlayerMeleeStartedRecord> playerMeleeStartedRecords,
+            float interpolation, ViewContext context)
         {
             PlayerView playerView = context.playerView;
             if (playerView == null || !player.isAlive)
@@ -78,7 +91,25 @@ namespace Project06.Presentation.Player.ViewSystems
                 {
                     playerView.animator.SetTrigger(FIRE_PARAMETER_HASH);
                 }
+
+                for (int recordIndex = 0; recordIndex < playerMeleeStartedRecords.Count; recordIndex++)
+                {
+                    int triggerHash = GetMeleeAttackTriggerHash(playerMeleeStartedRecords[recordIndex].weaponIndex, context);
+                    if (triggerHash != NO_TRIGGER_HASH)
+                    {
+                        playerView.animator.SetTrigger(triggerHash);
+                    }
+                }
             }
+        }
+
+        // 무기의 근접 공격 Trigger 해시를 돌려준다. 범위를 벗어나거나 준비되지 않았으면 NO_TRIGGER_HASH다.
+        private static int GetMeleeAttackTriggerHash(int weaponIndex, ViewContext context)
+        {
+            int[] triggerHashes = context.meleeAttackTriggerHashes;
+            return triggerHashes != null && weaponIndex >= 0 && weaponIndex < triggerHashes.Length
+                ? triggerHashes[weaponIndex]
+                : NO_TRIGGER_HASH;
         }
 
         // 월드 속도를 같은 방향, 걷기 속도에서 길이 1, 달리기 속도에서 길이 2인 벡터로 바꾼다.

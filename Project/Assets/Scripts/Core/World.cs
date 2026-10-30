@@ -43,6 +43,8 @@ namespace Project06.Core
         public Queue<EnemyProjectileSpawnRequest> enemyProjectileSpawnRequests = new Queue<EnemyProjectileSpawnRequest>();
         // 플레이어가 발사한 기록. LateUpdate 마지막에 비운다.
         public List<PlayerFiredRecord> playerFiredRecords = new List<PlayerFiredRecord>();
+        // 플레이어가 근접 공격을 시작한 기록. LateUpdate 마지막에 비운다.
+        public List<PlayerMeleeStartedRecord> playerMeleeStartedRecords = new List<PlayerMeleeStartedRecord>();
         // 적이 공격을 시작한 기록. LateUpdate 마지막에 비운다.
         public List<EnemyAttackStartedRecord> enemyAttackStartedRecords = new List<EnemyAttackStartedRecord>();
         // 적이 경직에 걸린 기록. LateUpdate 마지막에 비운다.

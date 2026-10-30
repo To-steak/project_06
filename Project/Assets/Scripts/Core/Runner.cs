@@ -82,11 +82,11 @@ namespace Project06.Core
             EnqueueEnemySpawnerSpawns(enemyDefinitions);
             EnqueueBossSpawnerSpawns(enemyDefinitions);
 
-            InitializePlayerView(playerAuthoring);
+            CollectWeaponViewData(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs, out string[] meleeAttackTriggerNames);
+            InitializePlayerView(playerAuthoring, meleeAttackTriggerNames);
             _viewContext.cameraView = FindFirstObjectByType<CameraView>();
             InitializeCamera(playerDefinition);
             InitializeSky();
-            CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs);
             WeaponViewSystem.Initialize(weaponPrefabs, _viewContext);
             ProjectileViewSystem.Initialize(projectilePrefabs, _world.projectiles.entities.Length, _viewContext);
             CollectEnemyViewData(enemyDefinitions, out GameObject[] enemyPrefabs, out string[][] enemyAttackTriggerNames, out GameObject[] enemyProjectilePrefabs);
@@ -108,6 +108,7 @@ namespace Project06.Core
             PlayerReloadSystem.Tick(in commandBuffer.reloadCommand, in commandBuffer.fireCommand, _world.players);
             commandBuffer.reloadCommand = default;
             CommandSystem.Tick(in commandBuffer.moveCommand, in commandBuffer.lookCommand, in commandBuffer.aimCommand, in commandBuffer.fireCommand, _world.players);
+            PlayerMeleeSystem.Tick(_world.players, _world.enemies, _world.shelters, _world.random, _world.playerMeleeStartedRecords, _world.enemyHitStunnedRecords);
             PlayerMoveSystem.Tick(_world.players);
             EnemyBehaviorSystem.Tick(_world.enemies, _world.players, _world.shelters);
             EnemyAttackSystem.Tick(_world.enemies, _world.players, _world.shelters, _world.enemyProjectileSpawnRequests, _world.enemyAttackStartedRecords);
@@ -159,7 +160,7 @@ namespace Project06.Core
             if (playerIndex >= 0)
             {
                 ref PlayerEntity player = ref _world.players.entities[playerIndex];
-                PlayerViewSystem.Present(in player, _world.playerFiredRecords, interpolation, _viewContext);
+                PlayerViewSystem.Present(in player, _world.playerFiredRecords, _world.playerMeleeStartedRecords, interpolation, _viewContext);
                 WeaponViewSystem.Present(in player, _world.playerFiredRecords, _viewContext);
                 CameraViewSystem.Present(in player, _playerActions.General.Look.ReadValue<Vector2>(), _viewContext);
             }
@@ -176,6 +177,7 @@ namespace Project06.Core
             PresentUserInterface(playerIndex, dayNightIndex);
 
             _world.playerFiredRecords.Clear();
+            _world.playerMeleeStartedRecords.Clear();
             _world.enemyAttackStartedRecords.Clear();
             _world.enemyHitStunnedRecords.Clear();
         }
@@ -211,7 +213,7 @@ namespace Project06.Core
         }
 
         // PlayerAuthoring 위치와 방향에 PlayerDefinition의 프리팹으로 플레이어 View를 만든다. PlayerAuthoring이나 프리팹이 없으면 만들지 않는다.
-        private void InitializePlayerView(PlayerAuthoring playerAuthoring)
+        private void InitializePlayerView(PlayerAuthoring playerAuthoring, string[] meleeAttackTriggerNames)
         {
             if (playerAuthoring == null || playerAuthoring.definition == null)
             {
@@ -226,7 +228,7 @@ namespace Project06.Core
             }
 
             Quaternion rotation = Quaternion.LookRotation(GetStartFacingDirection(playerAuthoring), Vector3.up);
-            PlayerViewSystem.Initialize(playerPrefab, playerAuthoring.transform.position, rotation, _viewContext);
+            PlayerViewSystem.Initialize(playerPrefab, playerAuthoring.transform.position, rotation, meleeAttackTriggerNames, _viewContext);
         }
 
         // PlayerAuthoring이 바라보는 방향을 XZ 평면에 눕혀 길이 1로 만든다. 바로 위나 아래를 보면 Z+를 쓴다.
@@ -279,7 +281,7 @@ namespace Project06.Core
             });
         }
 
-        // PlayerDefinition의 시작 무기를 Catalog에서 찾아 탄창을 가득 채운 채 생성 요청에 담는다. 찾지 못하면 무기 없이 둔다.
+        // PlayerDefinition의 시작 무기를 Catalog에서 찾아 탄창을 가득 채운 채 생성 요청에 담는다. 찾지 못하면 무기 없이 둔다. 근접 무기는 구경 없이 둔다.
         private void EquipStartWeapon(ref PlayerSpawnRequest request, WeaponDefinition startWeapon)
         {
             WeaponDefinition[] weapons = _definitionCatalog.weapons;
@@ -293,6 +295,12 @@ namespace Project06.Core
             request.weaponIndex = weaponIndex;
             request.weapon = startWeapon.weapon;
             request.magazineAmmo = startWeapon.weapon.magazineCapacity;
+
+            // 근접 무기는 탄약을 쓰지 않으므로 구경을 찾지 않는다.
+            if (startWeapon.weapon.kind != WeaponKind.Ranged)
+            {
+                return;
+            }
 
             CaliberDefinition[] calibers = _definitionCatalog.calibers;
             request.caliberIndex = calibers != null && startWeapon.caliber != null ? Array.IndexOf(calibers, startWeapon.caliber) : -1;
@@ -484,8 +492,8 @@ namespace Project06.Core
             return -1;
         }
 
-        // DefinitionCatalog.weapons 순서대로 총 프리팹과 투사체 프리팹을 모은다.
-        private void CollectWeaponPrefabs(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs)
+        // DefinitionCatalog.weapons 순서대로 무기 프리팹, 투사체 프리팹, 근접 공격 Trigger 이름을 모은다.
+        private void CollectWeaponViewData(out GameObject[] weaponPrefabs, out GameObject[] projectilePrefabs, out string[] meleeAttackTriggerNames)
         {
             WeaponDefinition[] weapons = _definitionCatalog != null && _definitionCatalog.weapons != null
                 ? _definitionCatalog.weapons
@@ -493,38 +501,40 @@ namespace Project06.Core
 
             weaponPrefabs = new GameObject[weapons.Length];
             projectilePrefabs = new GameObject[weapons.Length];
+            meleeAttackTriggerNames = new string[weapons.Length];
             for (int weaponIndex = 0; weaponIndex < weapons.Length; weaponIndex++)
             {
                 WeaponDefinition weapon = weapons[weaponIndex];
                 weaponPrefabs[weaponIndex] = weapon != null ? weapon.weaponPrefab : null;
                 projectilePrefabs[weaponIndex] = weapon != null ? weapon.projectilePrefab : null;
+                meleeAttackTriggerNames[weaponIndex] = weapon != null ? weapon.meleeAttackTriggerName : null;
             }
         }
 
-        // 총구의 월드 위치를 구한다. 총구가 연결되어 있지 않으면 플레이어 위치를 쓴다.
+        // 총구의 월드 위치를 구한다. 총이 아니거나 총구가 연결되어 있지 않으면 플레이어 위치를 쓴다.
         private Vector3 GetMuzzlePosition()
         {
-            WeaponView weaponView = _viewContext.equippedWeaponView;
-            if (weaponView == null || weaponView.muzzle == null)
+            GunView gunView = _viewContext.equippedGunView;
+            if (gunView == null || gunView.muzzle == null)
             {
                 int playerIndex = FindAlivePlayerIndex();
                 return playerIndex >= 0 ? _world.players.entities[playerIndex].currentPosition : Vector3.zero;
             }
 
-            return weaponView.muzzle.position;
+            return gunView.muzzle.position;
         }
 
-        // 플레이어 View 기준 총구의 로컬 위치를 구한다. 총구가 연결되어 있지 않으면 0을 돌려준다.
+        // 플레이어 View 기준 총구의 로컬 위치를 구한다. 총이 아니거나 총구가 연결되어 있지 않으면 0을 돌려준다.
         private Vector3 GetMuzzleOffset()
         {
             PlayerView playerView = _viewContext.playerView;
-            WeaponView weaponView = _viewContext.equippedWeaponView;
-            if (playerView == null || weaponView == null || weaponView.muzzle == null)
+            GunView gunView = _viewContext.equippedGunView;
+            if (playerView == null || gunView == null || gunView.muzzle == null)
             {
                 return Vector3.zero;
             }
 
-            return playerView.transform.InverseTransformPoint(weaponView.muzzle.position);
+            return playerView.transform.InverseTransformPoint(gunView.muzzle.position);
         }
 
         // 화면 좌표의 커서를 높이 height의 수평면에 투영한 월드 위치를 구한다. 투영할 수 없으면 false를 돌려준다.

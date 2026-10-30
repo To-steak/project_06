@@ -19,10 +19,13 @@ namespace Project06.Core
         private static readonly Color ENEMY_RANGED_RANGE_COLOR = new Color(1f, 0.5f, 0.1f, 1f);
         private static readonly Color ENEMY_MELEE_HIT_WINDUP_COLOR = new Color(0f, 1f, 0f, 1f);
         private static readonly Color ENEMY_MELEE_HIT_ACTIVE_COLOR = new Color(1f, 0f, 0f, 1f);
+        // 플레이어 근접 판정 기즈모 색
+        private static readonly Color PLAYER_MELEE_HIT_WINDUP_COLOR = new Color(0f, 1f, 0f, 1f);
+        private static readonly Color PLAYER_MELEE_HIT_ACTIVE_COLOR = new Color(1f, 0f, 0f, 1f);
         // 피격 범위(hitRadius) 기즈모 색. 적과 플레이어가 같이 쓴다.
         private static readonly Color HIT_RADIUS_COLOR = new Color(1f, 1f, 1f, 1f);
 
-        // 디버그용으로 살아 있는 플레이어와 사망 중이 아닌 적의 피격 범위를 그린다. 쉘터는 움직이지 않으므로 ShelterAuthoringGizmo가 그린다.
+        // 디버그용으로 살아 있는 플레이어와 사망 중이 아닌 적의 피격 범위를 그린다. 플레이어가 근접 공격 중이면 판정 상자도 그린다. 쉘터는 움직이지 않으므로 ShelterAuthoringGizmo가 그린다.
         // 적은 자기 위치를 중심으로 판정 원을 XZ 평면에 그리고, 남은 NavMesh 경로를 선으로 그린다.
         // 감지 원은 항상 그린다. 추격·공격 중이면 정지 원과 공격별 사거리 원을 그리고, 목표가 플레이어면 해제 원도 그린다.
         private void OnDrawGizmos()
@@ -33,13 +36,14 @@ namespace Project06.Core
             }
 
             PlayerEntity[] players = _world.players.entities;
-            Handles.color = HIT_RADIUS_COLOR;
             for (int playerIndex = 0; playerIndex < players.Length; playerIndex++)
             {
                 ref PlayerEntity player = ref players[playerIndex];
                 if (player.isAlive && !player.isDead)
                 {
+                    Handles.color = HIT_RADIUS_COLOR;
                     Handles.DrawWireDisc(player.currentPosition, Vector3.up, player.player.hitRadius);
+                    DrawPlayerMeleeHit(in player);
                 }
             }
 
@@ -80,6 +84,26 @@ namespace Project06.Core
                     lineStart = corner;
                 }
             }
+        }
+
+        // 플레이어 근접 공격의 선딜레이와 타격 구간 동안 판정 상자를 그린다. 선딜레이는 초록, 타격 구간은 빨강으로 그린다.
+        private static void DrawPlayerMeleeHit(in PlayerEntity player)
+        {
+            if (player.meleePhase != PlayerMeleePhase.Windup && player.meleePhase != PlayerMeleePhase.Active)
+            {
+                return;
+            }
+
+            PlayerMeleeSystem.GetHitBox(in player, out Vector3 center, out Vector3 forward, out float halfLength, out float halfWidth);
+            Vector3 lengthAxis = forward * halfLength;
+            Vector3 widthAxis = Vector3.Cross(Vector3.up, forward) * halfWidth;
+            Handles.color = player.meleePhase == PlayerMeleePhase.Active ? PLAYER_MELEE_HIT_ACTIVE_COLOR : PLAYER_MELEE_HIT_WINDUP_COLOR;
+            Handles.DrawPolyLine(
+                center + lengthAxis + widthAxis,
+                center + lengthAxis - widthAxis,
+                center - lengthAxis - widthAxis,
+                center - lengthAxis + widthAxis,
+                center + lengthAxis + widthAxis);
         }
 
         // 근접 공격의 선딜레이와 타격 구간 동안 판정 모양을 그린다. 선딜레이는 초록, 타격 구간은 빨강으로 그린다.

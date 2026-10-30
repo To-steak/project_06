@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Project06.Components;
 using Project06.Entities;
 using Project06.Records;
 using Project06.Requests;
@@ -10,7 +11,7 @@ namespace Project06.Systems
     {
         /// <summary>
         /// 발사 대기 시간을 한 틱 줄이고, 발사 입력을 누르고 있으며 대기 시간이 끝났고 탄창에 탄이 있으면 한 발을 소비해 총구에서 바라보는 방향으로 투사체 생성을 요청한다.
-        /// 바라보는 방향은 총구의 앞쪽 직선이 조준점을 지나도록 정해져 있으므로, 투사체는 조준점을 지난다.
+        /// 바라보는 방향은 총구의 앞쪽 직선이 조준점을 지나도록 정해져 있으므로, 투사체는 조준점을 지난다. 원거리 무기를 든 플레이어만 처리한다.
         /// </summary>
         /// <param name="players">발사할 플레이어 저장소.</param>
         /// <param name="projectileSpawnRequests">투사체 생성 요청 큐.</param>
@@ -21,7 +22,7 @@ namespace Project06.Systems
             for (int index = 0; index < entities.Length; index++)
             {
                 ref PlayerEntity player = ref entities[index];
-                if (!player.isAlive || player.isDead || player.weaponIndex < 0)
+                if (!player.isAlive || player.isDead || player.weaponIndex < 0 || player.weapon.kind != WeaponKind.Ranged)
                 {
                     continue;
                 }

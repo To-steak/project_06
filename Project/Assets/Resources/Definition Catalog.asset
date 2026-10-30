@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00665ac9bba281044942537f68e8766d, type: 3}
   m_Name: Definition Catalog
   m_EditorClassIdentifier: Project06.Definitions::Project06.Definitions.DefinitionCatalog
-  player: {fileID: 11400000, guid: fd89d1d51c8e3b948986e7ba59d60883, type: 2}
-  shelter: {fileID: 11400000, guid: 17304f6470db0d948a1ab8e9e36bdebe, type: 2}
   dayNight: {fileID: 11400000, guid: 566737a93a668534e8e2ebc094e30d3c, type: 2}
   sky: {fileID: 11400000, guid: b21b7741c59abab48a0877de249b6ce6, type: 2}
   weapons:
   - {fileID: 11400000, guid: 3340221d9fe28c24c80727dac7bd13a4, type: 2}
+  - {fileID: 11400000, guid: e3d4d9cafd6dee6499bc77f0aef14e34, type: 2}
+  - {fileID: 11400000, guid: bfe5ec3f75e53c04a9ed4e789b790802, type: 2}
+  - {fileID: 11400000, guid: a2a3886cd45a8494481c27923c0280b8, type: 2}
   calibers:
   - {fileID: 11400000, guid: 5e2dbc2a871a4ec42a53d81621948ca1, type: 2}
   - {fileID: 11400000, guid: 0edc930d209cbb14682685c8286e5317, type: 2}
